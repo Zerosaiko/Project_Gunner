@@ -1,8 +1,21 @@
 #include "RenderSystem.h"
+#include "SDL_image.h"
 
-RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority}, dirty(false) {
+RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Window* window) : EntitySystem{manager, priority}, dirty(false), window(window) {
     displacePool = manager->getComponentPool<Displace>();
+    renderPool = manager->getComponentPool<Component<Renderable::name, Renderable>>();
 };
+
+RenderSystem::~RenderSystem() {
+    std::vector<SpriteSheet*> delSprites;
+    for( auto& sprite: sprites) {
+        delSprites.push_back(sprite.second);
+    }
+    for (auto& sprite : delSprites) {
+        delete sprite;
+        sprite = nullptr;
+    }
+}
 
 void RenderSystem::initialize() {}
 
@@ -26,8 +39,11 @@ void RenderSystem::addEntity(uint32_t id) {
                         disp_ren_pair{&displace->second, &render->second};
                     entities[idx] = disp_ren_pair;
                 }
-                (*renderPool)[render->second.second].data.sheet = nullptr;
                 dirty = true;
+
+                Renderable& ren = (*renderPool)[render->second.second].data;
+
+                ren.sheet = loadSprite(ren.spriteName);
             }
         }
     }
@@ -44,7 +60,7 @@ void RenderSystem::removeEntity(uint32_t id) {
 
 void RenderSystem::refreshEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && entities[entityID->second].first->first && entities[entityID->second].second->first) {
+    if (entityID != entityIDs.end() && !(entities[entityID->second].first->first && entities[entityID->second].second->first)) {
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
     } else if (entityID == entityIDs.end() ) {
@@ -61,16 +77,45 @@ void RenderSystem::render(float lerpT) {
 
     }
 
-    for(std::pair<EntityManager::component_pair const *, EntityManager::component_pair const * >& entity : entities) {
+    for(auto& entityID : entityIDs) {
+        auto& entity = entities[entityID.second];
         Displace& displace = (*displacePool)[entity.first->second];
         Renderable& render = (*renderPool)[entity.second->second].data;
 
+        SDL_Rect srcRect = *render.sheet->getSprite(render.spritePos);
+        SDL_Rect dstRect = srcRect;
+        dstRect.x = (int)(displace.pastPosX + displace.velX * lerpT);
+        dstRect.y = (int)(displace.pastPosY + displace.velY * lerpT);
 
-
+        SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);
     }
 
 }
 
 SpriteSheet* const RenderSystem::loadSprite(std::string spriteName) {
+    auto sprite = sprites.find(spriteName);
+    if (sprite == sprites.end()) {
+        std::ifstream metadata{spriteName + ".txt"};
+        std::string cWidth;
+        std::string cHeight;
+        std::string cSepW;
+        std::string cSepH;
+        metadata >> cWidth;
+        metadata >> cHeight;
+        metadata >> cSepW;
+        metadata >> cSepH;
 
+        std::vector<std::string> finalData{{cWidth, cHeight, cSepW, cSepH}};
+
+        int32_t cellWidth = buildFromString<int32_t>(finalData, 0);
+        int32_t cellHeight = buildFromString<int32_t>(finalData, 1);
+        int32_t cellSepWidth = buildFromString<int32_t>(finalData, 2);
+        int32_t cellSepHeight = buildFromString<int32_t>(finalData, 3);
+        metadata.close();
+        spriteName += ".png";
+        SDL_Surface* surf = IMG_Load(spriteName.c_str());
+        SpriteSheet* sheet = new SpriteSheet(surf, cellWidth, cellHeight, cellSepWidth, cellSepHeight, window);
+        sprites[spriteName] = sheet;
+    }
+    return sprites[spriteName];
 }

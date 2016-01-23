@@ -20,6 +20,8 @@ private:
 
         std::size_t build(EntityManager* manager, ComponentBase* cmp);
 
+        void registerManager(EntityManager*);
+
         void deregisterManager(EntityManager*);
 
         void registerComponent();

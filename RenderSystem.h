@@ -5,11 +5,22 @@
 #include <unordered_map>
 #include "displace.h"
 #include "renderable.h"
+#include "window.h"
+#include <fstream>
 
 class RenderSystem : public EntitySystem {
 
+    struct SpriteData {
+        int cellWidth;
+        int cellHeight;
+        int sepWidth;
+        int sepHeight;
+    };
+
 public:
-    RenderSystem(EntityManager* const manager, int32_t priority);
+    RenderSystem(EntityManager* const manager, int32_t priority, Window* window);
+
+    ~RenderSystem();
 
     void initialize();
 
@@ -35,11 +46,13 @@ private:
 
     std::vector<Component<Renderable::name, Renderable>>* renderPool;
 
-    std::unordered_map<std::string, SpriteSheet> sprites;
+    std::unordered_map<std::string, SpriteSheet*> sprites;
 
     SpriteSheet* const loadSprite(std::string spriteName);
 
     bool dirty;
+
+    Window* window;
 
 };
 

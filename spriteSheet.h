@@ -2,6 +2,7 @@
 #define SPRITESHEET_H_INCLUDED
 
 #include "SDL.h"
+#include "window.h"
 #include <vector>
 #include <cstdint>
 
@@ -12,17 +13,17 @@ public:
                           int32_t cellSepW, int32_t cellSepH);
 
     SpriteSheet(SDL_Surface*& srcSurface, int32_t cellWidth, int32_t cellHeight,
-                          int32_t cellSepW, int32_t cellSepH);
+                          int32_t cellSepW, int32_t cellSepH, Window* window);
 
     ~SpriteSheet();
 
-    SDL_Rect* const getSprite(uint32_t cellPos);
+    SDL_Rect const* getSprite(uint32_t cellPos) const;
 
-    SDL_Rect* const getSprite(uint32_t cellX, uint32_t cellY);
+    SDL_Rect const* getSprite(uint32_t cellX, uint32_t cellY) const;
 
     SDL_Texture* const getTexture() const;
 
-    explicit operator bool();
+    explicit operator bool() const;
 
 private:
 

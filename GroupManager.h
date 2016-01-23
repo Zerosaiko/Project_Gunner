@@ -6,12 +6,18 @@
 #include <cstdint>
 #include <vector>
 
+class EntityManager;
+
 class GroupManager {
 private:
 
     std::unordered_map<std::string, std::vector<uint32_t> > entityIDs;
 
+    EntityManager* manager;
+
 public:
+
+    GroupManager(EntityManager* manager);
 
     void groupEntity(std::string group, uint32_t entityID);
 

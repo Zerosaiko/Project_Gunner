@@ -39,6 +39,8 @@ public:
 
     virtual std::vector<std::string> tokenize(std::string instructions) = 0;
 
+    virtual void registerManager(EntityManager*) = 0;
+
     virtual void deregisterManager(EntityManager*) = 0;
 
     virtual ~ComponentFactory() = 0;
@@ -64,6 +66,8 @@ private:
         std::size_t build(EntityManager* manager, std::string instructions);
 
         std::size_t build(EntityManager* manager, ComponentBase* cmp);
+
+        void registerManager(EntityManager*);
 
         void deregisterManager(EntityManager*);
 
@@ -96,7 +100,7 @@ public:
 
 template <const std::string& cmpName, typename DataType>
 std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, size_t idx, std::string instructions) {
-    auto pool = Component<cmpName, DataType>::componentPools[manager];
+    auto& pool = Component<cmpName, DataType>::componentPools[manager];
     pool[idx].build(tokenize(instructions));
     return idx;
 
@@ -104,23 +108,30 @@ std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(Entity
 
 template <const std::string& cmpName, typename DataType>
 std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, size_t idx, ComponentBase* cmp) {
-    auto pool = Component<cmpName, DataType>::componentPools[manager];
+    auto& pool = Component<cmpName, DataType>::componentPools[manager];
     pool[idx] = *static_cast<Component<cmpName, DataType>*>(cmp);
     return idx;
 }
 
 template <const std::string& cmpName, typename DataType>
 std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, std::string instructions) {
-    auto pool = Component<cmpName, DataType>::componentPools[manager];
+    auto& pool = Component<cmpName, DataType>::componentPools[manager];
     pool.emplace_back(tokenize(instructions));
-    return pool.size();
+    return pool.size() - 1;
 }
 
 template <const std::string& cmpName, typename DataType>
 std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, ComponentBase* cmp) {
-    auto pool = Component<cmpName, DataType>::componentPools[manager];
+    auto& pool = Component<cmpName, DataType>::componentPools[manager];
     pool.emplace_back(*static_cast<Component<cmpName, DataType>*>(cmp));
-    return pool.size();
+    return pool.size() - 1;
+}
+
+template <const std::string& cmpName, typename DataType>
+void Component<cmpName, DataType>::ComponentFactoryInternal::registerManager(EntityManager* manager) {
+
+    Component<cmpName, DataType>::componentPools[manager];
+
 }
 
 template <const std::string& cmpName, typename DataType>

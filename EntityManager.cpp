@@ -2,9 +2,11 @@
 #include <iostream>
 #include <algorithm>
 
-EntityManager::EntityManager() : compTypeCount{componentUtils::factoryMap.size()} {
+EntityManager::EntityManager() : tagManager{this}, groupManager{this} {
 
-
+    for ( auto& factoryPair : componentUtils::factoryMap ) {
+        factoryPair.second->registerManager(this);
+    }
 
 }
 
@@ -26,6 +28,7 @@ EntityManager::~EntityManager() {
 
 void EntityManager::update(float dt) {
     for (auto system : systems) {
+
         system->process(dt);
     }
 }
@@ -62,6 +65,9 @@ void EntityManager::destroyEntity(uint32_t id) {
     for(auto compPair : components) {
         freeComponents[compPair.first].push_back(compPair.second.second);
     }
+    for (auto system : systems) {
+        system->removeEntity(id);
+    }
     entities.erase(id);
     freeIDs.push_back(id);
     tagManager.untagEntity(id);
@@ -91,6 +97,8 @@ void EntityManager::addComponent(std::string& instructions, uint32_t id) {
         componentID->second.first = true;
         factory->build(this, componentID->second.second, instructions);
     }
+
+    refreshEntity(id);
 }
 
 void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
@@ -101,6 +109,7 @@ void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
 
     if (entities.find(id) == entities.end()) id = createEntity(id);
     auto& entity = entities[id];
+
     auto componentID = entity.find(compName);
     auto& factory = componentUtils::factoryMap.at(compName);
     if (componentID == entity.end() ) {
@@ -117,6 +126,8 @@ void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
         componentID->second.first = true;
         factory->build(this, componentID->second.second, instructions);
     }
+
+    refreshEntity(id);
 }
 
 void EntityManager::removeComponent(std::string& compName, uint32_t id) {
@@ -125,6 +136,8 @@ void EntityManager::removeComponent(std::string& compName, uint32_t id) {
         auto componentID = entity->second.find(compName);
         if (componentID != entity->second.end())
             componentID->second.first = false;
+
+        refreshEntity(id);
     }
 }
 
@@ -135,6 +148,8 @@ void EntityManager::removeComponent(std::string&& compName, uint32_t id) {
         auto componentID = entity->second.find(compName);
         if (componentID != entity->second.end())
             componentID->second.first = false;
+
+        refreshEntity(id);
     }
 }
 
@@ -144,4 +159,10 @@ EntityManager::entity_map const * EntityManager::getEntity(uint32_t id) {
     if (entity != entities.end())
         entitySet = &entity->second;
     return entitySet;
+}
+
+void EntityManager::refreshEntity(uint32_t id) {
+    for (auto& system : systems) {
+        system->refreshEntity(id);
+    }
 }

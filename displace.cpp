@@ -4,28 +4,28 @@
 Displace::DisplaceFactory* Displace::factory{nullptr};
 
 std::size_t Displace::DisplaceFactory::build(EntityManager* manager, size_t idx, std::string instructions) {
-    auto pool = Displace::componentPools[manager];
+    auto& pool = Displace::componentPools[manager];
     pool[idx].build(tokenize(instructions));
     return idx;
 }
 
 std::size_t Displace::DisplaceFactory::build(EntityManager* manager, size_t idx, ComponentBase* cmp) {
-    auto pool = Displace::componentPools[manager];
+    auto& pool = Displace::componentPools[manager];
     pool[idx] = *(Displace*)cmp;
     return idx;
 }
 
 std::size_t Displace::DisplaceFactory::build(EntityManager* manager, std::string instructions) {
-    auto pool = Displace::componentPools[manager];
+    auto& pool = Displace::componentPools[manager];
     pool.emplace_back(tokenize(instructions));
-    return pool.size();
+    return pool.size() - 1;
 
 }
 
 std::size_t Displace::DisplaceFactory::build(EntityManager* manager, ComponentBase* cmp) {
-    auto pool = Displace::componentPools[manager];
+    auto& pool = Displace::componentPools[manager];
     pool.emplace_back(*(Displace*)cmp);
-    return pool.size();
+    return pool.size() - 1;
 }
 
 std::vector<std::string> Displace::DisplaceFactory::tokenize(std::string instructions) {
@@ -50,8 +50,23 @@ std::vector<std::string> Displace::DisplaceFactory::tokenize(std::string instruc
             }
 
         }
+
+        if (tokenStart != std::string::npos)
+            tokenizedString.emplace_back(instructions.substr(tokenStart));
+
     }
+
+    for( auto token : tokenizedString) {
+
+    }
+
     return tokenizedString;
+}
+
+void Displace::DisplaceFactory::registerManager(EntityManager* manager) {
+
+    Displace::componentPools[manager];
+
 }
 
 void Displace::DisplaceFactory::deregisterManager(EntityManager* manager) {

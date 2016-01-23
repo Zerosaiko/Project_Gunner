@@ -55,7 +55,7 @@ void Engine::run() {
         if (currentState) {
 
             currentState->handleInput();
-            if (currentTime > 5.0f / 60.0f) currentTime = 5.0f / 60.0f;
+            if (currentTime > 3.0f / 60.0f) currentTime = 3.0f / 60.0f;
             for(; currentTime >= 1.0f / currentFPS; currentTime -= 1.0f / currentFPS) {
                 currentState->update(1.0f / currentFPS);
             }

@@ -47,7 +47,9 @@ public:
 
     entity_map const * getEntity(uint32_t id);
 
-    template<typename CMPType> std::vector<CMPType>* const getComponentPool();
+    template<typename CMPType> std::vector<CMPType>* getComponentPool();
+
+    void refreshEntity(uint32_t id);
 
     TagManager tagManager;
     GroupManager groupManager;
@@ -55,7 +57,6 @@ public:
 protected:
 
 private:
-    const uint32_t compTypeCount;
     std::unordered_map<uint32_t, entity_map> entities;
     std::vector<uint32_t> freeIDs;
     std::unordered_map<std::string, std::deque<std::size_t>> freeComponents;
@@ -83,6 +84,7 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
         componentID->first = true;
         factory->build(this, componentID->second.second, comp);
     }
+    refreshEntity(id);
 
 }
 
@@ -106,6 +108,7 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
         componentID->first = true;
         factory->build(this, componentID->second.second, comp);
     }
+    refreshEntity(id);
 
 }
 
@@ -116,12 +119,13 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
         auto componentID = entity->second.find(compName);
         if (componentID != entity->second.end())
             componentID->second.first = false;
+        refreshEntity(id);
     }
 
 }
 
-template<typename CMPType> std::vector<CMPType>* const EntityManager::getComponentPool() {
-    return &CMPType::componentPools.at(this);
+template<typename CMPType> std::vector<CMPType>* EntityManager::getComponentPool() {
+    return &CMPType::componentPools[this];
 
 }
 

@@ -5,12 +5,18 @@
 #include <string>
 #include <cstdint>
 
+class EntityManager;
+
 class TagManager {
 private:
 
     std::unordered_map<std::string, uint32_t > entityIDs;
 
+    EntityManager* manager;
+
 public:
+
+    TagManager(EntityManager* manager);
 
     void tagEntity(std::string tag, uint32_t entityID);
 

@@ -1,4 +1,5 @@
 #include "MovementSystem.h"
+#include "SDL.h"
 
 MovementSystem::MovementSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     displacePool = manager->getComponentPool<Displace>();
@@ -48,12 +49,15 @@ void MovementSystem::refreshEntity(uint32_t id) {
 }
 
 void MovementSystem::process(float dt) {
-    for(EntityManager::component_pair const * entity : entities) {
+
+    for(auto& entityID : entityIDs) {
+        auto& entity = entities[entityID.second];
         Displace& displace = (*displacePool)[entity->second];
         displace.pastPosX = displace.posX;
         displace.pastPosY = displace.posY;
         displace.posX += dt * displace.velX;
         displace.posY += dt * displace.velY;
     }
+
 }
 
