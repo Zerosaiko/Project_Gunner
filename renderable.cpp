@@ -1,4 +1,6 @@
 #include "renderable.h"
+#include <cstdlib>
+#include <vector>
 
 Renderable::Renderable() : spriteName("defaultsprite"), spritePos(0), zOrder(0), sheet(nullptr) {}
 
@@ -32,4 +34,13 @@ bool operator<=(const Renderable& a, const Renderable& b) {
 
 bool operator>=(const Renderable& a, const Renderable& b) {
     return !operator<(a, b);
+}
+
+template<>
+Renderable buildFromString<Renderable>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
+    Renderable r;
+    r.spriteName = str[pos++];
+    r.spritePos = std::atoi(str[pos++].c_str());
+    r.zOrder = std::atoi(str[pos++].c_str());
+    return r;
 }

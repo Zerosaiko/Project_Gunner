@@ -4,7 +4,7 @@
 #include <string>
 
 namespace componentName {
-    extern const std::string health;
+
 }
 
 

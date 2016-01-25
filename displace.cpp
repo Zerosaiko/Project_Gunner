@@ -1,4 +1,5 @@
 #include "displace.h"
+#include <iostream>
 #include <locale>
 
 Displace::DisplaceFactory* Displace::factory{nullptr};
@@ -36,7 +37,8 @@ std::vector<std::string> Displace::DisplaceFactory::tokenize(std::string instruc
     std::string::size_type tokenStart = std::string::npos;
     std::locale loc;
     if (beginCmp != std::string::npos) {
-        tokenizedString.push_back("component:displace");
+        tokenizedString.push_back("component");
+        tokenizedString.push_back("displace");
         for(auto start = beginCmp; start != std::string::npos &&
                 start < instructions.size() && i < 4; ++start) {
             auto ch = instructions[start];
@@ -54,9 +56,6 @@ std::vector<std::string> Displace::DisplaceFactory::tokenize(std::string instruc
         if (tokenStart != std::string::npos)
             tokenizedString.emplace_back(instructions.substr(tokenStart));
 
-    }
-
-    for( auto token : tokenizedString) {
 
     }
 
@@ -86,11 +85,13 @@ const std::string Displace::getName(){ return "displace"; };
 
 void Displace::build(std::vector<std::string> instructions) {
 
-    if (instructions.size() >= 5) {
-        posX = buildFromString<float>(instructions, 1);
-        posY = buildFromString<float>(instructions, 2);
-        velX = buildFromString<float>(instructions, 3);
-        velY = buildFromString<float>(instructions, 4);
+    if (instructions.size() >= 6) {
+        posX = buildFromString<float>(instructions, 2);
+        posY = buildFromString<float>(instructions, 3);
+        velX = buildFromString<float>(instructions, 4);
+        velY = buildFromString<float>(instructions, 5);
+        pastPosX = posX;
+        pastPosY = posY;
     }
 
 }

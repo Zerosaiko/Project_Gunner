@@ -48,6 +48,7 @@ uint32_t EntityManager::createEntity() {
         freeIDs.pop_back();
     } else
         id = createEntity(0);
+    entities[id];
     return id;
 }
 
@@ -55,8 +56,9 @@ uint32_t EntityManager::createEntity(uint32_t id) {
     if (!freeIDs.empty() && entities.find(id) != entities.end()) {
         id = freeIDs.back();
         freeIDs.pop_back();
-    }
-    while (entities.find(id) != entities.end()) id = (id+1) << 1;
+    } else
+        while (entities.find(id++) != entities.end())
+    entities[id];
     return id;
 }
 
@@ -71,6 +73,8 @@ void EntityManager::destroyEntity(uint32_t id) {
     entities.erase(id);
     freeIDs.push_back(id);
     tagManager.untagEntity(id);
+    removeParent(id);
+    clearChildren(id);
 }
 
 void EntityManager::addComponent(std::string& instructions, uint32_t id) {
@@ -138,6 +142,11 @@ void EntityManager::removeComponent(std::string& compName, uint32_t id) {
             componentID->second.first = false;
 
         refreshEntity(id);
+        bool alive = false;
+        for (auto it = entity->second.begin(); !alive && it != entity->second.end(); ++it) {
+            alive = it->second.first;
+        }
+        if (!alive) destroyEntity(id);
     }
 }
 
@@ -150,6 +159,11 @@ void EntityManager::removeComponent(std::string&& compName, uint32_t id) {
             componentID->second.first = false;
 
         refreshEntity(id);
+        bool alive = false;
+        for (auto it = entity->second.begin(); !alive && it != entity->second.end(); ++it) {
+            alive = it->second.first;
+        }
+        if (!alive) destroyEntity(id);
     }
 }
 
@@ -166,3 +180,61 @@ void EntityManager::refreshEntity(uint32_t id) {
         system->refreshEntity(id);
     }
 }
+
+void EntityManager::setParent(uint32_t child, uint32_t parent) {
+    childToParent[child] = parent;
+    auto& children = parentToChildren[parent];
+    auto it = std::find(children.begin(), children.end(), child);
+    if (it == children.end()) {
+        children.push_back(child);
+    }
+}
+
+void EntityManager::addChild(uint32_t parent, uint32_t child) {
+    childToParent[child] = parent;
+    auto& children = parentToChildren[parent];
+    auto it = std::find(children.begin(), children.end(), child);
+    if (it == children.end()) {
+        children.push_back(child);
+    }
+}
+
+void EntityManager::removeParent(uint32_t child) {
+    uint32_t parent = childToParent[child];
+    auto& children = parentToChildren[parent];
+    auto it = std::find(children.begin(), children.end(), child);
+    if (it != children.end()) {
+        *it = children.back();
+        children.pop_back();
+    }
+    childToParent.erase(child);
+
+}
+
+void EntityManager::removeChild(uint32_t parent, uint32_t child) {
+    auto& children = parentToChildren[parent];
+    auto it = std::find(children.begin(), children.end(), child);
+    if (it != children.end()) {
+        *it = children.back();
+        children.pop_back();
+    }
+    childToParent.erase(child);
+
+}
+
+void EntityManager::clearChildren(uint32_t parent) {
+    auto& children = parentToChildren[parent];
+    for (uint32_t child : children) {
+        childToParent.erase(child);
+    }
+    parentToChildren.erase(parent);
+}
+
+uint32_t EntityManager::getParent(uint32_t child) {
+    return childToParent[child];
+}
+
+std::vector<uint32_t>& EntityManager::getChildren(uint32_t parent) {
+    return parentToChildren[parent];
+}
+

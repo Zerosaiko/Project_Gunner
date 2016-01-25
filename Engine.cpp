@@ -5,6 +5,7 @@
 #include "playState.h"
 #include "renderable.h"
 #include "displace.h"
+#include "scriptcomponent.h"
 #include <iostream>
 
 Engine::Engine() : stateStack{}, running(true),
@@ -29,6 +30,7 @@ Engine::~Engine() {
 void Engine::run() {
 
     Component<Renderable::name, Renderable>::registerComponent();
+    Component<Script::name, Script>::registerComponent();
     Displace::registerComponent();
 
     if (!window) {
@@ -42,6 +44,7 @@ void Engine::run() {
     pushState(new PlayState(window));
 
     beginTime = SDL_GetPerformanceCounter();
+    currentTime = 1.0f / currentFPS;
     while(running) {
         SDL_Delay(0);
         currentTime += (float)(SDL_GetPerformanceCounter() - beginTime) / SDL_GetPerformanceFrequency();
@@ -55,7 +58,7 @@ void Engine::run() {
         if (currentState) {
 
             currentState->handleInput();
-            if (currentTime > 3.0f / 60.0f) currentTime = 3.0f / 60.0f;
+            if (currentTime > 2.0f / 60.0f) currentTime = 2.0f / 60.0f;
             for(; currentTime >= 1.0f / currentFPS; currentTime -= 1.0f / currentFPS) {
                 currentState->update(1.0f / currentFPS);
             }

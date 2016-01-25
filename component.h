@@ -146,20 +146,19 @@ std::vector<std::string> Component<cmpName, DataType>::ComponentFactoryInternal:
     auto beginCmp = instructions.find_first_of(" \n\f\r\t\v", instructions.find("component:" + cmpName));
     std::vector<std::string> tokenizedString;
     tokenizedString.reserve(5);
-    int8_t i = 0;
     std::string::size_type tokenStart = std::string::npos;
     std::locale loc;
     if (beginCmp != std::string::npos) {
-        tokenizedString.push_back("component:" + cmpName);
+        tokenizedString.push_back("component");
+        tokenizedString.push_back(cmpName);
         for(auto start = beginCmp; start != std::string::npos &&
-                start < instructions.size() && i < 4; ++start) {
+                start < instructions.size(); ++start) {
             auto ch = instructions[start];
             if (!std::isspace(ch, loc) && ch != ',' && ch != '\n' && tokenStart == std::string::npos) {
                 tokenStart = start;
             }
             if ( (std::isspace(ch, loc) || ch == ',' || ch== '\n') && tokenStart != std::string::npos) {
                 tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart));
-                ++i;
                 tokenStart = std::string::npos;
             }
 
@@ -167,10 +166,6 @@ std::vector<std::string> Component<cmpName, DataType>::ComponentFactoryInternal:
 
         if (tokenStart != std::string::npos)
             tokenizedString.emplace_back(instructions.substr(tokenStart));
-
-    }
-
-    for( auto token : tokenizedString) {
 
     }
 
@@ -197,8 +192,8 @@ const std::string Component<cmpName, DataType>::getName(){ return cmpName; };
 template <const std::string& cmpName, typename DataType>
 void Component<cmpName, DataType>::build(std::vector<std::string> instructions) {
 
-    if (instructions.size() >= 2) {
-            data = buildFromString<DataType>(instructions, 1);
+    if (instructions.size() >= 3) {
+            data = buildFromString<DataType>(instructions, 2);
     }
 
 }

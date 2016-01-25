@@ -50,6 +50,8 @@ void MovementSystem::refreshEntity(uint32_t id) {
 
 void MovementSystem::process(float dt) {
 
+    auto startT = SDL_GetPerformanceCounter();
+
     for(auto& entityID : entityIDs) {
         auto& entity = entities[entityID.second];
         Displace& displace = (*displacePool)[entity->second];
@@ -58,6 +60,10 @@ void MovementSystem::process(float dt) {
         displace.posX += dt * displace.velX;
         displace.posY += dt * displace.velY;
     }
+
+    auto endT = SDL_GetPerformanceCounter();
+
+    //std::cout << "M-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
 
 }
 

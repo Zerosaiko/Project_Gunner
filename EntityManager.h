@@ -51,6 +51,20 @@ public:
 
     void refreshEntity(uint32_t id);
 
+    void setParent(uint32_t child, uint32_t parent);
+
+    void addChild(uint32_t parent, uint32_t child);
+
+    void removeParent(uint32_t child);
+
+    void removeChild(uint32_t parent, uint32_t child);
+
+    void clearChildren(uint32_t parent);
+
+    uint32_t getParent(uint32_t child);
+
+    std::vector<uint32_t>& getChildren(uint32_t parent);
+
     TagManager tagManager;
     GroupManager groupManager;
 
@@ -61,6 +75,8 @@ private:
     std::vector<uint32_t> freeIDs;
     std::unordered_map<std::string, std::deque<std::size_t>> freeComponents;
     std::vector<EntitySystem*> systems;
+    std::unordered_map<uint32_t, uint32_t> childToParent;
+    std::unordered_map<uint32_t, std::vector<uint32_t>> parentToChildren;
 
 };
 
@@ -120,6 +136,11 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
         if (componentID != entity->second.end())
             componentID->second.first = false;
         refreshEntity(id);
+        bool alive = false;
+        for (auto it = entity->second.begin(); !alive && it != entity->second.end(); ++it) {
+            alive = it->second.first;
+        }
+        if (!alive) destroyEntity(id);
     }
 
 }

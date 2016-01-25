@@ -7,6 +7,7 @@
 #include "window.h"
 #include "MovementSystem.h"
 #include "RenderSystem.h"
+#include "ScriptSystem.h"
 
 class PlayState : public GameState{
 public:
@@ -26,6 +27,7 @@ private:
     Window* window;
     MovementSystem moveSys;
     RenderSystem renderSys;
+    ScriptSystem scriptSys;
 };
 
 #endif // PLAYSTATE_H_INCLUDED

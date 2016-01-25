@@ -1,4 +1,6 @@
 #include "spriteSheet.h"
+#include <iostream>
+
 
 SpriteSheet::SpriteSheet(SDL_Texture* srcTexture, int32_t cellWidth, int32_t cellHeight,
                           int32_t cellSepW, int32_t cellSepH) :

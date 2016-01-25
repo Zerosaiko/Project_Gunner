@@ -1,5 +1,6 @@
 #include "component.h"
 #include "renderable.h"
+#include "scriptcomponent.h"
 #include <cstdlib>
 #include <string>
 
@@ -54,13 +55,4 @@ float buildFromString<float>(std::vector<std::string> str, std::vector<std::stri
 template<>
 std::string buildFromString<std::string>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
     return str[pos];
-}
-
-template<>
-Renderable buildFromString<Renderable>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
-    Renderable r;
-    r.spriteName = str[pos++];
-    r.spritePos = std::atoi(str[pos++].c_str());
-    r.zOrder = std::atoi(str[pos++].c_str());
-    return r;
 }

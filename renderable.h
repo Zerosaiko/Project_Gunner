@@ -3,6 +3,7 @@
 
 #include <string>
 #include "spriteSheet.h"
+#include "component.h"
 
 struct Renderable {
     std::string spriteName;
