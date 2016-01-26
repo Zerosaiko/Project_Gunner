@@ -7,6 +7,7 @@
 
 class EntityManager;
 
+//  uniquely maps an ID to a string
 class TagManager {
 private:
 

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "displace.h"
 
+//  Simply adds the velocity of the Displace object to the position, and then saves the old position for interpolation
 class MovementSystem : public EntitySystem {
 
 public:

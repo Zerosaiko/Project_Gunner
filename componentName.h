@@ -3,6 +3,8 @@
 
 #include <string>
 
+//just a namespace for declaring const strings
+
 namespace componentName {
 
 }

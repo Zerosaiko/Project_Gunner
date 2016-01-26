@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdint>
 
+//  cannot atlas textures, but does allow usage of simple rectangle bound sprite sheets
 class SpriteSheet {
 public:
 

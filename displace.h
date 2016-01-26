@@ -3,6 +3,8 @@
 
 #include "component.h"
 
+//  an example of inheriting from ComponentBase to create a custom component
+//  in retrospect, it seems much easier to just use the Component template class directly, if somewhat more verbose in usage
 class Displace : public ComponentBase {
 
 

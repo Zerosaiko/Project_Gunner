@@ -8,14 +8,9 @@
 #include "window.h"
 #include <fstream>
 
+//  sort of hacky and incomplete system, should sort by z-order (texture doesn't matter because SDL has no concept of sprite batching sadly) if entities are added or removed
+//  renders images from sprite sheets. No support for shapes currently
 class RenderSystem : public EntitySystem {
-
-    struct SpriteData {
-        int cellWidth;
-        int cellHeight;
-        int sepWidth;
-        int sepHeight;
-    };
 
 public:
     RenderSystem(EntityManager* const manager, int32_t priority, Window* window);

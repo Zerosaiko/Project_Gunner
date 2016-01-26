@@ -12,6 +12,7 @@
 
 class EntitySystem;
 
+// intermediates between systems and components, making entities composed of a variable number of components
 class EntityManager {
 
 public:
@@ -69,16 +70,21 @@ public:
     TagManager tagManager;
     GroupManager groupManager;
 
+    //  deferred system adding of entities for post-update
     std::unordered_set<uint32_t> entitiesToDestroy;
     std::unordered_set<uint32_t> entitiesToRefresh;
 
 protected:
 
 private:
+    //  mapping from entity id to an entity, basically a map of components
     std::unordered_map<uint32_t, entity_map> entities;
+    //  recycles entity ids from destroyed entities
     std::vector<uint32_t> freeIDs;
+    //  recycles component indexes from destroyed components
     std::unordered_map<std::string, std::deque<std::size_t>> freeComponents;
     std::vector<EntitySystem*> systems;
+    //  maps for two-way entity relationships
     std::unordered_map<uint32_t, uint32_t> childToParent;
     std::unordered_map<uint32_t, std::vector<uint32_t>> parentToChildren;
 

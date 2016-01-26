@@ -16,6 +16,7 @@ namespace componentUtils {
     extern std::map<std::string, ComponentFactory*> factoryMap;
 }
 
+// utility functions to turn parsed strings into objects
 template <typename DataType>
 DataType buildFromString(std::vector<std::string> str, std::vector<std::string>::size_type pos);
 
@@ -29,6 +30,8 @@ protected:
 template <const std::string& cmpName, typename DataType>
 struct Component;
 
+//  doesn't seem to fit with the Factory pattern in retrospect, but can't think of any other names
+//  basically container of functions to tokenize and create components
 class ComponentFactory {
 public:
 
@@ -50,6 +53,10 @@ protected:
 
 };
 
+//  genericish component class that can contain most datatypes for quick component making
+//  the name must be a const string
+//  because of the constructor that builds, DataType cannot be a vector of strings
+//  DataType must have a default constructor and copy constructor
 template <const std::string& cmpName, typename DataType>
 struct Component : public ComponentBase {
 
@@ -79,6 +86,8 @@ public:
     static std::map<EntityManager*, cmpPool> componentPools;
     static const std::string getName();
     static ComponentFactoryInternal* factory;
+
+    //creates a ComponentFactory for the component type
     static void registerComponent();
 
     void build(std::vector<std::string> instructions);
@@ -141,6 +150,12 @@ void Component<cmpName, DataType>::ComponentFactoryInternal::deregisterManager(E
 
 }
 
+//splits component definition into a vector that consists of
+/*
+    component
+    {Name of Component}
+    data that makes up component
+*/
 template <const std::string& cmpName, typename DataType>
 std::vector<std::string> Component<cmpName, DataType>::ComponentFactoryInternal::tokenize(std::string instructions) {
     auto beginCmp = instructions.find_first_of(" \n\f\r\t\v", instructions.find("component:" + cmpName));
@@ -198,6 +213,7 @@ void Component<cmpName, DataType>::build(std::vector<std::string> instructions) 
 
 }
 
+//  deallocates memory for factories. Mainly for end of runtime cleanup
 void deregisterAllComponents();
 
 #endif // COMPONENT_H_INCLUDED

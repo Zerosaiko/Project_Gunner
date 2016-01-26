@@ -7,6 +7,7 @@
 #include "gameState.h"
 #include "component.h"
 
+// just a centralized place to initialize SDL and run the game loop
 class Engine {
 
 public:

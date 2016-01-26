@@ -5,10 +5,10 @@
 #include <vector>
 #include "component.h"
 
+//  contains a "script" that will be run by a ScriptSystem
 struct Script {
     static const std::string name;
     std::vector<std::string> tokenizedScript;
-    int i = 0;
 };
 
 #endif // SCRIPTCOMPONENT_H_INCLUDED

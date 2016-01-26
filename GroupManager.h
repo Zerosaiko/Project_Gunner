@@ -8,6 +8,7 @@
 
 class EntityManager;
 
+//  class that groups various entities under a common identifier and allows retrieval of IDs by group
 class GroupManager {
 private:
 
