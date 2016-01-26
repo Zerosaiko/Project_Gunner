@@ -28,8 +28,13 @@ EntityManager::~EntityManager() {
 
 void EntityManager::update(float dt) {
     for (auto system : systems) {
-
         system->process(dt);
+    }
+    for (uint32_t entity : entitiesToRefresh) {
+        refreshEntity(entity);
+    }
+    for (uint32_t entity : entitiesToDestroy) {
+        destroyEntity(entity);
     }
 }
 
@@ -102,7 +107,7 @@ void EntityManager::addComponent(std::string& instructions, uint32_t id) {
         factory->build(this, componentID->second.second, instructions);
     }
 
-    refreshEntity(id);
+    entitiesToRefresh.insert(id);
 }
 
 void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
@@ -131,7 +136,7 @@ void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
         factory->build(this, componentID->second.second, instructions);
     }
 
-    refreshEntity(id);
+    entitiesToRefresh.insert(id);
 }
 
 void EntityManager::removeComponent(std::string& compName, uint32_t id) {
@@ -141,12 +146,12 @@ void EntityManager::removeComponent(std::string& compName, uint32_t id) {
         if (componentID != entity->second.end())
             componentID->second.first = false;
 
-        refreshEntity(id);
         bool alive = false;
         for (auto it = entity->second.begin(); !alive && it != entity->second.end(); ++it) {
             alive = it->second.first;
         }
-        if (!alive) destroyEntity(id);
+        if (!alive) entitiesToDestroy.insert(id);
+        else entitiesToRefresh.insert(id);
     }
 }
 
@@ -158,12 +163,12 @@ void EntityManager::removeComponent(std::string&& compName, uint32_t id) {
         if (componentID != entity->second.end())
             componentID->second.first = false;
 
-        refreshEntity(id);
         bool alive = false;
         for (auto it = entity->second.begin(); !alive && it != entity->second.end(); ++it) {
             alive = it->second.first;
         }
-        if (!alive) destroyEntity(id);
+        if (!alive) entitiesToDestroy.insert(id);
+        else entitiesToDestroy.insert(id);
     }
 }
 

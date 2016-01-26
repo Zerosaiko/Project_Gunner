@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <unordered_set>
 #include <deque>
 #include "component.h"
 #include "TagManager.h"
@@ -68,6 +69,8 @@ public:
     TagManager tagManager;
     GroupManager groupManager;
 
+    std::unordered_set<uint32_t> entitiesToDestroy;
+
 protected:
 
 private:
@@ -77,6 +80,8 @@ private:
     std::vector<EntitySystem*> systems;
     std::unordered_map<uint32_t, uint32_t> childToParent;
     std::unordered_map<uint32_t, std::vector<uint32_t>> parentToChildren;
+    std::unordered_set<uint32_t> entitiesToRefresh;
+
 
 };
 
@@ -100,8 +105,7 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
         componentID->first = true;
         factory->build(this, componentID->second.second, comp);
     }
-    refreshEntity(id);
-
+    entitiesToRefresh.insert(id);
 }
 
 template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint32_t id) {
@@ -124,7 +128,7 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
         componentID->first = true;
         factory->build(this, componentID->second.second, comp);
     }
-    refreshEntity(id);
+    entitiesToRefresh.insert(id);
 
 }
 
@@ -140,7 +144,8 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
         for (auto it = entity->second.begin(); !alive && it != entity->second.end(); ++it) {
             alive = it->second.first;
         }
-        if (!alive) destroyEntity(id);
+        if (!alive) entitiesToDestroy.insert(id);
+        else entitiesToRefresh.insert(id);
     }
 
 }

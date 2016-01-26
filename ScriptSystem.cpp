@@ -94,7 +94,7 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             while(i < end && script.tokenizedScript[i] != "stop_") {
                 (str += "\n") += script.tokenizedScript[i++];
             }
-            std::cout << "Script: " << str;
+            std::cout << "Script: " << str << '\n';
             if (!children)
                 manager->addComponent(str, targetID);
             else {
@@ -119,10 +119,10 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
                 i += children;
             }
             if (!children)
-                manager->destroyEntity(targetID);
+                manager->entitiesToDestroy.insert(targetID);
             else {
                 for (auto& child: manager->getChildren(id)) {
-                    manager->destroyEntity(child);
+                    manager->entitiesToDestroy.insert(child);
                 }
             }
         } else ++i;
