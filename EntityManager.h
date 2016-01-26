@@ -70,6 +70,7 @@ public:
     GroupManager groupManager;
 
     std::unordered_set<uint32_t> entitiesToDestroy;
+    std::unordered_set<uint32_t> entitiesToRefresh;
 
 protected:
 
@@ -80,7 +81,6 @@ private:
     std::vector<EntitySystem*> systems;
     std::unordered_map<uint32_t, uint32_t> childToParent;
     std::unordered_map<uint32_t, std::vector<uint32_t>> parentToChildren;
-    std::unordered_set<uint32_t> entitiesToRefresh;
 
 
 };
