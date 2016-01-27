@@ -46,15 +46,16 @@ void Engine::run() {
     beginTime = SDL_GetPerformanceCounter();
     currentTime = 1.0f / currentFPS;
     while(running) {
-        SDL_Delay(0);
-        currentTime += (float)(SDL_GetPerformanceCounter() - beginTime) / SDL_GetPerformanceFrequency();
-        beginTime = SDL_GetPerformanceCounter();
         for(SDL_Event e; SDL_PollEvent(&e);) {
             if (e.type == SDL_QUIT) {
                 running = false;
             }
         }
         GameState* currentState = peekState();
+        if (currentTime < 0.1f / currentFPS)
+            SDL_Delay(1);
+        currentTime += (float)(SDL_GetPerformanceCounter() - beginTime) / SDL_GetPerformanceFrequency();
+        beginTime = SDL_GetPerformanceCounter();
         if (currentState) {
 
             currentState->handleInput();
