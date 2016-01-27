@@ -187,6 +187,11 @@ void EntityManager::refreshEntity(uint32_t id) {
 }
 
 void EntityManager::setParent(uint32_t child, uint32_t parent) {
+    auto getParent = childToParent.find(child);
+    if (getParent != childToParent.end()) {
+        if (getParent->second != parent)
+            removeParent(child);
+    }
     childToParent[child] = parent;
     auto& children = parentToChildren[parent];
     auto it = std::find(children.begin(), children.end(), child);
@@ -196,6 +201,11 @@ void EntityManager::setParent(uint32_t child, uint32_t parent) {
 }
 
 void EntityManager::addChild(uint32_t parent, uint32_t child) {
+    auto getParent = childToParent.find(child);
+    if (getParent != childToParent.end()) {
+        if (getParent->second != parent)
+            removeParent(child);
+    }
     childToParent[child] = parent;
     auto& children = parentToChildren[parent];
     auto it = std::find(children.begin(), children.end(), child);
