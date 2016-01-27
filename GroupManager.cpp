@@ -39,7 +39,7 @@ void GroupManager::removeGroup(std::string group) {
     std::vector<uint32_t> ids = entityIDs[group];
     entityIDs.erase(group);
     for (auto id : ids) {
-        manager->entitiesToRefresh.insert.insert(id);
+        manager->entitiesToRefresh.insert(id);
     }
 }
 
