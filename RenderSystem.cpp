@@ -82,13 +82,15 @@ void RenderSystem::render(float lerpT) {
     for(auto& entityID : entityIDs) {
         auto& entity = entities[entityID.second];
         Displace& displace = (*displacePool)[entity.first->second];
-        Renderable& render = (*renderPool)[entity.second->second].data;;
-        const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
-        SDL_Rect dstRect = srcRect;
-        dstRect.x = (int)(displace.pastPosX + displace.velX * lerpT);
-        dstRect.y = (int)(displace.pastPosY + displace.velY * lerpT);
+        Renderable& render = (*renderPool)[entity.second->second].data;
+        if (*render.sheet) {
+            const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
+            SDL_Rect dstRect = srcRect;
+            dstRect.x = (int)(displace.pastPosX + displace.velX * lerpT);
+            dstRect.y = (int)(displace.pastPosY + displace.velY * lerpT);
 
-        SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);
+            SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);
+        }
     }
 
     auto endT = SDL_GetPerformanceCounter();
