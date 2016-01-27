@@ -8,6 +8,8 @@
 //  contains a "script" that will be run by a ScriptSystem
 struct Script {
     static const std::string name;
+    float updateRate;
+    float dt;
     std::vector<std::string> tokenizedScript;
 };
 

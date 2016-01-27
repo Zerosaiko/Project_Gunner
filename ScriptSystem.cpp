@@ -26,15 +26,14 @@ void ScriptSystem::addEntity(uint32_t id) {
                 }
 
                 Script& scr = (*scriptPool)[script->second.second].data;
-                int beg = 0, end = 0;
+                int beg = -1, end = 0;
                 for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
-                    std::cout << i << " - " << scr.tokenizedScript[i] << "-\n";
                     if (scr.tokenizedScript[i] == "@start") beg = i;
                     if (scr.tokenizedScript[i][0] == '@') end = i;
                 }
                 if (end == beg) end = scr.tokenizedScript.size();
-                std::cout << "Start: " << beg << "\nEnd: " << end << '\n';
-                execute(scr, id, beg, end);
+                if (beg >= 0 && beg < scr.tokenizedScript.size())
+                    execute(scr, id, beg, end);
 
 
             }
@@ -62,12 +61,25 @@ void ScriptSystem::refreshEntity(uint32_t id) {
 }
 
 void ScriptSystem::process(float dt) {
-
     auto startT = SDL_GetPerformanceCounter();
-
+    dt *= 1000;
     for(auto& entityID : entityIDs) {
         auto& entity = entities[entityID.second];
         Script& script = (*scriptPool)[entity->second].data;
+        if (script.updateRate > 0) {
+            int beg = -1, end = 0;
+            for(size_t i = 0; i < script.tokenizedScript.size() && script.updateRate > 0; ++i) {
+                //std::cout << i << " - " << script.tokenizedScript[i] << "-\n";
+                if (script.tokenizedScript[i] == "@onUpdate") beg = i;
+                if (script.tokenizedScript[i][0] == '@') end = i;
+            }
+            if (beg == -1) beg = script.tokenizedScript.size();
+            if (end == beg) end = script.tokenizedScript.size();
+            if (beg >= 0 && beg < script.tokenizedScript.size() )
+                for(script.dt += dt; script.dt > script.updateRate; script.dt -= script.updateRate) {
+                    execute(script, entityID.first, beg, end);
+                }
+        }
     }
 
     auto endT = SDL_GetPerformanceCounter();
@@ -94,9 +106,9 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             while(i < end && script.tokenizedScript[i] != "stop_") {
                 (str += "\n") += script.tokenizedScript[i++];
             }
-            std::cout << "Script: " << str << '\n';
-            if (!children)
+            if (!children) {
                 manager->addComponent(str, targetID);
+            }
             else {
                 for (auto& child: manager->getChildren(id)) {
                     manager->addComponent(str, child);
@@ -104,7 +116,7 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             }
 
         } else if (script.tokenizedScript[i] == "end_script" ) {
-            std::cout << "ending script " << '\n';
+            std::cout << "ending script " << id << '\n';
             manager->removeComponent<Component<Script::name, Script>>(id);
             ++i;
         } else if (script.tokenizedScript[i] == "destroy" ) {
