@@ -58,12 +58,14 @@ uint32_t EntityManager::createEntity() {
 }
 
 uint32_t EntityManager::createEntity(uint32_t id) {
+    std::cout << "ENTITY START- " << id << '\n';
     if (!freeIDs.empty() && entities.find(id) != entities.end()) {
         id = freeIDs.back();
         freeIDs.pop_back();
     } else
-        while (entities.find(id++) != entities.end())
+        while (entities.find(id) != entities.end()) ++id;
     entities[id];
+    std::cout << "ENTITY END- " << id << '\n';
     return id;
 }
 
@@ -168,7 +170,7 @@ void EntityManager::removeComponent(std::string&& compName, uint32_t id) {
             alive = it->second.first;
         }
         if (!alive) entitiesToDestroy.insert(id);
-        else entitiesToDestroy.insert(id);
+        else entitiesToRefresh.insert(id);
     }
 }
 
