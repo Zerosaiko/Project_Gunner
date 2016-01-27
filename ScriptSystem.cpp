@@ -13,7 +13,7 @@ void ScriptSystem::addEntity(uint32_t id) {
         auto entity = manager->getEntity(id);
         if (entity) {
             auto script = entity->find("script");
-            if (script != entity->end()) {
+            if (script != entity->end() && script->second.first) {
                 if (freeIDXs.empty()) {
                     entityIDs[id] = entities.size();
                     entities.push_back(&script->second);
@@ -26,13 +26,13 @@ void ScriptSystem::addEntity(uint32_t id) {
                 }
 
                 Script& scr = (*scriptPool)[script->second.second].data;
-                int beg = -1, end = 0;
+                size_t beg = scr.tokenizedScript.size(), end = 0;
                 for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
                     if (scr.tokenizedScript[i] == "@start") beg = i;
                     if (scr.tokenizedScript[i][0] == '@') end = i;
                 }
                 if (end == beg) end = scr.tokenizedScript.size();
-                if (beg >= 0 && beg < scr.tokenizedScript.size())
+                if (beg < scr.tokenizedScript.size())
                     execute(scr, id, beg, end);
 
 
@@ -67,15 +67,14 @@ void ScriptSystem::process(float dt) {
         auto& entity = entities[entityID.second];
         Script& script = (*scriptPool)[entity->second].data;
         if (script.updateRate > 0) {
-            int beg = -1, end = 0;
+            size_t beg = script.tokenizedScript.size(), end = 0;
             for(size_t i = 0; i < script.tokenizedScript.size() && script.updateRate > 0; ++i) {
                 //std::cout << i << " - " << script.tokenizedScript[i] << "-\n";
                 if (script.tokenizedScript[i] == "@onUpdate") beg = i;
                 if (script.tokenizedScript[i][0] == '@') end = i;
             }
-            if (beg == -1) beg = script.tokenizedScript.size();
             if (end == beg) end = script.tokenizedScript.size();
-            if (beg >= 0 && beg < script.tokenizedScript.size() )
+            if (beg < script.tokenizedScript.size() )
                 for(script.dt += dt; script.dt > script.updateRate; script.dt -= script.updateRate) {
                     execute(script, entityID.first, beg, end);
                 }
@@ -119,6 +118,25 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             std::cout << "ending script " << id << '\n';
             manager->removeComponent<Component<Script::name, Script>>(id);
             ++i;
+        } else if (script.tokenizedScript[i] == "remove") {
+            uint32_t targetID = id;
+            bool children = false;
+            if (script.tokenizedScript[++i] == "%parent") {
+                targetID = manager->getParent(id);
+                ++i;
+            }
+            else {
+                children = script.tokenizedScript[i] == "%children";
+                i += children;
+            }
+            if (!children)
+                manager->removeComponent(script.tokenizedScript[i], targetID);
+            else {
+                for (auto& child: manager->getChildren(id)) {
+                    manager->removeComponent(script.tokenizedScript[i], child);
+                }
+            }
+
         } else if (script.tokenizedScript[i] == "destroy" ) {
             uint32_t targetID = id;
             bool children = false;

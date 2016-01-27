@@ -13,7 +13,7 @@ void MovementSystem::addEntity(uint32_t id) {
         auto entity = manager->getEntity(id);
         if (entity) {
             auto displace = entity->find("displace");
-            if (displace != entity->end()) {
+            if (displace != entity->end() && displace->second.first) {
                 if (freeIDXs.empty()) {
                     entityIDs[id] = entities.size();
                     entities.push_back(&displace->second);

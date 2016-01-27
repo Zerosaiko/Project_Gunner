@@ -26,7 +26,7 @@ void RenderSystem::addEntity(uint32_t id) {
         if (entity) {
             auto displace = entity->find("displace");
             auto render = entity->find("sprite");
-            if (displace != entity->end() && render != entity->end()) {
+            if (displace != entity->end() && render != entity->end() && displace->second.first && render->second.first) {
                 if (freeIDXs.empty()) {
                     entityIDs[id] = entities.size();
                     entities.emplace_back(&displace->second, &render->second);
@@ -82,8 +82,7 @@ void RenderSystem::render(float lerpT) {
     for(auto& entityID : entityIDs) {
         auto& entity = entities[entityID.second];
         Displace& displace = (*displacePool)[entity.first->second];
-        Renderable& render = (*renderPool)[entity.second->second].data;
-
+        Renderable& render = (*renderPool)[entity.second->second].data;;
         const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
         SDL_Rect dstRect = srcRect;
         dstRect.x = (int)(displace.pastPosX + displace.velX * lerpT);
