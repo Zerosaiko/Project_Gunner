@@ -58,14 +58,12 @@ uint32_t EntityManager::createEntity() {
 }
 
 uint32_t EntityManager::createEntity(uint32_t id) {
-    std::cout << "ENTITY START- " << id << '\n';
     if (!freeIDs.empty() && entities.find(id) != entities.end()) {
         id = freeIDs.back();
         freeIDs.pop_back();
     } else
         while (entities.find(id) != entities.end()) ++id;
     entities[id];
-    std::cout << "ENTITY END- " << id << '\n';
     return id;
 }
 
