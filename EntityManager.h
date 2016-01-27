@@ -145,7 +145,6 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
         auto componentID = entity->second.find(compName);
         if (componentID != entity->second.end())
             componentID->second.first = false;
-        refreshEntity(id);
         bool alive = false;
         for (auto it = entity->second.begin(); !alive && it != entity->second.end(); ++it) {
             alive = it->second.first;
