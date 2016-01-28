@@ -95,7 +95,11 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             uint32_t targetID = id;
             bool children = false;
             std::string group;
-            if (script.tokenizedScript[++i] == "%parent") {
+            if (script.tokenizedScript[++i] == "%new") {
+                targetID = manager->createEntity();
+                ++i;
+            }
+            else if (script.tokenizedScript[i] == "%parent") {
                 targetID = manager->getParent(id);
                 ++i;
             }
