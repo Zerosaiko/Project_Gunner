@@ -12,7 +12,8 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 99999}
     manager.createEntity(0);
     manager.createEntity(1);
     manager.addChild(0, 1);
-    manager.addComponent(std::string("component:script 1250 @start\ncreate %parent\ncomponent:displace 320, 0, -50, 75\nstop_\ncreate %parent\ncomponent:sprite NamelessSheet 0, 0\nstop_ @onUpdate\n remove %parent displace remove %parent sprite end_script"), 1);
+    manager.tagManager.tagEntity("testTag", 0);
+    manager.addComponent(std::string("component:script 1250 @start\ncreate %parent\ncomponent:displace 320, 0, -50, 75\nstop_\ncreate %parent\ncomponent:sprite NamelessSheet 0, 0\nstop_ @onUpdate\n remove %tag testTag sprite end_script"), 1);
 }
 
 void PlayState::handleInput() {
