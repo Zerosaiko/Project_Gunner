@@ -44,17 +44,16 @@ void ScriptSystem::addEntity(uint32_t id) {
 void ScriptSystem::removeEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
     if (entityID != entityIDs.end()) {
-        size_t beg = script.tokenizedScript.size(), end = 0;
-        for(size_t i = 0; i < script.tokenizedScript.size() && script.updateRate > 0; ++i) {
-            //std::cout << i << " - " << script.tokenizedScript[i] << "-\n";
-            if (script.tokenizedScript[i] == "@onEnd") beg = i;
-            if (script.tokenizedScript[i][0] == '@') end = i;
+        auto& entity = entities[entityID->second];
+        Script& scr = (*scriptPool)[entity->second].data;
+        size_t beg = scr.tokenizedScript.size(), end = 0;
+        for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
+            if (scr.tokenizedScript[i] == "@onEnd") beg = i;
+            if (scr.tokenizedScript[i][0] == '@') end = i;
         }
-        if (end == beg) end = script.tokenizedScript.size();
-        if (beg < script.tokenizedScript.size() )
-            for(script.dt += dt; script.dt > script.updateRate; script.dt -= script.updateRate) {
-                execute(script, entityID.first, beg, end);
-            }
+        if (end == beg) end = scr.tokenizedScript.size();
+        if (beg < scr.tokenizedScript.size())
+            execute(scr, id, beg, end);
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
     }
