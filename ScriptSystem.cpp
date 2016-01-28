@@ -94,8 +94,18 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             str.clear();
             uint32_t targetID = id;
             bool children = false;
+            std::string group;
             if (script.tokenizedScript[++i] == "%parent") {
                 targetID = manager->getParent(id);
+                ++i;
+            }
+            else if (script.tokenizedScript[i] == "%tag"){
+                auto entity = manager->tagManager.getIDByTag(script.tokenizedScript[++i]);
+                if (entity) targetID = *entity;
+                ++i;
+            }
+            else if (script.tokenizedScript[i] == "%group") {
+                group = script.tokenizedScript[++i];
                 ++i;
             }
             else {
@@ -105,12 +115,20 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             while(i < end && script.tokenizedScript[i] != "stop_") {
                 (str += "\n") += script.tokenizedScript[i++];
             }
-            if (!children) {
+            if (group.empty() || !children) {
                 manager->addComponent(str, targetID);
             }
-            else {
+            else if (children){
                 for (auto& child: manager->getChildren(id)) {
                     manager->addComponent(str, child);
+                }
+            }
+            else if (!group.empty()) {
+                auto groupVec = manager->groupManager.getIDGroup(group);
+                if (groupVec) {
+                    for (auto& entity: *groupVec) {
+                        manager->addComponent(str, entity);
+                    }
                 }
             }
 
@@ -121,38 +139,77 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
         } else if (script.tokenizedScript[i] == "remove") {
             uint32_t targetID = id;
             bool children = false;
+            std::string group;
             if (script.tokenizedScript[++i] == "%parent") {
                 targetID = manager->getParent(id);
+                ++i;
+            }
+            else if (script.tokenizedScript[i] == "%tag"){
+                std::cout << "TAG: " << script.tokenizedScript[i+1] << '\n';
+                auto entity = manager->tagManager.getIDByTag(script.tokenizedScript[++i]);
+                if (entity) targetID = *entity;
+                ++i;
+            }
+            else if (script.tokenizedScript[i] == "%group") {
+                group = script.tokenizedScript[++i];
                 ++i;
             }
             else {
                 children = script.tokenizedScript[i] == "%children";
                 i += children;
             }
-            if (!children)
+            if (group.empty() || !children) {
                 manager->removeComponent(script.tokenizedScript[i], targetID);
-            else {
+            }
+            else if (children){
                 for (auto& child: manager->getChildren(id)) {
-                    manager->removeComponent(script.tokenizedScript[i], child);
+                    manager->removeComponent(script.tokenizedScript[i],  child);
+                }
+            }
+            else if (!group.empty()) {
+                auto groupVec = manager->groupManager.getIDGroup(group);
+                if (groupVec) {
+                    for (auto& entity: *groupVec) {
+                        manager->removeComponent(script.tokenizedScript[i],  entity);
+                    }
                 }
             }
 
         } else if (script.tokenizedScript[i] == "destroy" ) {
             uint32_t targetID = id;
             bool children = false;
+            std::string group;
             if (script.tokenizedScript[++i] == "%parent") {
                 targetID = manager->getParent(id);
+                ++i;
+            }
+            else if (script.tokenizedScript[i] == "%tag"){
+                auto entity = manager->tagManager.getIDByTag(script.tokenizedScript[++i]);
+                if (entity) targetID = *entity;
+                ++i;
+            }
+            else if (script.tokenizedScript[i] == "%group") {
+                group = script.tokenizedScript[++i];
                 ++i;
             }
             else {
                 children = script.tokenizedScript[i] == "%children";
                 i += children;
             }
-            if (!children)
+            if (group.empty() || !children) {
                 manager->entitiesToDestroy.insert(targetID);
-            else {
+            }
+            else if (children){
                 for (auto& child: manager->getChildren(id)) {
                     manager->entitiesToDestroy.insert(child);
+                }
+            }
+            else if (!group.empty()) {
+                auto groupVec = manager->groupManager.getIDGroup(group);
+                if (groupVec) {
+                    for (auto& entity: *groupVec) {
+                        manager->entitiesToDestroy.insert(entity);
+                    }
                 }
             }
         } else ++i;
