@@ -64,6 +64,8 @@ void Engine::run() {
             for(; currentTime >= 1.0f / currentFPS; currentTime -= 1.0f / currentFPS) {
                 currentState->update(1.0f / currentFPS);
             }
+
+            SDL_SetRenderDrawColor(window->getRenderer(), 0, 0, 0, 255);
             SDL_RenderClear(window->getRenderer());
             currentState->render(currentTime);
             SDL_RenderPresent(window->getRenderer());

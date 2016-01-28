@@ -159,7 +159,6 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
                 ++i;
             }
             else if (script.tokenizedScript[i] == "%tag"){
-                std::cout << "TAG: " << script.tokenizedScript[i+1] << '\n';
                 auto entity = manager->tagManager.getIDByTag(script.tokenizedScript[++i]);
                 if (entity) targetID = *entity;
                 ++i;

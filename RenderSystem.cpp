@@ -2,6 +2,7 @@
 #include "SDL_image.h"
 
 RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Window* window) : EntitySystem{manager, priority}, dirty(false), window(window) {
+    renderTarget = SDL_CreateTexture(this->window->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 320, 480);
     displacePool = manager->getComponentPool<Displace>();
     renderPool = manager->getComponentPool<Component<Renderable::name, Renderable>>();
 };
@@ -15,6 +16,7 @@ RenderSystem::~RenderSystem() {
         delete sprite;
         sprite = nullptr;
     }
+    SDL_DestroyTexture(renderTarget);
 }
 
 void RenderSystem::initialize() {}
@@ -79,6 +81,15 @@ void RenderSystem::render(float lerpT) {
 
     auto startT = SDL_GetPerformanceCounter();
 
+    SDL_SetRenderTarget(window->getRenderer(), renderTarget);
+
+    SDL_Rect targetSrc{0, 0, 320, 480};
+    SDL_Rect targetDst{160, 0, 320, 480};
+
+    SDL_SetRenderDrawColor(window->getRenderer(), 0, 255, 0, 255);
+
+    SDL_RenderClear(window->getRenderer());
+
     for(auto& entityID : entityIDs) {
         auto& entity = entities[entityID.second];
         Displace& displace = (*displacePool)[entity.first->second];
@@ -89,9 +100,14 @@ void RenderSystem::render(float lerpT) {
             dstRect.x = (int)(displace.pastPosX + displace.velX * lerpT);
             dstRect.y = (int)(displace.pastPosY + displace.velY * lerpT);
 
+
             SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);
         }
     }
+
+    SDL_SetRenderTarget(window->getRenderer(), nullptr);
+
+    SDL_RenderCopy(window->getRenderer(), renderTarget, &targetSrc, &targetDst);
 
     auto endT = SDL_GetPerformanceCounter();
 

@@ -49,6 +49,8 @@ private:
 
     Window* window;
 
+    SDL_Texture* renderTarget;
+
 };
 
 #endif // RENDERSYSTEM_H_INCLUDED
