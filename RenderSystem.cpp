@@ -79,7 +79,7 @@ void RenderSystem::render(float lerpT) {
     SDL_SetRenderTarget(window->getRenderer(), renderTarget);
 
     SDL_Rect targetSrc{0, 0, 320, 480};
-    SDL_Rect targetDst{160, 0, 320, 480};
+    SDL_Rect targetDst{window->getWidth() / 2 - window->getHeight() / 3, 0, window->getHeight() * 2 / 3, window->getHeight()};
 
     SDL_SetRenderDrawColor(window->getRenderer(), 0, 255, 0, 255);
 
@@ -95,13 +95,13 @@ void RenderSystem::render(float lerpT) {
             auto e = manager->getEntity(entityID.first);
             auto vel = e->find("velocity");
             if (vel == e->end() || !vel->second.first) {
-                dstRect.x = (int)(position.posX);
-                dstRect.y = (int)(position.posY);
+                dstRect.x = (int)(position.posX) - srcRect.w / 2;
+                dstRect.y = (int)(position.posY) - srcRect.h / 2;
             }
             else {
                 Velocity& velocity = (*velocityPool)[vel->second.second].data;
-                dstRect.x = (int)(position.pastPosX + velocity.velX * lerpT);
-                dstRect.y = (int)(position.pastPosY + velocity.velY * lerpT);
+                dstRect.x = (int)(position.pastPosX + velocity.velX * lerpT) - srcRect.w / 2;
+                dstRect.y = (int)(position.pastPosY + velocity.velY * lerpT) - srcRect.h / 2;
             }
 
             SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);

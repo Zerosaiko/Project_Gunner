@@ -47,12 +47,19 @@ void Engine::run() {
     beginTime = SDL_GetPerformanceCounter();
     currentTime = 1.0f / currentFPS;
     while(running) {
+        GameState* currentState = peekState();
         for(SDL_Event e; SDL_PollEvent(&e);) {
             if (e.type == SDL_QUIT) {
                 running = false;
             }
+            if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                if (currentState) {
+                    window->setWidth(e.window.data1);
+                    window->setHeight(e.window.data2);
+                }
+
+            }
         }
-        GameState* currentState = peekState();
         if (currentTime < 0.1f / currentFPS)
             SDL_Delay(1);
         currentTime += (float)(SDL_GetPerformanceCounter() - beginTime) / SDL_GetPerformanceFrequency();

@@ -29,7 +29,11 @@ public:
 
     void render(float lerpT);
 
+    void onResize(int32_t width, int32_t height);
+
 private:
+
+    SpriteSheet* const loadSprite(std::string spriteName);
 
     std::unordered_map<uint32_t, std::vector<EntityManager::component_pair const *>::size_type> entityIDs;
 
@@ -42,8 +46,6 @@ private:
     std::vector<Component<Renderable::name, Renderable>>* renderPool;
 
     std::unordered_map<std::string, SpriteSheet*> sprites;
-
-    SpriteSheet* const loadSprite(std::string spriteName);
 
     bool dirty;
 
