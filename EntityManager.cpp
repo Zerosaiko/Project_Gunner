@@ -33,9 +33,11 @@ void EntityManager::update(float dt) {
     for (uint32_t entity : entitiesToRefresh) {
         refreshEntity(entity);
     }
+    entitiesToRefresh.clear();
     for (uint32_t entity : entitiesToDestroy) {
         destroyEntity(entity);
     }
+    entitiesToDestroy.clear();
 }
 
 void EntityManager::addSystem(EntitySystem* system) {
