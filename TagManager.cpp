@@ -20,11 +20,11 @@ void TagManager::untagEntity(std::string tag, uint32_t entityID) {
 }
 
 void TagManager::untagEntity(uint32_t entityID) {
-
-    for( auto it = entityIDs.begin(); it != entityIDs.end(); ++it) {
+    for( auto it = entityIDs.begin(); it != entityIDs.end();) {
         if (it->second == entityID)
-            entityIDs.erase(it);
-    };
+            it = entityIDs.erase(it);
+        else ++it;
+    }
     manager->entitiesToRefresh.insert(entityID);
 
 }
