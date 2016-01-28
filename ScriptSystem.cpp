@@ -28,7 +28,7 @@ void ScriptSystem::addEntity(uint32_t id) {
                 Script& scr = (*scriptPool)[script->second.second].data;
                 size_t beg = scr.tokenizedScript.size(), end = 0;
                 for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
-                    if (scr.tokenizedScript[i] == "@start") beg = i;
+                    if (scr.tokenizedScript[i] == "@onStart") beg = i;
                     if (scr.tokenizedScript[i][0] == '@') end = i;
                 }
                 if (end == beg) end = scr.tokenizedScript.size();
@@ -44,6 +44,17 @@ void ScriptSystem::addEntity(uint32_t id) {
 void ScriptSystem::removeEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
     if (entityID != entityIDs.end()) {
+        size_t beg = script.tokenizedScript.size(), end = 0;
+        for(size_t i = 0; i < script.tokenizedScript.size() && script.updateRate > 0; ++i) {
+            //std::cout << i << " - " << script.tokenizedScript[i] << "-\n";
+            if (script.tokenizedScript[i] == "@onEnd") beg = i;
+            if (script.tokenizedScript[i][0] == '@') end = i;
+        }
+        if (end == beg) end = script.tokenizedScript.size();
+        if (beg < script.tokenizedScript.size() )
+            for(script.dt += dt; script.dt > script.updateRate; script.dt -= script.updateRate) {
+                execute(script, entityID.first, beg, end);
+            }
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
     }
@@ -200,6 +211,7 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
                 children = script.tokenizedScript[i] == "%children";
                 i += children;
             }
+
             if (group.empty() || !children) {
                 manager->entitiesToDestroy.insert(targetID);
             }
