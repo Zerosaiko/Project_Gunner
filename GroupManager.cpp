@@ -36,11 +36,10 @@ void GroupManager::ungroupEntity(uint32_t entityID) {
 }
 
 void GroupManager::removeGroup(std::string group) {
-    std::vector<uint32_t> ids = entityIDs[group];
-    entityIDs.erase(group);
-    for (auto id : ids) {
+    for (auto id : entityIDs[group]) {
         manager->entitiesToRefresh.insert(id);
     }
+    entityIDs.erase(group);
 }
 
 std::vector<uint32_t> const* GroupManager::getIDGroup(std::string group) {
