@@ -2,7 +2,8 @@
 #include "SDL.h"
 
 MovementSystem::MovementSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
-    displacePool = manager->getComponentPool<Displace>();
+    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
+    velocityPool = manager->getComponentPool<Component<Velocity::name, Velocity>>();
 };
 
 void MovementSystem::initialize() {}
@@ -12,17 +13,21 @@ void MovementSystem::addEntity(uint32_t id) {
     if (entityID == entityIDs.end()) {
         auto entity = manager->getEntity(id);
         if (entity) {
-            auto displace = entity->find("displace");
-            if (displace != entity->end() && displace->second.first) {
+            auto position = entity->find("position");
+            auto velocity = entity->find("velocity");
+            if (position != entity->end() && velocity != entity->end() && position->second.first && velocity->second.first) {
+
                 if (freeIDXs.empty()) {
                     entityIDs[id] = entities.size();
-                    entities.push_back(&displace->second);
+                    entities.emplace_back(&position->second, &velocity->second);
                 }
                 else {
                     auto idx = freeIDXs.back();
                     entityIDs[id] = idx;
                     freeIDXs.pop_back();
-                    entities[idx] = &displace->second;
+                    std::pair<EntityManager::component_pair const *, EntityManager::component_pair const *>
+                        pos_vel_pair{&position->second, &velocity->second};
+                    entities[idx] = pos_vel_pair;
                 }
             }
         }
@@ -39,7 +44,7 @@ void MovementSystem::removeEntity(uint32_t id) {
 
 void MovementSystem::refreshEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && !entities[entityID->second]->first) {
+    if (entityID != entityIDs.end() && !(entities[entityID->second].first->first && entities[entityID->second].second->first)) {
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
     } else if (entityID == entityIDs.end() ) {
@@ -54,11 +59,12 @@ void MovementSystem::process(float dt) {
 
     for(auto& entityID : entityIDs) {
         auto& entity = entities[entityID.second];
-        Displace& displace = (*displacePool)[entity->second];
-        displace.pastPosX = displace.posX;
-        displace.pastPosY = displace.posY;
-        displace.posX += dt * displace.velX;
-        displace.posY += dt * displace.velY;
+        Position& position = (*positionPool)[entity.first->second].data;
+        Velocity& velocity = (*velocityPool)[entity.second->second].data;
+        position.pastPosX = position.posX;
+        position.pastPosY = position.posY;
+        position.posX += dt * velocity.velX;
+        position.posY += dt * velocity.velY;
     }
 
     auto endT = SDL_GetPerformanceCounter();

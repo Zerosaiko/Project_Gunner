@@ -3,19 +3,12 @@
 
 RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Window* window) : EntitySystem{manager, priority}, dirty(false), window(window) {
     renderTarget = SDL_CreateTexture(this->window->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 320, 480);
-    displacePool = manager->getComponentPool<Displace>();
+    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     renderPool = manager->getComponentPool<Component<Renderable::name, Renderable>>();
 };
 
 RenderSystem::~RenderSystem() {
-    std::vector<SpriteSheet*> delSprites;
-    for( auto& sprite: sprites) {
-        delSprites.push_back(sprite.second);
-    }
-    for (auto& sprite : delSprites) {
-        delete sprite;
-        sprite = nullptr;
-    }
+    for( auto sprite = sprites.begin(); sprite != sprites.end(); sprite = sprites.erase(sprite));
     SDL_DestroyTexture(renderTarget);
 }
 
@@ -26,20 +19,20 @@ void RenderSystem::addEntity(uint32_t id) {
     if (entityID == entityIDs.end()) {
         auto entity = manager->getEntity(id);
         if (entity) {
-            auto displace = entity->find("displace");
+            auto position = entity->find("position");
             auto render = entity->find("sprite");
-            if (displace != entity->end() && render != entity->end() && displace->second.first && render->second.first) {
+            if (position != entity->end() && render != entity->end() && position->second.first && render->second.first) {
                 if (freeIDXs.empty()) {
                     entityIDs[id] = entities.size();
-                    entities.emplace_back(&displace->second, &render->second);
+                    entities.emplace_back(&position->second, &render->second);
                 }
                 else {
                     auto idx = freeIDXs.back();
                     entityIDs[id] = idx;
                     freeIDXs.pop_back();
                     std::pair<EntityManager::component_pair const *, EntityManager::component_pair const *>
-                        disp_ren_pair{&displace->second, &render->second};
-                    entities[idx] = disp_ren_pair;
+                        pos_ren_pair{&position->second, &render->second};
+                    entities[idx] = pos_ren_pair;
                 }
                 dirty = true;
 
@@ -92,13 +85,15 @@ void RenderSystem::render(float lerpT) {
 
     for(auto& entityID : entityIDs) {
         auto& entity = entities[entityID.second];
-        Displace& displace = (*displacePool)[entity.first->second];
+        Position& position = (*positionPool)[entity.first->second].data;
         Renderable& render = (*renderPool)[entity.second->second].data;
         if (*render.sheet) {
             const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
             SDL_Rect dstRect = srcRect;
-            dstRect.x = (int)(displace.pastPosX + displace.velX * lerpT);
-            dstRect.y = (int)(displace.pastPosY + displace.velY * lerpT);
+            dstRect.x = (int)(position.posX);
+            dstRect.y = (int)(position.posY);
+            //dstRect.x = (int)(displace.pastPosX + displace.velX * lerpT);
+            //dstRect.y = (int)(displace.pastPosY + displace.velY * lerpT);
 
 
             SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);

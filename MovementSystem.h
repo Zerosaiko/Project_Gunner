@@ -25,11 +25,13 @@ private:
 
     std::unordered_map<uint32_t, std::vector<EntityManager::component_pair const *>::size_type> entityIDs;
 
-    std::vector<std::vector<EntityManager::component_pair const *>::size_type> freeIDXs;
+    std::vector<std::vector<std::pair<EntityManager::component_pair const *,EntityManager::component_pair const *>>::size_type> freeIDXs;
 
-    std::vector<EntityManager::component_pair const *> entities;
+    std::vector<std::pair<EntityManager::component_pair const *,EntityManager::component_pair const *>> entities;
 
-    std::vector<Displace>* displacePool;
+    std::vector<Component<Position::name, Position>>* positionPool;
+
+    std::vector<Component<Velocity::name, Velocity>>* velocityPool;
 
 };
 

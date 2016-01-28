@@ -31,7 +31,8 @@ void Engine::run() {
 
     Component<Renderable::name, Renderable>::registerComponent();
     Component<Script::name, Script>::registerComponent();
-    Displace::registerComponent();
+    Component<Position::name, Position>::registerComponent();
+    Component<Velocity::name, Velocity>::registerComponent();
 
     if (!window) {
         using namespace std;

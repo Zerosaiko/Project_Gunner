@@ -37,7 +37,7 @@ private:
 
     std::vector<std::pair<EntityManager::component_pair const *,EntityManager::component_pair const *>> entities;
 
-    std::vector<Displace>* displacePool;
+    std::vector<Component<Position::name, Position>>* positionPool;
 
     std::vector<Component<Renderable::name, Renderable>>* renderPool;
 
