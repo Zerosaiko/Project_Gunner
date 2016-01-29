@@ -1,8 +1,8 @@
 #include "ScriptSystem.h"
 #include "SDL.h"
 
-ScriptSystem::ScriptSystem(EntityManager& manager, int32_t priority) : EntitySystem{manager, priority} {
-    scriptPool = manager.getComponentPool<Component<Script::name, Script>>();
+ScriptSystem::ScriptSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
+    scriptPool = manager->getComponentPool<Component<Script::name, Script>>();
 };
 
 void ScriptSystem::initialize() {}
@@ -10,7 +10,7 @@ void ScriptSystem::initialize() {}
 void ScriptSystem::addEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
     if (entityID == entityIDs.end()) {
-        auto entity = manager.getEntity(id);
+        auto entity = manager->getEntity(id);
         if (entity) {
             auto script = entity->find("script");
             if (script != entity->end() && script->second.first) {
@@ -106,15 +106,15 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             bool children = false;
             std::string group;
             if (script.tokenizedScript[++i] == "%new") {
-                targetID = manager.createEntity();
+                targetID = manager->createEntity();
                 ++i;
             }
             else if (script.tokenizedScript[i] == "%parent") {
-                targetID = manager.getParent(id);
+                targetID = manager->getParent(id);
                 ++i;
             }
             else if (script.tokenizedScript[i] == "%tag"){
-                auto entity = manager.tagManager.getIDByTag(script.tokenizedScript[++i]);
+                auto entity = manager->tagManager.getIDByTag(script.tokenizedScript[++i]);
                 if (entity) targetID = *entity;
                 ++i;
             }
@@ -130,36 +130,36 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
                 (str += "\n") += script.tokenizedScript[i++];
             }
             if (group.empty() || !children) {
-                manager.addComponent(str, targetID);
+                manager->addComponent(str, targetID);
             }
             else if (children){
-                for (auto& child: manager.getChildren(id)) {
-                    manager.addComponent(str, child);
+                for (auto& child: manager->getChildren(id)) {
+                    manager->addComponent(str, child);
                 }
             }
             else if (!group.empty()) {
-                auto groupVec = manager.groupManager.getIDGroup(group);
+                auto groupVec = manager->groupManager.getIDGroup(group);
                 if (groupVec) {
                     for (auto& entity: *groupVec) {
-                        manager.addComponent(str, entity);
+                        manager->addComponent(str, entity);
                     }
                 }
             }
 
         } else if (script.tokenizedScript[i] == "end_script" ) {
             std::cout << "ending script " << id << '\n';
-            manager.removeComponent<Component<Script::name, Script>>(id);
+            manager->removeComponent<Component<Script::name, Script>>(id);
             ++i;
         } else if (script.tokenizedScript[i] == "remove") {
             uint32_t targetID = id;
             bool children = false;
             std::string group;
             if (script.tokenizedScript[++i] == "%parent") {
-                targetID = manager.getParent(id);
+                targetID = manager->getParent(id);
                 ++i;
             }
             else if (script.tokenizedScript[i] == "%tag"){
-                auto entity = manager.tagManager.getIDByTag(script.tokenizedScript[++i]);
+                auto entity = manager->tagManager.getIDByTag(script.tokenizedScript[++i]);
                 if (entity) targetID = *entity;
                 ++i;
             }
@@ -172,18 +172,18 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
                 i += children;
             }
             if (group.empty() || !children) {
-                manager.removeComponent(script.tokenizedScript[i], targetID);
+                manager->removeComponent(script.tokenizedScript[i], targetID);
             }
             else if (children){
-                for (auto& child: manager.getChildren(id)) {
-                    manager.removeComponent(script.tokenizedScript[i],  child);
+                for (auto& child: manager->getChildren(id)) {
+                    manager->removeComponent(script.tokenizedScript[i],  child);
                 }
             }
             else if (!group.empty()) {
-                auto groupVec = manager.groupManager.getIDGroup(group);
+                auto groupVec = manager->groupManager.getIDGroup(group);
                 if (groupVec) {
                     for (auto& entity: *groupVec) {
-                        manager.removeComponent(script.tokenizedScript[i],  entity);
+                        manager->removeComponent(script.tokenizedScript[i],  entity);
                     }
                 }
             }
@@ -193,11 +193,11 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             bool children = false;
             std::string group;
             if (script.tokenizedScript[++i] == "%parent") {
-                targetID = manager.getParent(id);
+                targetID = manager->getParent(id);
                 ++i;
             }
             else if (script.tokenizedScript[i] == "%tag"){
-                auto entity = manager.tagManager.getIDByTag(script.tokenizedScript[++i]);
+                auto entity = manager->tagManager.getIDByTag(script.tokenizedScript[++i]);
                 if (entity) targetID = *entity;
                 ++i;
             }
@@ -211,18 +211,18 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             }
 
             if (group.empty() || !children) {
-                manager.entitiesToDestroy.insert(targetID);
+                manager->entitiesToDestroy.insert(targetID);
             }
             else if (children){
-                for (auto& child: manager.getChildren(id)) {
-                    manager.entitiesToDestroy.insert(child);
+                for (auto& child: manager->getChildren(id)) {
+                    manager->entitiesToDestroy.insert(child);
                 }
             }
             else if (!group.empty()) {
-                auto groupVec = manager.groupManager.getIDGroup(group);
+                auto groupVec = manager->groupManager.getIDGroup(group);
                 if (groupVec) {
                     for (auto& entity: *groupVec) {
-                        manager.entitiesToDestroy.insert(entity);
+                        manager->entitiesToDestroy.insert(entity);
                     }
                 }
             }

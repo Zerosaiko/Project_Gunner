@@ -1,9 +1,9 @@
 #include "MovementSystem.h"
 #include "SDL.h"
 
-MovementSystem::MovementSystem(EntityManager& manager, int32_t priority) : EntitySystem{manager, priority} {
-    positionPool = manager.getComponentPool<Component<Position::name, Position>>();
-    velocityPool = manager.getComponentPool<Component<Velocity::name, Velocity>>();
+MovementSystem::MovementSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
+    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
+    velocityPool = manager->getComponentPool<Component<Velocity::name, Velocity>>();
 };
 
 void MovementSystem::initialize() {}
@@ -11,7 +11,7 @@ void MovementSystem::initialize() {}
 void MovementSystem::addEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
     if (entityID == entityIDs.end()) {
-        auto entity = manager.getEntity(id);
+        auto entity = manager->getEntity(id);
         if (entity) {
             auto position = entity->find("position");
             auto velocity = entity->find("velocity");
