@@ -8,7 +8,7 @@
 class ScriptSystem : public EntitySystem {
 
 public:
-    ScriptSystem(EntityManager* const manager, int32_t priority);
+    ScriptSystem(EntityManager& manager, int32_t priority);
 
     void initialize();
 
