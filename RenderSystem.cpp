@@ -1,10 +1,10 @@
 #include "RenderSystem.h"
 #include "SDL_image.h"
 
-RenderSystem::RenderSystem(EntityManager&, int32_t priority, Window* window) : EntitySystem{manager, priority}, dirty(false), window(window) {
+RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Window* window) : EntitySystem{manager, priority}, dirty(false), window(window) {
     renderTarget = SDL_CreateTexture(this->window->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 320, 480);
-    positionPool = manager.getComponentPool<Component<Position::name, Position>>();
-    renderPool = manager.getComponentPool<Component<Renderable::name, Renderable>>();
+    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
+    renderPool = manager->getComponentPool<Component<Renderable::name, Renderable>>();
 };
 
 RenderSystem::~RenderSystem() {
@@ -17,7 +17,7 @@ void RenderSystem::initialize() {}
 void RenderSystem::addEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
     if (entityID == entityIDs.end()) {
-        auto entity = manager.getEntity(id);
+        auto entity = manager->getEntity(id);
         if (entity) {
             auto position = entity->find("position");
             auto render = entity->find("sprite");
@@ -72,7 +72,7 @@ void RenderSystem::render(float lerpT) {
 
     }
 
-    std::vector<Component<Velocity::name, Velocity>>* velocityPool = manager.getComponentPool<Component<Velocity::name, Velocity>>();
+    std::vector<Component<Velocity::name, Velocity>>* velocityPool = manager->getComponentPool<Component<Velocity::name, Velocity>>();
 
     auto startT = SDL_GetPerformanceCounter();
 
@@ -92,7 +92,7 @@ void RenderSystem::render(float lerpT) {
         if (*render.sheet) {
             const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
             SDL_Rect dstRect = srcRect;
-            auto e = manager.getEntity(entityID.first);
+            auto e = manager->getEntity(entityID.first);
             auto vel = e->find("velocity");
             if (vel == e->end() || !vel->second.first) {
                 dstRect.x = (int)(position.posX) - srcRect.w / 2;
