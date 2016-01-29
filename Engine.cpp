@@ -6,9 +6,10 @@
 #include "renderable.h"
 #include "displace.h"
 #include "scriptcomponent.h"
+#include "playerComponents.h"
 #include <iostream>
 
-Engine::Engine() : stateStack{}, running(true),
+Engine::Engine() : running(true),
     beginTime(SDL_GetPerformanceCounter()), currentTime(0.0f), currentFPS(60.0f) {
 
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_VIDEO);
@@ -33,6 +34,8 @@ void Engine::run() {
     Component<Script::name, Script>::registerComponent();
     Component<Position::name, Position>::registerComponent();
     Component<Velocity::name, Velocity>::registerComponent();
+    Component<PlayerCmp::speed, float>::registerComponent();
+    Component<PlayerCmp::focusSpeed, float>::registerComponent();
 
     if (!window) {
         using namespace std;
