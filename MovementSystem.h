@@ -9,7 +9,7 @@
 class MovementSystem : public EntitySystem {
 
 public:
-    MovementSystem(EntityManager* const manager, int32_t priority);
+    MovementSystem(EntityManager& manager, int32_t priority);
 
     void initialize();
 

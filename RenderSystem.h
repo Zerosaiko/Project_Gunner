@@ -13,7 +13,7 @@
 class RenderSystem : public EntitySystem {
 
 public:
-    RenderSystem(EntityManager* const manager, int32_t priority, Window* window);
+    RenderSystem(EntityManager& manager, int32_t priority, Window* window);
 
     ~RenderSystem();
 
