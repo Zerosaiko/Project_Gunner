@@ -7,6 +7,7 @@
 #include "displace.h"
 #include "scriptcomponent.h"
 #include "playerComponents.h"
+#include "InputMap.h"
 #include <iostream>
 
 Engine::Engine() : running(true),
@@ -36,6 +37,14 @@ void Engine::run() {
     Component<Velocity::name, Velocity>::registerComponent();
     Component<PlayerCmp::speed, float>::registerComponent();
     Component<PlayerCmp::focusSpeed, float>::registerComponent();
+
+    inputMap["Shot"] = SDL_SCANCODE_Z;
+    inputMap["Bomb"] = SDL_SCANCODE_X;
+    inputMap["Move_Up"] = SDL_SCANCODE_UP;
+    inputMap["Move_Right"] = SDL_SCANCODE_RIGHT;
+    inputMap["Move_Down"] = SDL_SCANCODE_DOWN;
+    inputMap["Move_Left"] = SDL_SCANCODE_LEFT;
+    inputMap["Focus"] = SDL_SCANCODE_LSHIFT;
 
     if (!window) {
         using namespace std;
