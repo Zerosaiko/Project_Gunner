@@ -8,6 +8,7 @@
 #include "MovementSystem.h"
 #include "RenderSystem.h"
 #include "ScriptSystem.h"
+#include "MovementInput.h"
 
 class PlayState : public GameState{
 public:
@@ -28,6 +29,7 @@ private:
     MovementSystem moveSys;
     RenderSystem renderSys;
     ScriptSystem scriptSys;
+    MovementInputSystem mInpSys;
 };
 
 #endif // PLAYSTATE_H_INCLUDED
