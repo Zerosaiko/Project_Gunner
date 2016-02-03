@@ -72,8 +72,6 @@ void RenderSystem::render(float lerpT) {
         dirty = false;
     }
 
-    std::vector<Component<Velocity::name, Velocity>>* velocityPool = manager->getComponentPool<Component<Velocity::name, Velocity>>();
-
     auto startT = SDL_GetPerformanceCounter();
 
     SDL_SetRenderTarget(window->getRenderer(), renderTarget);
@@ -92,10 +90,8 @@ void RenderSystem::render(float lerpT) {
         if (*render.sheet) {
             const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
             SDL_Rect dstRect = srcRect;
-            auto e = manager->getEntity(entityID.first);
-            auto vel = e->find("velocity");
-            dstRect.x = (int)( position.pastPosX + (position.posX - position.pastPosX) * lerpT) - srcRect.w / 2;
-            dstRect.y = (int)( position.pastPosY + (position.posY - position.pastPosY) * lerpT) - srcRect.h / 2;
+            dstRect.x = (int32_t)( position.pastPosX + (position.posX - position.pastPosX) * lerpT) - srcRect.w / 2;
+            dstRect.y = (int32_t)( position.pastPosY + (position.posY - position.pastPosY) * lerpT) - srcRect.h / 2;
 
             SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);
         }
