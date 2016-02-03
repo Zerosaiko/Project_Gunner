@@ -13,11 +13,9 @@ void MovementInputSystem::addEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
     if (entityID == entityIDs.end()) {
         auto entity = manager->getEntity(id);
-        if (player) std::cout << *player << "-" << id << std::endl;
         if (entity && player && *player == id) {
             auto velocity = entity->find("velocity");
             if (velocity != entity->end() && velocity->second.first) {
-                std::cout << "adding " << id << std::endl;
                 if (freeIDXs.empty()) {
                     entityIDs[id] = entities.size();
                     entities.emplace_back(&velocity->second);
@@ -28,7 +26,6 @@ void MovementInputSystem::addEntity(uint32_t id) {
                     freeIDXs.pop_back();
                     entities[idx] = &velocity->second;
                 }
-                std::cout << "Size " << entityIDs.size() << std::endl;
             }
         }
     }
@@ -37,7 +34,6 @@ void MovementInputSystem::addEntity(uint32_t id) {
 void MovementInputSystem::removeEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
     if (entityID != entityIDs.end()) {
-        std::cout << "removing " << id << std::endl;
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
     }
@@ -52,7 +48,6 @@ void MovementInputSystem::refreshEntity(uint32_t id) {
     } else if (entityID == entityIDs.end() ) {
         addEntity(id);
     }
-    std::cout << "RSize " << entityIDs.size() << std::endl;
 
 }
 
