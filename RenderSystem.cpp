@@ -8,7 +8,7 @@ RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Windo
 };
 
 RenderSystem::~RenderSystem() {
-    for( auto sprite = sprites.begin(); sprite != sprites.end(); sprite = sprites.erase(sprite));
+    for( auto sprite = sprites.begin(); sprite != sprites.end(); delete sprite->second, sprite = sprites.erase(sprite));
     SDL_DestroyTexture(renderTarget);
 }
 
@@ -69,7 +69,7 @@ void RenderSystem::process(float dt) {
 
 void RenderSystem::render(float lerpT) {
     if (dirty) {
-
+        dirty = false;
     }
 
     std::vector<Component<Velocity::name, Velocity>>* velocityPool = manager->getComponentPool<Component<Velocity::name, Velocity>>();
