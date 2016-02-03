@@ -147,7 +147,6 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             }
 
         } else if (script.tokenizedScript[i] == "end_script" ) {
-            std::cout << "ending script " << id << '\n';
             manager->removeComponent<Component<Script::name, Script>>(id);
             ++i;
         } else if (script.tokenizedScript[i] == "remove") {
