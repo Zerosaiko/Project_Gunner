@@ -3,8 +3,8 @@
 #include "scriptcomponent.h"
 #include <iostream>
 
-PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 9000000}, renderSys{&manager, 10000000, window},
-        scriptSys(&manager, 0), mInpSys(&manager, 0), boundsSys(&manager, 9500000) {
+PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 5000}, renderSys{&manager, 10000, window},
+        scriptSys(&manager, 0), mInpSys(&manager, 1), boundsSys(&manager, 7500) {
     manager.addSystem(&moveSys);
     manager.addSystem(&renderSys);
     manager.addSystem(&scriptSys);
@@ -23,7 +23,7 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 900000
         \nstop_\ncreate %parent\ncomponent:sprite NamelessSheet 0, 0\
         \nstop_\ncreate %parent component:speed 80 \
         \nstop_\ncreate %parent component:focusSpeed 35 \
-        \nstop_\n@onUpdate\n create %parent component:bounds wrap 0 0 320 480 end_script"), 1);
+        \nstop_\n@onUpdate\n create %parent component:bounds block 0 0 320 480 end_script"), 1);
 }
 
 void PlayState::handleInput() {
