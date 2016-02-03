@@ -94,15 +94,8 @@ void RenderSystem::render(float lerpT) {
             SDL_Rect dstRect = srcRect;
             auto e = manager->getEntity(entityID.first);
             auto vel = e->find("velocity");
-            if (vel == e->end() || !vel->second.first) {
-                dstRect.x = (int)(position.posX) - srcRect.w / 2;
-                dstRect.y = (int)(position.posY) - srcRect.h / 2;
-            }
-            else {
-                Velocity& velocity = (*velocityPool)[vel->second.second].data;
-                dstRect.x = (int)(position.pastPosX + velocity.velX * lerpT) - srcRect.w / 2;
-                dstRect.y = (int)(position.pastPosY + velocity.velY * lerpT) - srcRect.h / 2;
-            }
+            dstRect.x = (int)( position.pastPosX + (position.posX - position.pastPosX) * lerpT) - srcRect.w / 2;
+            dstRect.y = (int)( position.pastPosY + (position.posY - position.pastPosY) * lerpT) - srcRect.h / 2;
 
             SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);
         }
