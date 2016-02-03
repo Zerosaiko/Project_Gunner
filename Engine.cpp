@@ -7,6 +7,7 @@
 #include "displace.h"
 #include "scriptcomponent.h"
 #include "playerComponents.h"
+#include "boundsComponent.h"
 #include "InputMap.h"
 #include <iostream>
 
@@ -37,6 +38,7 @@ void Engine::run() {
     Component<Velocity::name, Velocity>::registerComponent();
     Component<PlayerCmp::speed, float>::registerComponent();
     Component<PlayerCmp::focusSpeed, float>::registerComponent();
+    Component<Bounds::name, Bounds>::registerComponent();
 
     inputMap["Shot"] = SDL_SCANCODE_Z;
     inputMap["Bomb"] = SDL_SCANCODE_X;
