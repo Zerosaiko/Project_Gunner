@@ -9,11 +9,10 @@ CollisionSystem::CollisionSystem(EntityManager* const manager, int32_t priority)
 void CollisionSystem::initialize() {}
 
 void CollisionSystem::addEntity(uint32_t id) {
-    uint32_t* player = manager->tagManager.getIDByTag("player");
     auto entityID = entityIDs.find(id);
     if (entityID == entityIDs.end()) {
         auto entity = manager->getEntity(id);
-        if (entity && player && *player == id) {
+        if (entity) {
             auto collider = entity->find("collider");
             if (collider != entity->end() && collider->second.first) {
                 if (freeIDXs.empty()) {
