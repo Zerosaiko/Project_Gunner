@@ -87,14 +87,17 @@ void BoundsSystem::process(float dt) {
         Position& position = (*positionPool)[entity.first->second].data;
         Bounds& bounds = (*boundsPool)[entity.second->second].data;
         if (bounds.behavior == Bounds::Behavior::block) {
+
             if (position.posX < bounds.minX) position.posX = bounds.minX;
             else if (position.posX > bounds.maxX) position.posX = bounds.maxX;
             if (position.posY < bounds.minY) position.posY = bounds.minY;
             else if (position.posY > bounds.maxY) position.posY = bounds.maxY;
+
             if (position.pastPosX < bounds.minX) position.pastPosX = bounds.minX;
             else if (position.pastPosX > bounds.maxX) position.pastPosX = bounds.maxX;
             if (position.pastPosY < bounds.minY) position.pastPosY = bounds.minY;
             else if (position.pastPosY > bounds.maxY) position.pastPosY = bounds.maxY;
+
         } else if (bounds.behavior == Bounds::Behavior::destroy
             && (position.posX < bounds.minX || position.posX > bounds.maxX || position.posY < bounds.minY || position.posY > bounds.maxY) ) {
 

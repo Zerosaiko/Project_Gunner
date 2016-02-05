@@ -23,7 +23,8 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 5000},
         \nstop_\ncreate %parent\ncomponent:sprite NamelessSheet 0, 0\
         \nstop_\ncreate %parent component:speed 80 \
         \nstop_\ncreate %parent component:focusSpeed 35 \
-        \nstop_\n@onUpdate\n create %parent component:bounds block 0 0 320 480 end_script"), 1);
+        \nstop_\ncreate %parent component:bounds block 0 0 320 480 \
+        \n@onUpdate\n end_script"), 1);
 }
 
 void PlayState::handleInput() {
