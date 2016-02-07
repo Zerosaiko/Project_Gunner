@@ -10,6 +10,7 @@
 #include "ScriptSystem.h"
 #include "MovementInput.h"
 #include "BoundsCorrection.h"
+#include "CollisionSystem.h"
 
 class PlayState : public GameState{
 public:
@@ -32,6 +33,7 @@ private:
     ScriptSystem scriptSys;
     MovementInputSystem mInpSys;
     BoundsSystem boundsSys;
+    CollisionSystem colSys;
 };
 
 #endif // PLAYSTATE_H_INCLUDED

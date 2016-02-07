@@ -2,7 +2,7 @@
 
 const std::string Collider::name{"collider"};
 
-Collider::Collider() : collisionGroup(Collider::CollisionGroup::none), colliderType(Collider::ColliderType::none) {}
+Collider::Collider() : collisionGroup(Collider::CollisionGroup::NoGroup), colliderType(Collider::ColliderType::NoType) {}
 
 template<>
 Collider buildFromString<Collider>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
@@ -15,25 +15,30 @@ Collider buildFromString<Collider>(std::vector<std::string> str, std::vector<std
         c.collisionGroup = Collider::CollisionGroup::Enemy;
     } else if (str[pos] == "EnemyBullet") {
         c.collisionGroup = Collider::CollisionGroup::EnemyBullet;
+    } else if (str[pos] == "Pickup") {
+        c.collisionGroup = Collider::CollisionGroup::Pickup;
     }
 
+    c.position.x = c.position.y = 0.f;
+    c.offset.x = c.offset.y = 0.f;
     if (str[++pos] == "Point") {
         c.colliderType = Collider::ColliderType::Point;
-        c.point.x = c.point.y = 0.f;
-        c.point.x = buildFromString<float>(str, ++pos);
-        c.point.y = buildFromString<float>(str, ++pos);
+        c.offset.x = buildFromString<float>(str, ++pos);
+        c.offset.y = buildFromString<float>(str, ++pos);
     } else if (str[pos] == "AABB") {
         c.colliderType = Collider::ColliderType::AABB;
-        c.aabb.minX = c.aabb.minY = c.aabb.maxX = c.aabb.maxY = 0.f;
+        c.position.x = c.position.y = c.aabb.minX = c.aabb.minY = c.aabb.maxX = c.aabb.maxY = 0.f;
+        c.offset.x = buildFromString<float>(str, ++pos);
+        c.offset.y = buildFromString<float>(str, ++pos);
         c.aabb.minX = buildFromString<float>(str, ++pos);
         c.aabb.minY = buildFromString<float>(str, ++pos);
         c.aabb.maxX = buildFromString<float>(str, ++pos);
         c.aabb.maxY = buildFromString<float>(str, ++pos);
     } else if (str[pos] == "Circle") {
         c.colliderType = Collider::ColliderType::Circle;
-        c.circle.center.x = c.circle.center.y = c.circle.radius = 0.f;
-        c.circle.center.x = buildFromString<float>(str, ++pos);
-        c.circle.center.y = buildFromString<float>(str, ++pos);
+        c.circle.radius = 0.0f;
+        c.offset.x = buildFromString<float>(str, ++pos);
+        c.offset.y = buildFromString<float>(str, ++pos);
         c.circle.radius = buildFromString<float>(str, ++pos);
     }
 

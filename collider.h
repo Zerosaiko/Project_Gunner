@@ -13,7 +13,6 @@ struct CollisionPoint {
 };
 
 struct CollisionCircle {
-    CollisionPoint center;
     float radius;
 };
 
@@ -23,28 +22,30 @@ struct Collider {
 
     Collider();
 
-    enum class CollisionGroup {
-        none,
-        Player,
-        PlayerBullet,
-        Enemy,
-        EnemyBullet
+    enum CollisionGroup : size_t {
+        NoGroup = (size_t)-1,
+        Player = 0,
+        PlayerBullet = 1,
+        Enemy = 2,
+        EnemyBullet = 3,
+        Pickup = 4
 
     };
 
-    enum class ColliderType {
-        none,
-        AABB,
-        Point,
-        Circle
+    enum ColliderType : size_t {
+        NoType = (size_t)-1,
+        AABB = 0,
+        Point = 1,
+        Circle = 2
     };
 
     CollisionGroup collisionGroup;
     ColliderType colliderType;
+    CollisionPoint position;
+    CollisionPoint offset;
 
     union {
         AABoundingBox aabb;
-        CollisionPoint point;
         CollisionCircle circle;
 
     };
