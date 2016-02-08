@@ -21,9 +21,17 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 5000},
         \nstop_\ncreate %self\ncomponent:sprite NamelessSheet 0, 0\
         \nstop_\ncreate %self component:speed 80 \
         \nstop_\ncreate %self component:focusSpeed 35 \
-        \nstop_\ncreate %self component:bounds wrap 0 0 320 480 \
+        \nstop_\ncreate %self component:bounds block 0 0 320 480 \
         \nstop_\ncreate %self component:collider Player Point 0 0 \
         \nstop_ @onUpdate\n end_script"), 0);
+    manager.addComponent(std::string("component:script 2000 \
+        @onStart\
+        \ncreate %self component:position 0, 0\
+        \nstop_\ncreate %self\ncomponent:velocity 60, 35\
+        \nstop_\ncreate %self\ncomponent:sprite NamelessSheet 0, 0\
+        \nstop_\ncreate %self component:bounds destroy 0 0 320 480 \
+        \nstop_\ncreate %self component:collider Enemy AABB  0 0 -10 =10 10 10 \
+        \nstop_ @onUpdate\n end_script"), 1);
 }
 
 void PlayState::handleInput() {
