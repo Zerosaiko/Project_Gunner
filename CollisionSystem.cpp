@@ -6,16 +6,15 @@ CollisionSystem::CollisionSystem(EntityManager* const manager, int32_t priority)
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     colliderPool = manager->getComponentPool<Component<Collider::name, Collider>>();
     entities.resize(5);
-    collisionTable.resize(3);
-    for (auto& funcVec : collisionTable) {
-        funcVec.resize(3);
-    }
+
     collisionTable[Collider::ColliderType::AABB][Collider::ColliderType::AABB] = aabbToaabbCollision;
     collisionTable[Collider::ColliderType::AABB][Collider::ColliderType::Point] = aabbToPointCollision;
     collisionTable[Collider::ColliderType::AABB][Collider::ColliderType::Circle] = aabbToCircleCollision;
+
     collisionTable[Collider::ColliderType::Point][Collider::ColliderType::AABB] = pointToaabbCollision;
     collisionTable[Collider::ColliderType::Point][Collider::ColliderType::Point] = pointToPointCollision;
     collisionTable[Collider::ColliderType::Point][Collider::ColliderType::Circle] = pointToCircleCollision;
+
     collisionTable[Collider::ColliderType::Circle][Collider::ColliderType::AABB] = circleToaabbCollision;
     collisionTable[Collider::ColliderType::Circle][Collider::ColliderType::Point] = circleToPointCollision;
     collisionTable[Collider::ColliderType::Circle][Collider::ColliderType::Circle] = circleToCircleCollision;
@@ -69,7 +68,7 @@ void CollisionSystem::process(float dt) {
     auto& playerBulletColliders = entities[Collider::CollisionGroup::PlayerBullet];
     auto& enemyColliders = entities[Collider::CollisionGroup::Enemy];
     auto& enemyBulletColliders = entities[Collider::CollisionGroup::EnemyBullet];
-    std::cout << "P Count: " << playerColliders.size() << '\n';
+    auto& pickupColliders = entities[Collider::CollisionGroup::Pickup];
     for (auto playerIT = playerColliders.begin(); playerIT != playerColliders.end(); ++playerIT) {
         Collider& playerCollider = (*colliderPool)[playerIT->second.first->second].data;
         Position& playerPosition = (*positionPool)[playerIT->second.second->second].data;
@@ -91,6 +90,30 @@ void CollisionSystem::process(float dt) {
             enemyBulletCollider.position.y = enemyBulletPosition.posY;
             if (collisionTable[playerCollider.colliderType][enemyBulletCollider.colliderType](playerCollider, enemyBulletCollider)) {
                 // probably do something to kill the player unless there's some kind of shield
+            }
+        }
+        for (auto pickupIT = pickupColliders.begin(); pickupIT != pickupColliders.end(); ++pickupIT) {
+            Collider& pickupCollider = (*colliderPool)[pickupIT->second.first->second].data;
+            Position& pickupPosition = (*positionPool)[pickupIT->second.second->second].data;
+            pickupCollider.position.x = pickupPosition.posX;
+            pickupCollider.position.y = pickupPosition.posY;
+            if (collisionTable[playerCollider.colliderType][pickupCollider.colliderType](playerCollider, pickupCollider)) {
+                // do whatever the pickup does
+            }
+        }
+    }
+    for (auto playerBulletIT = playerBulletColliders.begin(); playerBulletIT != playerBulletColliders.end(); ++playerBulletIT) {
+        Collider& playerBulletCollider = (*colliderPool)[playerBulletIT->second.first->second].data;
+        Position& playerBulletPosition = (*positionPool)[playerBulletIT->second.second->second].data;
+        playerBulletCollider.position.x = playerBulletPosition.posX;
+        playerBulletCollider.position.y = playerBulletPosition.posY;
+        for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
+            Collider& enemyCollider = (*colliderPool)[enemyIT->second.first->second].data;
+            Position& enemyPosition = (*positionPool)[enemyIT->second.second->second].data;
+            enemyCollider.position.x = enemyPosition.posX;
+            enemyCollider.position.y = enemyPosition.posY;
+            if (collisionTable[playerBulletCollider.colliderType][enemyCollider.colliderType](playerBulletCollider, enemyCollider)) {
+                // probably do something to lower the health of the enemy
             }
         }
     }

@@ -28,7 +28,7 @@ private:
 
     std::vector<Component<Collider::name, Collider>>* colliderPool;
 
-    std::vector<std::vector<std::function<bool(Collider&, Collider&)>>> collisionTable;
+    std::function<bool(Collider&, Collider&)> collisionTable[3][3];
 
 };
 
