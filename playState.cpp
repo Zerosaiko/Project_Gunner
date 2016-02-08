@@ -3,8 +3,8 @@
 #include "scriptcomponent.h"
 #include <iostream>
 
-PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 5000}, renderSys{&manager, 10000, window},
-        scriptSys(&manager, 0), mInpSys(&manager, 1), boundsSys(&manager, 7500), colSys{&manager, 6000} {
+PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000}, renderSys{&manager, 10000, window},
+        scriptSys(&manager, 0), mInpSys(&manager, 1), boundsSys(&manager, 7500), colSys{&manager, 5999} {
     manager.addSystem(&moveSys);
     manager.addSystem(&renderSys);
     manager.addSystem(&scriptSys);
