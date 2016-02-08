@@ -23,7 +23,9 @@ public:
 
 private:
 
-    std::unordered_map<uint32_t, std::vector<EntityManager::component_pair const *>::size_type> entityIDs;
+    std::unordered_map<uint32_t, size_t> entityIDs;
+
+    std::vector<uint32_t> entitiesToDestroy;
 
     std::vector<std::vector<std::pair<EntityManager::component_pair const *,EntityManager::component_pair const *>>::size_type> freeIDXs;
 

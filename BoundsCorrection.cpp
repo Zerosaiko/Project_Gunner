@@ -2,6 +2,7 @@
 #include "SDL.h"
 
 BoundsSystem::BoundsSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
+    entitiesToDestroy.reserve(1048);
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     boundsPool = manager->getComponentPool<Component<Bounds::name, Bounds>>();
 };
@@ -101,7 +102,7 @@ void BoundsSystem::process(float dt) {
         } else if (bounds.behavior == Bounds::Behavior::destroy
             && (position.posX < bounds.minX || position.posX > bounds.maxX || position.posY < bounds.minY || position.posY > bounds.maxY) ) {
 
-            manager->destroyEntity(entityID.first);
+            entitiesToDestroy.push_back(entityID.first);
 
         } else if (bounds.behavior == Bounds::Behavior::wrap) {
             if (position.posX < bounds.minX) {
@@ -139,9 +140,15 @@ void BoundsSystem::process(float dt) {
         }
     }
 
+    for(auto& entity : entitiesToDestroy)
+        manager->destroyEntity(entity);
+
     auto endT = SDL_GetPerformanceCounter();
 
     //std::cout << "M-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
 
 }
+
+
+
 
