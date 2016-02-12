@@ -134,13 +134,11 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             }
             if (group.empty() || !children) {
                 manager->addComponent(str, targetID);
-            }
-            else if (children){
+            } else if (children) {
                 for (auto& child: manager->getChildren(id)) {
                     manager->addComponent(str, child);
                 }
-            }
-            else if (!group.empty()) {
+            } else if (!group.empty()) {
                 auto groupVec = manager->groupManager.getIDGroup(group);
                 if (groupVec) {
                     for (auto& entity: *groupVec) {
