@@ -13,7 +13,7 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000},
     manager.addSystem(&colSys);
 
     manager.createEntity(0);
-    manager.tagManager.tagEntity("player", 0);
+    /*manager.tagManager.tagEntity("player", 0);
     manager.addComponent(std::string("component:script 2000 \
         @onStart\
         \ncreate %self component:position 0, 0\
@@ -23,7 +23,8 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000},
         \nstop_\ncreate %self component:focusSpeed 35 \
         \nstop_\ncreate %self component:bounds block 0 0 320 480 \
         \nstop_\ncreate %self component:collider Player Point 0 0 \
-        \nstop_ @onUpdate\n end_script"), 0);
+        \nstop_ @onUpdate\n end_script"), 0);*/
+    manager.addComponent(std::string("component:script <This is a test script> 1\n  <These <strings> should>\n a b <<Be> <<separate>>> <test more "), 0);
 }
 
 void PlayState::handleInput() {

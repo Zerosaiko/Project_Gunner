@@ -163,36 +163,46 @@ std::vector<std::string> Component<cmpName, DataType>::ComponentFactoryInternal:
     tokenizedString.reserve(5);
     std::string::size_type tokenStart = std::string::npos;
     std::locale loc;
-    bool quoteString = false;
-    bool escape = false;
+    uint32_t nesting = 0;
+    std::string::size_type nestStart = std::string::npos;
     if (beginCmp != std::string::npos) {
         tokenizedString.push_back("component");
         tokenizedString.push_back(cmpName);
         for(auto start = beginCmp; start != std::string::npos &&
                 start < instructions.size(); ++start) {
             auto ch = instructions[start];
-            if (ch == '\\') {
-                instructions[start] = ' ';
-                escape = true;
-            } else if (!escape && ch == '"') {
-                if (!quoteString) {
-                    tokenStart = start + 1;
-                } else {
-                    tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart - 1));
-                }
-                quoteString = !quoteString;
-            } else if ( !quoteString && !std::isspace(ch, loc) && ch != ',' && ch != '\n' && tokenStart == std::string::npos) {
-                tokenStart = start;
-            } else if ( !quoteString && (std::isspace(ch, loc) || ch == ',' || ch== '\n') && tokenStart != std::string::npos) {
-                tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart));
-                tokenStart = std::string::npos;
+            if (ch == '<') {
+                if (nesting == 0)
+                    nestStart = start + 1;
+                ++nesting;
             }
-            escape = false;
+            else if (ch == '>' && nesting != 0) {
+                --nesting;
+                if (nesting == 0) {
+                    tokenizedString.emplace_back(instructions.substr(nestStart, start - nestStart));
+                    nestStart = std::string::npos;
+                    continue;
+                }
+            }
+
+            if (nesting == 0) {
+                if (!std::isspace(ch, loc) && ch != ',' && ch != '\n' && tokenStart == std::string::npos) {
+                    tokenStart = start;
+                } else if ( (std::isspace(ch, loc) || ch == ',' || ch== '\n') && tokenStart != std::string::npos) {
+                    tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart));
+                    tokenStart = std::string::npos;
+                }
+            }
+
         }
 
         if (tokenStart != std::string::npos)
             tokenizedString.emplace_back(instructions.substr(tokenStart));
 
+    }
+
+    for(size_t i = 0; i < tokenizedString.size(); ++i) {
+        std::cout << "Token " << i << " - " << tokenizedString[i] << '\n';
     }
 
     return tokenizedString;
