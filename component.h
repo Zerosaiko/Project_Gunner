@@ -201,10 +201,6 @@ std::vector<std::string> Component<cmpName, DataType>::ComponentFactoryInternal:
 
     }
 
-    for(size_t i = 0; i < tokenizedString.size(); ++i) {
-        std::cout << "Token " << i << " - " << tokenizedString[i] << '\n';
-    }
-
     return tokenizedString;
 
 }
