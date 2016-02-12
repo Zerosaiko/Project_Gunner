@@ -163,20 +163,31 @@ std::vector<std::string> Component<cmpName, DataType>::ComponentFactoryInternal:
     tokenizedString.reserve(5);
     std::string::size_type tokenStart = std::string::npos;
     std::locale loc;
+    bool quoteString = false;
+    bool escape = false;
     if (beginCmp != std::string::npos) {
         tokenizedString.push_back("component");
         tokenizedString.push_back(cmpName);
         for(auto start = beginCmp; start != std::string::npos &&
                 start < instructions.size(); ++start) {
             auto ch = instructions[start];
-            if (!std::isspace(ch, loc) && ch != ',' && ch != '\n' && tokenStart == std::string::npos) {
+            if (ch == '\\') {
+                instructions[start] = ' ';
+                escape = true;
+            } else if (!escape && ch == '"') {
+                if (!quoteString) {
+                    tokenStart = start + 1;
+                } else {
+                    tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart - 1));
+                }
+                quoteString = !quoteString;
+            } else if ( !quoteString && !std::isspace(ch, loc) && ch != ',' && ch != '\n' && tokenStart == std::string::npos) {
                 tokenStart = start;
-            }
-            if ( (std::isspace(ch, loc) || ch == ',' || ch== '\n') && tokenStart != std::string::npos) {
+            } else if ( !quoteString && (std::isspace(ch, loc) || ch == ',' || ch== '\n') && tokenStart != std::string::npos) {
                 tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart));
                 tokenStart = std::string::npos;
             }
-
+            escape = false;
         }
 
         if (tokenStart != std::string::npos)
