@@ -105,6 +105,7 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             uint32_t targetID = id;
             bool children = false;
             std::string group;
+            int8_t nesting = 1;
             if (script.tokenizedScript[++i] == "%new") {
                 targetID = manager->createEntity();
                 ++i;
@@ -126,7 +127,9 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
                 children = script.tokenizedScript[i] == "%children";
                 i += children;
             }
-            while(i < end && script.tokenizedScript[i] != "stop_") {
+            while(i < end && nesting > 0) {
+                if (script.tokenizedScript[i] == "create") ++nesting;
+                else if (script.tokenizedScript[i] == "stop_") --nesting;
                 (str += "\n") += script.tokenizedScript[i++];
             }
             if (group.empty() || !children) {
