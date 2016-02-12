@@ -130,19 +130,7 @@ Spawner buildFromString<Spawner>(std::vector<std::string> str, size_t pos) {
     }
 
     while (str[++pos] == "components") {
-        uint32_t nesting = 1;
-        std::string pass;
-        pass.reserve(300);
-        while (pos < str.size() && nesting > 0) {
-            if (str[++pos] == "components") ++nesting;
-            else if (str[pos] == "end_components") --nesting;
-            else if (nesting > 1) {
-                pass += str[pos];
-                pass += "\n";
-            }
-        }
-        s.addComponents.push_back(pass);
-        pass.clear();
+        s.addComponents.push_back(str[++pos]);
     }
 
     return s;
