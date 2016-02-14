@@ -101,15 +101,15 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
     if (componentID == entity.end() ) {
         if (freeComponents[compName].empty()) {
             entity[compName] = component_pair{true, CMPType::componentPools[this].size()};
-            factory->build(this, comp);
+            factory->build(this, &comp);
         } else {
             entity[compName] = component_pair{true, freeComponents[compName].front()};
             freeComponents[compName].pop_front();
-            factory->build(this, componentID->second.second, comp);
+            factory->build(this, componentID->second.second, &comp);
         }
     } else {
-        componentID->first = true;
-        factory->build(this, componentID->second.second, comp);
+        componentID->second.first = true;
+        factory->build(this, componentID->second.second, &comp);
     }
     entitiesToRefresh.insert(id);
 }
@@ -124,15 +124,15 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
     if (componentID == entity.end() ) {
         if (freeComponents[compName].empty()) {
             entity[compName] = component_pair{true, CMPType::componentPools[this].size()};
-            factory->build(this, comp);
+            factory->build(this, &comp);
         } else {
             entity[compName] = component_pair{true, freeComponents[compName].front()};
             freeComponents[compName].pop_front();
-            factory->build(this, componentID->second.second, comp);
+            factory->build(this, componentID->second.second, &comp);
         }
     } else {
         componentID->first = true;
-        factory->build(this, componentID->second.second, comp);
+        factory->build(this, componentID->second.second, &comp);
     }
     entitiesToRefresh.insert(id);
 
