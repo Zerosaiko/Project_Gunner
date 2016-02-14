@@ -172,8 +172,11 @@ std::vector<std::string> Component<cmpName, DataType>::ComponentFactoryInternal:
                 start < instructions.size(); ++start) {
             auto ch = instructions[start];
             if (ch == '<') {
-                if (nesting == 0)
+                if (nesting == 0) {
                     nestStart = start + 1;
+                    if (tokenStart != std::string::npos)
+                        tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart));
+                }
                 ++nesting;
             }
             else if (ch == '>' && nesting != 0) {
