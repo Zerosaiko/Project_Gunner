@@ -99,9 +99,10 @@ void EntityManager::addComponent(std::string& instructions, uint32_t id) {
             entities[id][compName] = component_pair{true, factory->build(this, instructions)};
         }
         else {
-            entity[compName] = component_pair{true, freeComponents[compName].front()};
+            component_pair compPair{true, freeComponents[compName].front()};
+            entity[compName] = compPair;
             freeComponents[compName].pop_front();
-            entities[id][compName] = component_pair{true, factory->build(this, componentID->second.second, instructions)};
+            factory->build(this, compPair.second, instructions);
         }
     }
     else {
