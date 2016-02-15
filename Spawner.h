@@ -10,12 +10,10 @@ struct Spawner {
 
     static const std::string name;
 
+    static const std::string getName();
+
     struct DeltaPoint {
         float x, y, dx, dy;
-    };
-
-    struct Rectangle {
-        float minX, minY, maxX, maxY;
     };
 
     struct Arc {
@@ -33,40 +31,35 @@ struct Spawner {
 
     };
 
-    enum class XYorDirSpeed : size_t {
+    enum class PointStyle : size_t {
         XY = 0,
-        DirSpeed = 1
+        Rad = 1,
+        Speed = 2
     };
 
     enum class SpawnPos : size_t {
         Default = 0,
-        AlongRectangleClockwise = 1,
-        AlongRectangleCounterClockwise = 2,
-        AlongArcClockwise = 3,
-        AlongArcCounterClockwise = 4,
-        AlongList = 5,
-        AlongPath = 6
+        AlongList = 1,
+        AlongPath = 2
 
     };
 
     enum class SpawnVel : size_t {
-        Default = 0,
-        Aimed = 1,
-        TowardOrigin = 2,
-        AwayFromOrigin = 3,
-        AlongRectangleClockwise = 4,
-        AlongRectangleCounterClockwise = 5,
-        AgainstRectangle = 6,
-        TowardRectangle = 7,
-        UseList = 8,
+        None = 0,
+        Default = 1,
+        Aimed = 2,
+        AwayFromPlayer = 3,
+        TowardOrigin = 4,
+        AwayFromOrigin = 5,
+        UseList = 6,
     };
 
     enum class SpawnAccel : size_t {
-        Default = 0,
-        Forward = 1,
-        Backward = 2,
-        Decel = 3,
-        Toward = 4
+        None = 0,
+        Default = 1,
+        Forward = 2,
+        Backward = 3,
+        Decel = 4
 
     };
 
@@ -77,11 +70,11 @@ struct Spawner {
 
     Relative relative;
 
-    XYorDirSpeed posDirection;
+    PointStyle posDirection;
 
-    XYorDirSpeed velDirection;
+    PointStyle velDirection;
 
-    XYorDirSpeed accelDirection;
+    PointStyle accelDirection;
 
     union Position {
         DeltaPoint xyVec;
@@ -100,20 +93,18 @@ struct Spawner {
         float speed;
     } acceleration;
 
-    SpawnPos spawnPosition;
-
     std::vector<float> spawnPoints;
 
-    union {
-        Rectangle spawnRect;
-        Arc spawnArc;
-    };
+    std::vector<float> velocityList;
+
+    SpawnPos spawnPosition;
 
     SpawnVel spawnVelocity;
 
     SpawnAccel spawnAcceleration;
 
-    std::vector<std::string> addComponents;
+    uint32_t cmpTypeCount;
+    std::vector<std::vector<std::string>> addComponents;
 
 };
 
