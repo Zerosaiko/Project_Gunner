@@ -9,6 +9,7 @@
 #include "playerComponents.h"
 #include "boundsComponent.h"
 #include "collider.h"
+#include "Spawner.h"
 #include "InputMap.h"
 #include <iostream>
 
@@ -41,6 +42,7 @@ void Engine::run() {
     Component<PlayerCmp::focusSpeed, float>::registerComponent();
     Component<Bounds::name, Bounds>::registerComponent();
     Component<Collider::name, Collider>::registerComponent();
+    Component<Spawner::name, Spawner>::registerComponent();
 
     inputMap["Shot"] = SDL_SCANCODE_Z;
     inputMap["Bomb"] = SDL_SCANCODE_X;

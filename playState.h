@@ -11,6 +11,7 @@
 #include "MovementInput.h"
 #include "BoundsCorrection.h"
 #include "CollisionSystem.h"
+#include "SpawnSystem.h"
 
 class PlayState : public GameState{
 public:
@@ -34,6 +35,7 @@ private:
     MovementInputSystem mInpSys;
     BoundsSystem boundsSys;
     CollisionSystem colSys;
+    SpawnSystem spawnSys;
 };
 
 #endif // PLAYSTATE_H_INCLUDED
