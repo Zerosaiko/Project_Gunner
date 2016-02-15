@@ -59,6 +59,7 @@ void SpawnSystem::process(float dt) {
     for(auto& entityID : entityIDs) {
         auto& entity = entities[entityID.second];
         Spawner& spawner = (*spawnPool)[entity.first->second].data;
+        spawner.currentTime += dt;
         while (spawner.currentTime >= spawner.repeatRate) {
             Spawner::Position spawnPositions;
             Spawner::Velocity spawnVelocities;
@@ -155,8 +156,6 @@ void SpawnSystem::process(float dt) {
 
                 }
 
-                std::cout << "Pos: " << newPos.posX << ',' << newPos.posY << '\n';
-
                 switch (spawner.spawnVelocity) {
 
                 case Spawner::SpawnVel::Default :
@@ -246,7 +245,6 @@ void SpawnSystem::process(float dt) {
                 if (spawner.runCount == 0) manager->removeComponent<Spawner>(entityID.first);
             }
         }
-        spawner.currentTime += spawner.repeatRate;
     }
 
     auto endT = SDL_GetPerformanceCounter();

@@ -66,6 +66,7 @@ struct Spawner {
     int32_t runCount;
     uint32_t spawnsPerRun;
     float repeatRate;
+    float initialDelay;
     float currentTime;
 
     Relative relative;

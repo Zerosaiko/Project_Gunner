@@ -27,7 +27,7 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000},
         \nstop_\ncreate %self component:collider Player Point 0 0 \
         \nstop_ @onUpdate\n end_script>"), 0);
     manager.addComponent(std::string("component:spawner 3 8\
-        1000 Source PosRad 0 45 10 0 \
+        1000 0 Source PosRad 0 45 10 0 \
         VelSpeed 65 AwayFromOrigin\
         1\
         component 0 <component:sprite NamelessSheet 0, 0>\
