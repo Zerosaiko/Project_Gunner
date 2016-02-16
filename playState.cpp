@@ -65,7 +65,7 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000},
 
         manager.addComponent(std::string("component:position 160, 160"), 3);
         manager.addComponent(std::string("component:spawner -1 100\
-            800 400 Source PosRad 180 0 3.6 0.3 20 0 \
+            800 400 Source PosRad 180 0 3.6 0.5 20 0 \
             VelSpeed 60 -0.2 0 TowardOrigin \
             3\
             component 0 <component:sprite NamelessSheet 2, 0>\
