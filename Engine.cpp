@@ -3,14 +3,8 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "playState.h"
-#include "renderable.h"
-#include "displace.h"
-#include "scriptcomponent.h"
-#include "playerComponents.h"
-#include "boundsComponent.h"
-#include "collider.h"
-#include "Spawner.h"
 #include "InputMap.h"
+#include "component.h"
 #include <iostream>
 
 Engine::Engine() : running(true),
@@ -19,6 +13,7 @@ Engine::Engine() : running(true),
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_VIDEO);
     IMG_Init(IMG_INIT_PNG);
     window = new Window();
+    registerAllComponents();
 }
 
 Engine::~Engine() {
@@ -33,16 +28,6 @@ Engine::~Engine() {
 }
 
 void Engine::run() {
-
-    Component<Renderable::name, Renderable>::registerComponent();
-    Component<Script::name, Script>::registerComponent();
-    Component<Position::name, Position>::registerComponent();
-    Component<Velocity::name, Velocity>::registerComponent();
-    Component<PlayerCmp::speed, float>::registerComponent();
-    Component<PlayerCmp::focusSpeed, float>::registerComponent();
-    Component<Bounds::name, Bounds>::registerComponent();
-    Component<Collider::name, Collider>::registerComponent();
-    Component<Spawner::name, Spawner>::registerComponent();
 
     inputMap["Shot"] = SDL_SCANCODE_Z;
     inputMap["Bomb"] = SDL_SCANCODE_X;
@@ -79,14 +64,14 @@ void Engine::run() {
             }
         }
         if (currentTime < 0.1f / currentFPS)
-            SDL_Delay(1);
+            SDL_Delay(0);
         currentTime += (float)(SDL_GetPerformanceCounter() - beginTime) / SDL_GetPerformanceFrequency();
         beginTime = SDL_GetPerformanceCounter();
         if (currentState) {
 
             currentState->handleInput();
             // capped at 3 updates before rendering
-            if (currentTime > 3.0f / 60.0f) currentTime = 3.0f / 60.0f;
+            if (currentTime > 3.0f / 60.0f) {currentTime = 3.0f / 60.0f;}
             for(; currentTime >= 1.0f / currentFPS; currentTime -= 1.0f / currentFPS) {
                 currentState->update(1.0f / currentFPS);
             }
