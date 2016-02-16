@@ -15,7 +15,12 @@ void MovementSystem::addEntity(uint32_t id) {
         if (entity) {
             auto position = entity->find("position");
             auto velocity = entity->find("velocity");
-            if (position != entity->end() && velocity != entity->end() && position->second.first && velocity->second.first) {
+            auto delay = entity->find("fullDelay");
+            auto pause = entity->find("pauseDelay");
+            if ( (delay == entity->end() || !delay->second.first)
+                && (pause == entity->end() || !pause->second.first)
+                && position != entity->end() && velocity != entity->end()
+                && position->second.first && velocity->second.first) {
 
                 if (freeIDXs.empty()) {
                     entityIDs[id] = entities.size();
@@ -47,7 +52,15 @@ void MovementSystem::refreshEntity(uint32_t id) {
     if (entityID != entityIDs.end() && !(entities[entityID->second].first->first && entities[entityID->second].second->first)) {
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
-    } else if (entityID == entityIDs.end() ) {
+    } else if (entityID != entityIDs.end() ) {
+        auto entity = manager->getEntity(id);
+        auto delay = entity->find("fullDelay");
+        auto pause = entity->find("pauseDelay");
+        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
+            freeIDXs.push_back(entityID->second);
+            entityIDs.erase(entityID);
+        }
+    } else {
         addEntity(id);
     }
 

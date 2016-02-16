@@ -45,7 +45,15 @@ void SpawnSystem::refreshEntity(uint32_t id) {
     if (entityID != entityIDs.end() && !(entities[entityID->second].first->first && entities[entityID->second].second->first )) {
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
-    } else if (entityID == entityIDs.end() ) {
+    } else if (entityID != entityIDs.end() ) {
+        auto entity = manager->getEntity(id);
+        auto delay = entity->find("fullDelay");
+        auto pause = entity->find("pauseDelay");
+        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
+            freeIDXs.push_back(entityID->second);
+            entityIDs.erase(entityID);
+        }
+    } else {
         addEntity(id);
     }
 
@@ -61,19 +69,18 @@ void SpawnSystem::process(float dt) {
         Spawner& spawner = (*spawnPool)[entity.first->second].data;
         spawner.currentTime += dt;
         while (spawner.currentTime >= spawner.repeatRate) {
-            Spawner::Position spawnPositions;
-            Spawner::Velocity spawnVelocities;
+            Spawner::Position spawnPositions = spawner.position;
+
+            Spawner::Velocity spawnVelocities = spawner.velocity;
 
             switch (spawner.posDirection) {
 
             case Spawner::PointStyle::XY :
-                spawnPositions.xyVec = spawner.position.xyVec;
                 spawner.position.xyVec.x += spawner.position.xyVec.persistDx;
                 spawner.position.xyVec.y += spawner.position.xyVec.persistDy;
                 break;
 
             case Spawner::PointStyle::Rad :
-                spawnPositions.dirSpd = spawner.position.dirSpd;
                 spawner.position.dirSpd.direction += spawner.position.dirSpd.persistDeltaDirection;
                 spawner.position.dirSpd.speed += spawner.position.dirSpd.persistDSpeed;
                 break;
@@ -85,19 +92,16 @@ void SpawnSystem::process(float dt) {
             switch (spawner.velDirection) {
 
             case Spawner::PointStyle::XY :
-                spawnVelocities.xyVec = spawner.velocity.xyVec;
                 spawner.velocity.xyVec.x += spawner.velocity.xyVec.persistDx;
                 spawner.velocity.xyVec.y += spawner.velocity.xyVec.persistDy;
                 break;
 
             case Spawner::PointStyle::Rad :
-                spawnVelocities.dirSpd = spawner.velocity.dirSpd;
                 spawner.velocity.dirSpd.direction += spawner.velocity.dirSpd.persistDeltaDirection;
                 spawner.velocity.dirSpd.speed += spawner.velocity.dirSpd.persistDSpeed;
                 break;
 
             case Spawner::PointStyle::Speed :
-                spawnVelocities.speed = spawner.velocity.speed;
                 spawner.velocity.speed.current += spawner.velocity.speed.persistDelta;
                 break;
             }
@@ -109,8 +113,8 @@ void SpawnSystem::process(float dt) {
                 Position newPos, adjPos;
                 Velocity newVel;
 
-                newPos.posX = newPos.pastPosX = 0.0f;
-                newPos.posY = newPos.pastPosY = 0.0f;
+                newPos.posX = newPos.pastPosX = adjPos.posX = 0.0f;
+                newPos.posY = newPos.pastPosY = adjPos.posY = 0.0f;
 
                 newVel.velX = 0.0f;
                 newVel.velY = 0.0f;
@@ -149,6 +153,7 @@ void SpawnSystem::process(float dt) {
                     adjPos = newPos;
                     if (spawner.relative == Spawner::Relative::Source) {
                         newPos.posX += position.posX;
+
                         newPos.posY += position.posY;
                     } else if (spawner.relative == Spawner::Relative::Player) {
                         // needs to be handled
@@ -263,6 +268,6 @@ void SpawnSystem::process(float dt) {
 
     auto endT = SDL_GetPerformanceCounter();
 
-    //std::cout << "M-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
+    std::cout << "SPAWN - " << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
 
 }

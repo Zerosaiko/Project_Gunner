@@ -13,18 +13,24 @@ void MovementInputSystem::addEntity(uint32_t id) {
     auto entityID = entityIDs.find(id);
     if (entityID == entityIDs.end()) {
         auto entity = manager->getEntity(id);
-        if (entity && player && *player == id) {
-            auto velocity = entity->find("velocity");
-            if (velocity != entity->end() && velocity->second.first) {
-                if (freeIDXs.empty()) {
-                    entityIDs[id] = entities.size();
-                    entities.emplace_back(&velocity->second);
-                }
-                else {
-                    auto idx = freeIDXs.back();
-                    entityIDs[id] = idx;
-                    freeIDXs.pop_back();
-                    entities[idx] = &velocity->second;
+        if (entity) {
+            if ( player && *player == id) {
+                auto velocity = entity->find("velocity");
+                auto delay = entity->find("fullDelay");
+                auto pause = entity->find("pauseDelay");
+                if ((delay == entity->end() || !delay->second.first )
+                    && (pause == entity->end() || !pause->second.first )
+                    && velocity != entity->end() && velocity->second.first) {
+                    if (freeIDXs.empty()) {
+                        entityIDs[id] = entities.size();
+                        entities.emplace_back(&velocity->second);
+                    }
+                    else {
+                        auto idx = freeIDXs.back();
+                        entityIDs[id] = idx;
+                        freeIDXs.pop_back();
+                        entities[idx] = &velocity->second;
+                    }
                 }
             }
         }
@@ -45,7 +51,15 @@ void MovementInputSystem::refreshEntity(uint32_t id) {
     if ((!player || *player != id) && entityID != entityIDs.end() && !(entities[entityID->second]->first)) {
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
-    } else if (entityID == entityIDs.end() ) {
+    } else if (entityID != entityIDs.end() ) {
+        auto entity = manager->getEntity(id);
+        auto delay = entity->find("fullDelay");
+        auto pause = entity->find("pauseDelay");
+        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
+            freeIDXs.push_back(entityID->second);
+            entityIDs.erase(entityID);
+        }
+    } else {
         addEntity(id);
     }
 

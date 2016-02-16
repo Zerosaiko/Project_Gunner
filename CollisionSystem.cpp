@@ -27,7 +27,12 @@ void CollisionSystem::addEntity(uint32_t id) {
     if (entity) {
         auto collider = entity->find("collider");
         auto position = entity->find("position");
-        if (collider != entity->end() && position!= entity->end() && collider->second.first && position->second.first) {
+        auto delay = entity->find("fullDelay");
+        auto pause = entity->find("pauseDelay");
+        if ( (delay == entity->end() || !delay->second.first) && (pause == entity->end() || !pause->second.first)
+            && collider != entity->end() && position!= entity->end()
+            && collider->second.first && position->second.first) {
+
             Collider& col = (*colliderPool)[collider->second.second].data;
             std::pair<EntityManager::component_pair const *,EntityManager::component_pair const *> col_pos_pair{&collider->second, &position->second};
             entities[col.collisionGroup][id] = col_pos_pair;
@@ -35,6 +40,7 @@ void CollisionSystem::addEntity(uint32_t id) {
                 if (col.collisionGroup != i)
                     entities[i].erase(id);
             }
+
         }
     }
 }
@@ -51,10 +57,17 @@ void CollisionSystem::refreshEntity(uint32_t id) {
     if (entity) {
         auto collider = entity->find("collider");
         auto position = entity->find("position");
-        if (collider != entity->end() && position != entity->end() && !(collider->second.first && position->second.first)) {
+        if (collider != entity->end() && position != entity->end()
+            && !(collider->second.first && position->second.first)) {
             removeEntity(id);
-        } else if (collider != entity->end() && position != entity->end() && collider->second.first && position->second.first) {
-            addEntity(id);
+        } else {
+            auto entity = manager->getEntity(id);
+            auto delay = entity->find("fullDelay");
+            auto pause = entity->find("pauseDelay");
+            if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
+                removeEntity(id);
+            } else
+                addEntity(id);
         }
     }
 
