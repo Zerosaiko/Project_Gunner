@@ -13,15 +13,15 @@ struct Spawner {
     static const std::string getName();
 
     struct DeltaPoint {
-        float x, y, dx, dy;
-    };
-
-    struct Arc {
-        float radius, minAngle, maxAngle;
+        float x, y, dx, dy, persistDx, persistDy;
     };
 
     struct DirVector {
-        float direction, deltaDirection, speed, dSpeed;
+        float direction, speed, deltaDirection, dSpeed, persistDeltaDirection, persistDSpeed;
+    };
+
+    struct DeltaSpeed {
+        float current, delta, persistDelta;
     };
 
     enum class Relative : size_t {
@@ -85,13 +85,13 @@ struct Spawner {
     union Velocity {
         DeltaPoint xyVec;
         DirVector dirSpd;
-        float speed;
+        DeltaSpeed speed;
     } velocity;
 
     union Acceleration {
         DeltaPoint xyVec;
         DirVector dirSpd;
-        float speed;
+        DeltaSpeed speed;
     } acceleration;
 
     std::vector<float> spawnPoints;

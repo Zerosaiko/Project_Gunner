@@ -48,14 +48,18 @@ Spawner buildFromString<Spawner>(std::vector<std::string> str, size_t pos) {
         s.position.xyVec.y = buildFromString<float>(str, ++pos);
         s.position.xyVec.dx = buildFromString<float>(str, ++pos);
         s.position.xyVec.dy = buildFromString<float>(str, ++pos);
+        s.position.xyVec.persistDx = buildFromString<float>(str, ++pos);
+        s.position.xyVec.persistDy = buildFromString<float>(str, ++pos);
         ++pos;
     } else if (str[pos] == "PosRad") {
         s.posDirection = Spawner::PointStyle::Rad;
 
         s.position.dirSpd.direction = buildFromString<float>(str, ++pos) * (PI / 180.0f);
-        s.position.dirSpd.deltaDirection = buildFromString<float>(str, ++pos) * (PI / 180.0f);
         s.position.dirSpd.speed = buildFromString<float>(str, ++pos);
+        s.position.dirSpd.deltaDirection = buildFromString<float>(str, ++pos) * (PI / 180.0f);
         s.position.dirSpd.dSpeed = buildFromString<float>(str, ++pos);
+        s.position.dirSpd.persistDeltaDirection = buildFromString<float>(str, ++pos) * (PI / 180.0f);
+        s.position.dirSpd.persistDSpeed = buildFromString<float>(str, ++pos);
         ++pos;
     }
 
@@ -66,19 +70,24 @@ Spawner buildFromString<Spawner>(std::vector<std::string> str, size_t pos) {
         s.velocity.xyVec.y = buildFromString<float>(str, ++pos);
         s.velocity.xyVec.dx = buildFromString<float>(str, ++pos);
         s.velocity.xyVec.dy = buildFromString<float>(str, ++pos);
+        s.velocity.xyVec.persistDx = buildFromString<float>(str, ++pos);
+        s.velocity.xyVec.persistDy = buildFromString<float>(str, ++pos);
         ++pos;
     } else if (str[pos] == "VelRad") {
         s.velDirection = Spawner::PointStyle::Rad;
 
         s.velocity.dirSpd.direction = buildFromString<float>(str, ++pos) * (PI / 180.0f);
-        s.velocity.dirSpd.deltaDirection = buildFromString<float>(str, ++pos) * (PI / 180.0f);
         s.velocity.dirSpd.speed = buildFromString<float>(str, ++pos);
+        s.velocity.dirSpd.deltaDirection = buildFromString<float>(str, ++pos) * (PI / 180.0f);
         s.velocity.dirSpd.dSpeed = buildFromString<float>(str, ++pos);
+        s.velocity.dirSpd.persistDeltaDirection = buildFromString<float>(str, ++pos) * (PI / 180.0f);
+        s.velocity.dirSpd.persistDSpeed = buildFromString<float>(str, ++pos);
         ++pos;
     } else if (str[pos] == "VelSpeed") {
         s.velDirection = Spawner::PointStyle::Speed;
-
-        s.velocity.speed = buildFromString<float>(str, ++pos);
+        s.velocity.speed.current = buildFromString<float>(str, ++pos);
+        s.velocity.speed.delta = buildFromString<float>(str, ++pos);
+        s.velocity.speed.persistDelta = buildFromString<float>(str, ++pos);
         ++pos;
     }
 
@@ -94,14 +103,15 @@ Spawner buildFromString<Spawner>(std::vector<std::string> str, size_t pos) {
         s.accelDirection = Spawner::PointStyle::Rad;
 
         s.acceleration.dirSpd.direction = buildFromString<float>(str, ++pos) * (PI / 180.0f);
-        s.acceleration.dirSpd.deltaDirection = buildFromString<float>(str, ++pos) * (PI / 180.0f);
         s.acceleration.dirSpd.speed = buildFromString<float>(str, ++pos);
+        s.acceleration.dirSpd.deltaDirection = buildFromString<float>(str, ++pos) * (PI / 180.0f);
         s.acceleration.dirSpd.dSpeed = buildFromString<float>(str, ++pos);
         ++pos;
     } else if (str[pos] == "AccelSpeed") {
         s.accelDirection = Spawner::PointStyle::Speed;
-
-        s.acceleration.speed = buildFromString<float>(str, ++pos);
+        s.acceleration.speed.current = buildFromString<float>(str, ++pos);
+        s.acceleration.speed.delta = buildFromString<float>(str, ++pos);
+        s.acceleration.speed.persistDelta = buildFromString<float>(str, ++pos);
         ++pos;
     }
 

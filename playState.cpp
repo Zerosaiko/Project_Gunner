@@ -18,7 +18,7 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000},
     manager.tagManager.tagEntity("player", 0);
     manager.addComponent(std::string("component:script 2000 \
         <@onStart\
-        \ncreate %self component:position 180, 240\
+        \ncreate %self component:position 160, 360\
         \nstop_\ncreate %self\ncomponent:velocity 0, 0\
         \nstop_\ncreate %self\ncomponent:sprite NamelessSheet 0, 0\
         \nstop_\ncreate %self component:speed 80 \
@@ -26,12 +26,22 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000},
         \nstop_\ncreate %self component:bounds block 0 0 320 480 \
         \nstop_\ncreate %self component:collider Player Point 0 0 \
         \nstop_ @onUpdate\n end_script>"), 0);
-    manager.addComponent(std::string("component:spawner 6 12\
-        1000 0 Source PosRad 0 20 10 0 \
-        VelSpeed 65 AwayFromOrigin\
+    manager.addComponent(std::string("component:position 160, 240"), 1);
+    manager.addComponent(std::string("component:spawner 240 2\
+        250 0 Source PosRad 0 0.001 0 0 10 0 \
+        VelSpeed 30 -20 0.25 AwayFromOrigin\
         1\
         component 0 <component:sprite NamelessSheet 0, 0>\
-        component 0 <component:bounds destroy 0 0 320 480>"), 0);
+        component 0 <component:bounds destroy 0 0 320 480>\
+        component 0 <component:collider Enemy Point 0 0>"), 1);
+    manager.addComponent(std::string("component:position 160, 240"), 2);
+    manager.addComponent(std::string("component:spawner 240 2\
+        250 0 Source PosRad 0 0.001 0 0 -10 0 \
+        VelSpeed 30 -20 0.25 AwayFromOrigin\
+        1\
+        component 0 <component:sprite NamelessSheet 0, 0>\
+        component 0 <component:bounds destroy 0 0 320 480>\
+        component 0 <component:collider Enemy Point 0 0>"), 2);
 }
 
 void PlayState::handleInput() {

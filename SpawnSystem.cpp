@@ -68,10 +68,14 @@ void SpawnSystem::process(float dt) {
 
             case Spawner::PointStyle::XY :
                 spawnPositions.xyVec = spawner.position.xyVec;
+                spawner.position.xyVec.x += spawner.position.xyVec.persistDx;
+                spawner.position.xyVec.y += spawner.position.xyVec.persistDy;
                 break;
 
             case Spawner::PointStyle::Rad :
                 spawnPositions.dirSpd = spawner.position.dirSpd;
+                spawner.position.dirSpd.direction += spawner.position.dirSpd.persistDeltaDirection;
+                spawner.position.dirSpd.speed += spawner.position.dirSpd.persistDSpeed;
                 break;
 
             default : break;
@@ -82,14 +86,19 @@ void SpawnSystem::process(float dt) {
 
             case Spawner::PointStyle::XY :
                 spawnVelocities.xyVec = spawner.velocity.xyVec;
+                spawner.velocity.xyVec.x += spawner.velocity.xyVec.persistDx;
+                spawner.velocity.xyVec.y += spawner.velocity.xyVec.persistDy;
                 break;
 
             case Spawner::PointStyle::Rad :
                 spawnVelocities.dirSpd = spawner.velocity.dirSpd;
+                spawner.velocity.dirSpd.direction += spawner.velocity.dirSpd.persistDeltaDirection;
+                spawner.velocity.dirSpd.speed += spawner.velocity.dirSpd.persistDSpeed;
                 break;
 
             case Spawner::PointStyle::Speed :
                 spawnVelocities.speed = spawner.velocity.speed;
+                spawner.velocity.speed.current += spawner.velocity.speed.persistDelta;
                 break;
             }
 
@@ -175,7 +184,8 @@ void SpawnSystem::process(float dt) {
                     newVel.velY = -adjPos.posY;
                     {
                         float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
-                        newVel.velX /= length; newVel.velY /= length;
+                        if (length != 0.0f)
+                            newVel.velX /= length; newVel.velY /= length;
                     }
 
                     break;
@@ -185,7 +195,8 @@ void SpawnSystem::process(float dt) {
                     newVel.velY = adjPos.posY;
                     {
                         float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
-                        newVel.velX /= length; newVel.velY /= length;
+                        if (length != 0.0f)
+                            newVel.velX /= length; newVel.velY /= length;
                     }
                     break;
 
@@ -217,8 +228,11 @@ void SpawnSystem::process(float dt) {
                     break;
 
                 case Spawner::PointStyle::Speed :
-                    newVel.velX *= spawnVelocities.speed;
-                    newVel.velY *= spawnVelocities.speed;
+                    newVel.velX *= spawnVelocities.speed.current;
+                    newVel.velY *= spawnVelocities.speed.current;
+
+                    spawnVelocities.speed.current += spawnVelocities.speed.delta;
+
                     break;
 
                 default: break;
