@@ -86,3 +86,69 @@ void MovementSystem::process(float dt) {
 
 }
 
+PositionSyncSystem::PositionSyncSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
+    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
+};
+
+void PositionSyncSystem::initialize() {}
+
+void PositionSyncSystem::addEntity(uint32_t id) {
+    auto entityID = entityIDs.find(id);
+    if (entityID == entityIDs.end()) {
+        auto entity = manager->getEntity(id);
+        if (entity) {
+            auto position = entity->find("position");
+            if ( position != entity->end()
+                && position->second.first ) {
+
+                if (freeIDXs.empty()) {
+                    entityIDs[id] = entities.size();
+                    entities.emplace_back(&position->second);
+                }
+                else {
+                    auto idx = freeIDXs.back();
+                    entityIDs[id] = idx;
+                    freeIDXs.pop_back();
+                    entities[idx] = &position->second;
+                }
+            }
+        }
+    }
+}
+
+void PositionSyncSystem::removeEntity(uint32_t id) {
+    auto entityID = entityIDs.find(id);
+    if (entityID != entityIDs.end()) {
+        freeIDXs.push_back(entityID->second);
+        entityIDs.erase(entityID);
+    }
+}
+
+void PositionSyncSystem::refreshEntity(uint32_t id) {
+    auto entityID = entityIDs.find(id);
+    if (entityID != entityIDs.end() && !(entities[entityID->second]->first)) {
+        freeIDXs.push_back(entityID->second);
+        entityIDs.erase(entityID);
+    } else {
+        addEntity(id);
+    }
+
+}
+
+void PositionSyncSystem::process(float dt) {
+
+    auto startT = SDL_GetPerformanceCounter();
+
+    for(auto& entityID : entityIDs) {
+        auto& entity = entities[entityID.second];
+        Position& position = (*positionPool)[entity->second].data;
+        position.pastPosX = position.posX;
+        position.pastPosY = position.posY;
+    }
+
+    auto endT = SDL_GetPerformanceCounter();
+
+    //std::cout << "M-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
+
+}
+
