@@ -140,8 +140,10 @@ bool pointToaabbCollision(Collider& p, Collider& r) {
     float maxX = r.position.x + r.aabb.maxX + r.offset.x;
     float minY = r.position.y + r.aabb.minY + r.offset.y;
     float maxY = r.position.y + r.aabb.maxY + r.offset.y;
-    return posX >= minX && posX <= maxX
-        && posY >= minY && posY <= maxY;
+    return (posX >= minX && posX <= maxX
+        && posY >= minY && posY <= maxY)
+        || ( ( (minX >= posX && minX <= posX + 1) || (maxX >= posX && maxX <= posX + 1) )
+        && ( (minY >= posY && minY <= posY + 1) || (maxY >= posY && maxY <= posY + 1) ) );
 }
 
 bool pointToCircleCollision(Collider& p, Collider& c) {
