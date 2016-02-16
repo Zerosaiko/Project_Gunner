@@ -1,6 +1,12 @@
 #include "component.h"
 #include "renderable.h"
+#include "displace.h"
 #include "scriptcomponent.h"
+#include "playerComponents.h"
+#include "boundsComponent.h"
+#include "collider.h"
+#include "Spawner.h"
+#include "delayComponent.h"
 #include <cstdlib>
 #include <string>
 
@@ -9,6 +15,22 @@ ComponentBase::~ComponentBase() {}
 
 ComponentFactory::ComponentFactory() {};
 ComponentFactory::~ComponentFactory() {};
+
+void registerAllComponents() {
+
+    Component<Renderable::name, Renderable>::registerComponent(1024);
+    Component<Script::name, Script>::registerComponent(128);
+    Component<Position::name, Position>::registerComponent(1024);
+    Component<Velocity::name, Velocity>::registerComponent(1024);
+    Component<PlayerCmp::speed, float>::registerComponent(16);
+    Component<PlayerCmp::focusSpeed, float>::registerComponent(16);
+    Component<Bounds::name, Bounds>::registerComponent(1024);
+    Component<Collider::name, Collider>::registerComponent(1024);
+    Component<Spawner::name, Spawner>::registerComponent(256);
+    Component<delayComponent::fullDelay, float>::registerComponent(256);
+    Component<delayComponent::pauseDelay, float>::registerComponent(256);
+
+}
 
 std::map<std::string, ComponentFactory*> componentUtils::factoryMap;
 

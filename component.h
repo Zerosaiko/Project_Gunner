@@ -86,9 +86,10 @@ public:
     static std::map<EntityManager*, cmpPool> componentPools;
     static const std::string getName();
     static ComponentFactoryInternal* factory;
+    static size_t reserveCapacity;
 
     //creates a ComponentFactory for the component type
-    static void registerComponent();
+    static void registerComponent(size_t capacity);
 
     void build(std::vector<std::string> instructions);
 
@@ -139,7 +140,7 @@ std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(Entity
 template <const std::string& cmpName, typename DataType>
 void Component<cmpName, DataType>::ComponentFactoryInternal::registerManager(EntityManager* manager) {
 
-    Component<cmpName, DataType>::componentPools[manager];
+    Component<cmpName, DataType>::componentPools[manager].reserve(Component<cmpName, DataType>::reserveCapacity);
 
 }
 
@@ -212,14 +213,18 @@ template <const std::string& cmpName, typename DataType>
 typename Component<cmpName, DataType>::ComponentFactoryInternal* Component<cmpName, DataType>::factory{nullptr};
 
 template <const std::string& cmpName, typename DataType>
-void Component<cmpName, DataType>::registerComponent() {
+void Component<cmpName, DataType>::registerComponent(size_t capacity) {
     if (!factory)
         factory = new ComponentFactoryInternal();
     componentUtils::factoryMap[cmpName] = factory;
+    reserveCapacity = capacity;
 }
 
 template <const std::string& cmpName, typename DataType>
 std::map<EntityManager*, std::vector<Component<cmpName, DataType>>> Component<cmpName, DataType>::componentPools{};
+
+template <const std::string& cmpName, typename DataType>
+size_t Component<cmpName, DataType>::reserveCapacity{1};
 
 template <const std::string& cmpName, typename DataType>
 const std::string Component<cmpName, DataType>::getName(){ return cmpName; };
@@ -232,6 +237,8 @@ void Component<cmpName, DataType>::build(std::vector<std::string> instructions) 
     }
 
 }
+
+void registerAllComponents();
 
 //  deallocates memory for factories. Mainly for end of runtime cleanup
 void deregisterAllComponents();
