@@ -12,6 +12,7 @@
 #include "BoundsCorrection.h"
 #include "CollisionSystem.h"
 #include "SpawnSystem.h"
+#include "DelaySystem.h"
 
 class PlayState : public GameState{
 public:
@@ -36,6 +37,8 @@ private:
     BoundsSystem boundsSys;
     CollisionSystem colSys;
     SpawnSystem spawnSys;
+    PositionSyncSystem posSyncSys;
+    DelaySystem delaySys;
 };
 
 #endif // PLAYSTATE_H_INCLUDED
