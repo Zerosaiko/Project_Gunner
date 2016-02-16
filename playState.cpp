@@ -26,22 +26,22 @@ PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000},
         \nstop_\ncreate %self component:bounds block 0 0 320 480 \
         \nstop_\ncreate %self component:collider Player Point 0 0 \
         \nstop_ @onUpdate\n end_script>"), 0);
-    manager.addComponent(std::string("component:position 160, 240"), 1);
-    manager.addComponent(std::string("component:spawner 240 2\
-        250 0 Source PosRad 0 0.001 0 0 10 0 \
-        VelSpeed 30 -20 0.25 AwayFromOrigin\
+    manager.addComponent(std::string("component:position 240, 240"), 1);
+    manager.addComponent(std::string("component:spawner 50 13\
+        400 0 Source PosRad 0 10 -14 0 10 0 \
+        VelSpeed 70 0 0 TowardOrigin \
         1\
-        component 0 <component:sprite NamelessSheet 0, 0>\
+        component 0 <component:sprite NamelessSheet 3, 0>\
         component 0 <component:bounds destroy 0 0 320 480>\
-        component 0 <component:collider Enemy Point 0 0>"), 1);
-    manager.addComponent(std::string("component:position 160, 240"), 2);
-    manager.addComponent(std::string("component:spawner 240 2\
-        250 0 Source PosRad 0 0.001 0 0 -10 0 \
-        VelSpeed 30 -20 0.25 AwayFromOrigin\
+        component 0 <component:collider Enemy Circle 0 0 6.5>"), 1);
+    manager.addComponent(std::string("component:position 80, 240"), 2);
+    manager.addComponent(std::string("component:spawner 50 13\
+        400 500 Source PosRad 0 10 14 0 -10 0 \
+        VelSpeed 70 0 0 TowardOrigin \
         1\
-        component 0 <component:sprite NamelessSheet 0, 0>\
+        component 0 <component:sprite NamelessSheet 3, 0>\
         component 0 <component:bounds destroy 0 0 320 480>\
-        component 0 <component:collider Enemy Point 0 0>"), 2);
+        component 0 <component:collider Enemy Circle 0 0 6.5>"), 2);
 }
 
 void PlayState::handleInput() {
