@@ -102,6 +102,12 @@ void RenderSystem::render(float lerpT) {
             SDL_Rect dstRect = srcRect;
             dstRect.x = (int32_t)( position.pastPosX + (position.posX - position.pastPosX) * lerpT) - srcRect.w / 2;
             dstRect.y = (int32_t)( position.pastPosY + (position.posY - position.pastPosY) * lerpT) - srcRect.h / 2;
+            /*
+            std::cout << (position.pastPosX - srcRect.w / 2) << '\t'
+            << (position.pastPosY - srcRect.h / 2) << '\n'
+            << (position.posX - srcRect.w / 2) << '\t' << (position.posY - srcRect.h / 2) << '\n';
+            std::cout << "Render pos: " << dstRect.x << '\t' << dstRect.y << '\n';
+            */
 
             SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);
         }
@@ -113,7 +119,7 @@ void RenderSystem::render(float lerpT) {
 
     auto endT = SDL_GetPerformanceCounter();
 
-    //std::cout << "R-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
+    std::cout << "R-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
 
 }
 
