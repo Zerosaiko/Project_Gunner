@@ -64,14 +64,14 @@ void Engine::run() {
             }
         }
         if (currentTime < 0.1f / currentFPS)
-            SDL_Delay(0);
+            SDL_Delay(1);
         currentTime += (float)(SDL_GetPerformanceCounter() - beginTime) / SDL_GetPerformanceFrequency();
         beginTime = SDL_GetPerformanceCounter();
         if (currentState) {
 
             currentState->handleInput();
-            // capped at 3 updates before rendering
-            if (currentTime > 3.0f / 60.0f) {currentTime = 3.0f / 60.0f;}
+            // capped at 6 updates maximum before rendering
+            if (currentTime > 6.0f / 60.0f) {currentTime = 6.0f / 60.0f;}
             for(; currentTime >= 1.0f / currentFPS; currentTime -= 1.0f / currentFPS) {
                 currentState->update(1.0f / currentFPS);
             }
