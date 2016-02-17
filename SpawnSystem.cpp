@@ -148,8 +148,8 @@ void SpawnSystem::process(float dt) {
                     break;
 
                 case Spawner::PointStyle::Rad :
-                    newPos.posX += cosf(spawnPositions.dirSpd.direction) * spawnPositions.dirSpd.speed;
-                    newPos.posY += sinf(spawnPositions.dirSpd.direction) * spawnPositions.dirSpd.speed;
+                    newPos.posX += cosf(spawnPositions.dirSpd.direction) * fabsf(spawnPositions.dirSpd.speed);
+                    newPos.posY += sinf(spawnPositions.dirSpd.direction) * fabsf(spawnPositions.dirSpd.speed);
                     adjPos = newPos;
                     if (spawner.relative == Spawner::Relative::Source) {
                         newPos.posX += position.posX;
@@ -226,8 +226,8 @@ void SpawnSystem::process(float dt) {
                     break;
 
                 case Spawner::PointStyle::Rad :
-                    newVel.velX = cosf(spawnVelocities.dirSpd.direction) * spawnVelocities.dirSpd.speed;
-                    newVel.velY = sinf(spawnVelocities.dirSpd.direction) * spawnVelocities.dirSpd.speed;
+                    newVel.velX = cosf(spawnVelocities.dirSpd.direction) * fabsf(spawnVelocities.dirSpd.speed);
+                    newVel.velY = sinf(spawnVelocities.dirSpd.direction) * fabsf(spawnVelocities.dirSpd.speed);
                     spawnVelocities.dirSpd.direction += spawner.velocity.dirSpd.deltaDirection;
                     spawnVelocities.dirSpd.speed += spawner.velocity.dirSpd.dSpeed;
                     break;
