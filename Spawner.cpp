@@ -181,7 +181,7 @@ Spawner buildFromString<Spawner>(std::vector<std::string> str, size_t pos) {
     while (pos < str.size() && str[pos] == "component") {
 
         uint32_t entityComp = buildFromString<uint32_t>(str, ++pos);
-        s.addComponents.at(entityComp).push_back(str[++pos]);
+        s.addComponents.at(entityComp).emplace_back(str[++pos]);
         ++pos;
     }
 
