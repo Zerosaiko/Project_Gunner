@@ -78,7 +78,7 @@ void Engine::run() {
 
             SDL_SetRenderDrawColor(window->getRenderer(), 0, 0, 0, 255);
             SDL_RenderClear(window->getRenderer());
-            currentState->render(currentTime);
+            currentState->render(currentTime * currentFPS);
             SDL_RenderPresent(window->getRenderer());
         } else {
             currentTime = 0;
