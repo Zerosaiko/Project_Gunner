@@ -119,7 +119,7 @@ void RenderSystem::render(float lerpT) {
 
     auto endT = SDL_GetPerformanceCounter();
 
-    std::cout << "R-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
+    //std::cout << "R-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
 
 }
 
