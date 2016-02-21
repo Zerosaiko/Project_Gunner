@@ -70,8 +70,8 @@ void Engine::run() {
         if (currentState) {
 
             currentState->handleInput();
-            // capped at 6 updates maximum before rendering
-            if (currentTime > 6.0f / 60.0f) {currentTime = 6.0f / 60.0f;}
+            // capped at 5 updates maximum before rendering
+            if (currentTime > 4.0f / 60.0f) {currentTime = 4.0f / 60.0f;}
             for(; currentTime >= 1.0f / currentFPS; currentTime -= 1.0f / currentFPS) {
                 currentState->update(1.0f / currentFPS);
             }
