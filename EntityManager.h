@@ -29,8 +29,6 @@ public:
 
     uint32_t createEntity();
 
-    uint32_t createEntity(uint32_t id);
-
     void destroyEntity(uint32_t id);
 
     void addComponent(std::string& instructions, uint32_t id);
@@ -78,7 +76,10 @@ protected:
 
 private:
     //  mapping from entity id to an entity, basically a map of components
-    std::unordered_map<uint32_t, entity_map> entities;
+    std::vector<entity_map> entities;
+
+    std::vector<uint8_t> isAlive;
+
     //  recycles entity ids from destroyed entities
     std::vector<uint32_t> freeIDs;
     //  recycles component indexes from destroyed components
@@ -93,66 +94,69 @@ private:
 
 template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint32_t id) {
 
-    std::string compName = CMPType::getName();
-    if (entities.find(id) == entities.end()) id = createEntity(id);
+    const std::string& compName = CMPType::getName();
+
     auto& entity = entities[id];
     auto componentID = entity.find(compName);
-    auto factory = componentUtils::factoryMap.at(compName);
+    auto& factory = componentUtils::factoryMap.at(compName);
     if (componentID == entity.end() ) {
         if (freeComponents[compName].empty()) {
-            entity[compName] = component_pair{true, CMPType::componentPools[this].size()};
-            factory->build(this, &comp);
-        } else {
+            entities[id][compName] = component_pair{true, factory->build(this, &comp)};
+        }
+        else {
             component_pair compPair{true, freeComponents[compName].front()};
             entity[compName] = compPair;
             freeComponents[compName].pop_front();
             factory->build(this, compPair.second, &comp);
         }
-    } else {
+    }
+    else {
         componentID->second.first = true;
         factory->build(this, componentID->second.second, &comp);
     }
+
     entitiesToRefresh.insert(id);
 }
 
 template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint32_t id) {
 
-    std::string compName = CMPType::getName();
-    if (entities.find(id) == entities.end()) id = createEntity(id);
+    const std::string& compName = CMPType::getName();
+
     auto& entity = entities[id];
     auto componentID = entity.find(compName);
-    auto factory = componentUtils::factoryMap.at(compName);
+    auto& factory = componentUtils::factoryMap.at(compName);
     if (componentID == entity.end() ) {
         if (freeComponents[compName].empty()) {
-            entity[compName] = component_pair{true, CMPType::componentPools[this].size()};
-            factory->build(this, &comp);
-        } else {
-            entity[compName] = component_pair{true, freeComponents[compName].front()};
-            freeComponents[compName].pop_front();
-            factory->build(this, componentID->second.second, &comp);
+            entities[id][compName] = component_pair{true, factory->build(this, comp)};
         }
-    } else {
-        componentID->first = true;
-        factory->build(this, componentID->second.second, &comp);
+        else {
+            component_pair compPair{true, freeComponents[compName].front()};
+            entity[compName] = compPair;
+            freeComponents[compName].pop_front();
+            factory->build(this, compPair.second, comp);
+        }
     }
+    else {
+        componentID->second.first = true;
+        factory->build(this, componentID->second.second, comp);
+    }
+
     entitiesToRefresh.insert(id);
 
 }
 
 template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
-    std::string compName = CMPType::getName();
-    auto entity = entities.find(id);
-    if (entity != entities.end()) {
-        auto componentID = entity->second.find(compName);
-        if (componentID != entity->second.end())
-            componentID->second.first = false;
-        bool alive = false;
-        for (auto it = entity->second.begin(); !alive && it != entity->second.end(); ++it) {
-            alive = it->second.first;
-        }
-        if (!alive) entitiesToDestroy.insert(id);
-        else entitiesToRefresh.insert(id);
+    const std::string& compName = CMPType::getName();
+    auto& entity = entities[id];
+    auto componentID = entity.find(compName);
+    if (componentID != entity.end())
+        componentID->second.first = false;
+    bool alive = false;
+    for (auto it = entity.begin(); !alive && it != entity.end(); ++it) {
+        alive = it->second.first;
     }
+    if (!alive) entitiesToDestroy.insert(id);
+    else entitiesToRefresh.insert(id);
 
 }
 

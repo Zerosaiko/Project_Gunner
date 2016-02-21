@@ -7,7 +7,7 @@
 class EntitySystem {
 public:
 
-    EntitySystem(EntityManager* manager, int32_t priority) : priority(priority), manager(manager) {}
+    EntitySystem(EntityManager* manager, int32_t priority);
 
     virtual void initialize() {}
 
