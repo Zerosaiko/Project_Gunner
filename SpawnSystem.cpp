@@ -62,6 +62,8 @@ void SpawnSystem::refreshEntity(uint32_t id) {
 void SpawnSystem::process(float dt) {
     dt *= 1000.0f;
 
+    bool spawned = false;
+
     auto startT = SDL_GetPerformanceCounter();
 
     for(auto& entityID : entityIDs) {
@@ -69,6 +71,7 @@ void SpawnSystem::process(float dt) {
         Spawner& spawner = (*spawnPool)[entity.first->second].data;
         spawner.currentTime += dt;
         while (spawner.currentTime >= spawner.repeatRate) {
+            spawned = true;
             Spawner::Position spawnPositions = spawner.position;
 
             Spawner::Velocity spawnVelocities = spawner.velocity;
@@ -108,7 +111,6 @@ void SpawnSystem::process(float dt) {
 
             for (uint32_t i = 0; i < spawner.spawnsPerRun; ++i) {
                 const Position& position = (*positionPool)[entity.second->second].data;
-                uint32_t newEntityID = manager->createEntity();
 
                 Position newPos, adjPos;
                 Velocity newVel;
@@ -243,6 +245,8 @@ void SpawnSystem::process(float dt) {
                 default: break;
                 }
 
+                auto newEntityID = manager->createEntity();
+
                 Component<Position::name, Position> posComponent{newPos};
                 Component<Velocity::name, Velocity> velComponent{newVel};
                 manager->addComponent<Component<Position::name, Position>>(posComponent, newEntityID);
@@ -267,7 +271,7 @@ void SpawnSystem::process(float dt) {
     }
 
     auto endT = SDL_GetPerformanceCounter();
-
-    std::cout << "SPAWN - " << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
+    if (spawned)
+        std::cout << "SPAWN - " << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
 
 }
