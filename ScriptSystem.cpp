@@ -8,73 +8,72 @@ ScriptSystem::ScriptSystem(EntityManager* const manager, int32_t priority) : Ent
 void ScriptSystem::initialize() {}
 
 void ScriptSystem::addEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID == entityIDs.end()) {
-        auto entity = manager->getEntity(id);
-        if (entity) {
-            auto script = entity->find("script");
-            if (script != entity->end() && script->second.first) {
-                if (freeIDXs.empty()) {
-                    entityIDs[id] = entities.size();
-                    entities.push_back(&script->second);
-                }
-                else {
-                    auto idx = freeIDXs.back();
-                    entityIDs[id] = idx;
-                    freeIDXs.pop_back();
-                    entities[idx] = &script->second;
-                }
+    if (id >= hasEntity.size()) {
+        hasEntity.resize(id + 1, false);
+        entityIDXs.resize(id + 1, 0);
+    }
+    if (hasEntity[id]) return;
+    const auto& entity = manager->getEntity(id);
+    if (entity) {
+        auto script = entity->find("script");
+        if (script != entity->end() && script->second.first) {
 
-                Script& scr = (*scriptPool)[script->second.second].data;
-                size_t beg = scr.tokenizedScript.size(), end = 0;
-                for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
-                    if (scr.tokenizedScript[i] == "@onStart") beg = i;
-                    if (scr.tokenizedScript[i][0] == '@') end = i;
-                }
-                if (end == beg) end = scr.tokenizedScript.size();
-                if (beg < scr.tokenizedScript.size())
-                    execute(scr, id, beg, end);
+            entityIDXs[id] = entities.size();
+            hasEntity[id] = true;
+            idxToID.emplace_back(id);
+            entities.push_back(&script->second);
 
-
+            Script& scr = (*scriptPool)[script->second.second].data;
+            size_t beg = scr.tokenizedScript.size(), end = 0;
+            for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
+                if (scr.tokenizedScript[i] == "@onStart") beg = i;
+                if (scr.tokenizedScript[i][0] == '@') end = i;
             }
+            if (end == beg) end = scr.tokenizedScript.size();
+            if (beg < scr.tokenizedScript.size())
+                execute(scr, id, beg, end);
+
+
         }
     }
 }
 
 void ScriptSystem::removeEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
+    if (!hasEntity[id]) return;
 
-    if (entityID != entityIDs.end()) {
-        auto& entity = entities[entityID->second];
-        Script& scr = (*scriptPool)[entity->second].data;
-        size_t beg = scr.tokenizedScript.size(), end = 0;
-        for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
-            if (scr.tokenizedScript[i] == "@onEnd") beg = i;
-            if (scr.tokenizedScript[i][0] == '@') end = i;
-        }
-        if (end == beg) end = scr.tokenizedScript.size();
-        if (beg < scr.tokenizedScript.size())
-            execute(scr, id, beg, end);
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
+    const auto& entity = entities[id];
+    Script& scr = (*scriptPool)[entity->second].data;
+    size_t beg = scr.tokenizedScript.size(), end = 0;
+    for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
+        if (scr.tokenizedScript[i] == "@onEnd") beg = i;
+        if (scr.tokenizedScript[i][0] == '@') end = i;
     }
+    if (end == beg) end = scr.tokenizedScript.size();
+    if (beg < scr.tokenizedScript.size())
+        execute(scr, id, beg, end);
+    entities[entityIDXs[id]] = entities.back();
+    entities.pop_back();
+    entityIDXs[idxToID.back()] = entityIDXs[id];
+    idxToID[entityIDXs[id]] = idxToID.back();
+    idxToID.pop_back();
+    hasEntity[id] = false;
 }
 
 void ScriptSystem::refreshEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && !entities[entityID->second]->first) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    } else if (entityID != entityIDs.end() ) {
-        auto entity = manager->getEntity(id);
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
-            freeIDXs.push_back(entityID->second);
-            entityIDs.erase(entityID);
-        }
-    } else {
+    if (id >= hasEntity.size() || !hasEntity[id]) {
         addEntity(id);
+        return;
+    }
+    const auto& entity = entities[entityIDXs[id]];
+    if (!entity->first) {
+        removeEntity(id);
+    } else {
+        const auto& fullEntity = manager->getEntity(id);
+        auto delay = fullEntity->find("fullDelay");
+        auto pause = fullEntity->find("pauseDelay");
+        if ( (delay != fullEntity->end() && delay->second.first) || (pause != fullEntity->end() && pause->second.first) ) {
+            removeEntity(id);
+        }
     }
 
 }
@@ -82,8 +81,8 @@ void ScriptSystem::refreshEntity(uint32_t id) {
 void ScriptSystem::process(float dt) {
     auto startT = SDL_GetPerformanceCounter();
     dt *= 1000;
-    for(auto& entityID : entityIDs) {
-        auto& entity = entities[entityID.second];
+    for(size_t idx = 0; idx < entities.size(); ++idx) {
+        const auto& entity = entities[idx];
         Script& script = (*scriptPool)[entity->second].data;
         if (script.updateRate > 0) {
             size_t beg = script.tokenizedScript.size(), end = 0;
@@ -95,7 +94,7 @@ void ScriptSystem::process(float dt) {
             if (end == beg) end = script.tokenizedScript.size();
             if (beg < script.tokenizedScript.size() )
                 for(script.dt += dt; script.dt > script.updateRate; script.dt -= script.updateRate) {
-                    execute(script, entityID.first, beg, end);
+                    execute(script, idxToID[idx], beg, end);
                 }
         }
     }

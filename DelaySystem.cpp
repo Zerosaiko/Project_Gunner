@@ -9,42 +9,44 @@ DelaySystem::DelaySystem(EntityManager* const manager, int32_t priority) : Entit
 void DelaySystem::initialize() {}
 
 void DelaySystem::addEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID == entityIDs.end()) {
-        auto entity = manager->getEntity(id);
-        if (entity) {
-            auto delay = entity->find("fullDelay");
-            if (delay != entity->end() && delay->second.first) {
-                if (freeIDXs.empty()) {
-                    entityIDs[id] = entities.size();
-                    entities.emplace_back(&delay->second);
-                }
-                else {
-                    auto idx = freeIDXs.back();
-                    entityIDs[id] = idx;
-                    freeIDXs.pop_back();
-                    entities[idx] = &delay->second;
-                }
-            }
+    if (id >= hasEntity.size()) {
+        hasEntity.resize(id + 1, false);
+        entityIDXs.resize(id + 1, 0);
+    }
+    if (hasEntity[id]) return;
+    const auto& entity = manager->getEntity(id);
+    if (entity) {
+        auto delay = entity->find("fullDelay");
+        if (delay != entity->end() && delay->second.first) {
+
+            entityIDXs[id] = entities.size();
+            hasEntity[id] = true;
+            idxToID.emplace_back(id);
+            entities.emplace_back(&delay->second);
+
+
         }
     }
 }
 
 void DelaySystem::removeEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end()) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    }
+    if (!hasEntity[id]) return;
+    entities[entityIDXs[id]] = entities.back();
+    entities.pop_back();
+    entityIDXs[idxToID.back()] = entityIDXs[id];
+    idxToID[entityIDXs[id]] = idxToID.back();
+    idxToID.pop_back();
+    hasEntity[id] = false;
 }
 
 void DelaySystem::refreshEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && !(entities[entityID->second]->first)) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    } else if (entityID == entityIDs.end() ) {
+    if (id >= hasEntity.size() || !hasEntity[id]) {
         addEntity(id);
+        return;
+    }
+    const auto& entity = entities[entityIDXs[id]];
+    if (!(entity->first)) {
+        removeEntity(id);
     }
 
 }
@@ -52,11 +54,11 @@ void DelaySystem::refreshEntity(uint32_t id) {
 void DelaySystem::process(float dt) {
     dt *= 1000.0f;
 
-    for(auto& entityID : entityIDs) {
-        auto& entity = entities[entityID.second];
+    for(size_t i = 0; i < entities.size(); ++i) {
+        const auto& entity = entities[i];
         float& delay = (*delayPool)[entity->second].data;
         delay -= dt;
-        if (delay <= 0.0f) manager->removeComponent<Component<delayComponent::fullDelay, float>>(entityID.first);
+        if (delay <= 0.0f) manager->removeComponent<Component<delayComponent::fullDelay, float>>(idxToID[i]);
     }
 
 }

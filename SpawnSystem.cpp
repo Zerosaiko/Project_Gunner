@@ -10,51 +10,49 @@ SpawnSystem::SpawnSystem(EntityManager* const manager, int32_t priority) : Entit
 void SpawnSystem::initialize() {}
 
 void SpawnSystem::addEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID == entityIDs.end()) {
-        auto entity = manager->getEntity(id);
-        if (entity) {
-            auto spawner = entity->find("spawner");
-            auto position = entity->find("position");
-            if (spawner != entity->end() && position != entity->end() && spawner->second.first && position->second.first) {
-                if (freeIDXs.empty()) {
-                    entityIDs[id] = entities.size();
-                    entities.emplace_back(&spawner->second, &position->second);
-                }
-                else {
-                    auto idx = freeIDXs.back();
-                    entityIDs[id] = idx;
-                    freeIDXs.pop_back();
-                    entities[idx] = make_pair(&spawner->second, &position->second);
-                }
-            }
+    if (id >= hasEntity.size()) {
+        hasEntity.resize(id + 1, false);
+        entityIDXs.resize(id + 1, 0);
+    }
+    if (hasEntity[id]) return;
+    const auto& entity = manager->getEntity(id);
+    if (entity) {
+        auto spawner = entity->find("spawner");
+        auto position = entity->find("position");
+        if (spawner != entity->end() && position != entity->end() && spawner->second.first && position->second.first) {
+            entityIDXs[id] = entities.size();
+            hasEntity[id] = true;
+            idxToID.emplace_back(id);
+            entities.emplace_back(&spawner->second, &position->second);
         }
     }
 }
 
 void SpawnSystem::removeEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end()) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    }
+    if (!hasEntity[id]) return;
+    entities[entityIDXs[id]] = entities.back();
+    entities.pop_back();
+    entityIDXs[idxToID.back()] = entityIDXs[id];
+    idxToID[entityIDXs[id]] = idxToID.back();
+    idxToID.pop_back();
+    hasEntity[id] = false;
 }
 
 void SpawnSystem::refreshEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && !(entities[entityID->second].first->first && entities[entityID->second].second->first )) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    } else if (entityID != entityIDs.end() ) {
-        auto entity = manager->getEntity(id);
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
-            freeIDXs.push_back(entityID->second);
-            entityIDs.erase(entityID);
-        }
-    } else {
+    if (id >= hasEntity.size() || !hasEntity[id]) {
         addEntity(id);
+        return;
+    }
+    const auto& entity = entities[entityIDXs[id]];
+    if (!(entity.first->first && entity.second->first)) {
+        removeEntity(id);
+    } else {
+        const auto& fullEntity = manager->getEntity(id);
+        auto delay = fullEntity->find("fullDelay");
+        auto pause = fullEntity->find("pauseDelay");
+        if ( (delay != fullEntity->end() && delay->second.first) || (pause != fullEntity->end() && pause->second.first) ) {
+            removeEntity(id);
+        }
     }
 
 }
@@ -66,8 +64,8 @@ void SpawnSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
 
-    for(auto& entityID : entityIDs) {
-        auto& entity = entities[entityID.second];
+    for(size_t i = 0; i < entities.size(); ++i) {
+        const auto& entity = entities[i];
         Spawner& spawner = (*spawnPool)[entity.first->second].data;
         spawner.currentTime += dt;
         while (spawner.currentTime >= spawner.repeatRate) {
@@ -265,7 +263,7 @@ void SpawnSystem::process(float dt) {
             spawner.currentTime -= spawner.repeatRate;
             if (spawner.runCount > 0) {
                 --spawner.runCount;
-                if (spawner.runCount == 0) manager->removeComponent<Spawner>(entityID.first);
+                if (spawner.runCount == 0) manager->removeComponent<Spawner>(idxToID[i]);;
             }
         }
     }

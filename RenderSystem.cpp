@@ -15,61 +15,57 @@ RenderSystem::~RenderSystem() {
 void RenderSystem::initialize() {}
 
 void RenderSystem::addEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID == entityIDs.end()) {
-        auto entity = manager->getEntity(id);
-        if (entity) {
-            auto position = entity->find("position");
-            auto render = entity->find("sprite");
-            auto delay = entity->find("fullDelay");
-            if ( (delay == entity->end() || !delay->second.first)
-            && position != entity->end() && render != entity->end() && position->second.first && render->second.first) {
-                if (freeIDXs.empty()) {
-                    entityIDs[id] = entities.size();
-                    entities.emplace_back(&position->second, &render->second);
-                }
-                else {
-                    auto idx = freeIDXs.back();
-                    entityIDs[id] = idx;
-                    freeIDXs.pop_back();
-                    std::pair<EntityManager::component_pair const *, EntityManager::component_pair const *>
-                        pos_ren_pair{&position->second, &render->second};
-                    entities[idx] = pos_ren_pair;
-                }
-                dirty = true;
+    if (id >= hasEntity.size()) {
+        hasEntity.resize(id + 1, false);
+        entityIDXs.resize(id + 1, 0);
+    }
+    if (hasEntity[id]) return;
+    const auto& entity = manager->getEntity(id);
+    if (entity) {
+        auto position = entity->find("position");
+        auto render = entity->find("sprite");
+        auto delay = entity->find("fullDelay");
+        if ( (delay == entity->end() || !delay->second.first)
+        && position != entity->end() && render != entity->end() && position->second.first && render->second.first) {
 
-                Renderable& ren = (*renderPool)[render->second.second].data;
+            entityIDXs[id] = entities.size();
+            hasEntity[id] = true;
+            idxToID.emplace_back(id);
+            entities.emplace_back(&position->second, &render->second);
 
-                ren.sheet = loadSprite(ren.spriteName);
-            }
+            dirty = true;
+
+            Renderable& ren = (*renderPool)[render->second.second].data;
+
+            ren.sheet = loadSprite(ren.spriteName);
         }
     }
 }
 
 void RenderSystem::removeEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end()) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-        dirty = true;
-    }
+    if (!hasEntity[id]) return;
+    entities[entityIDXs[id]] = entities.back();
+    entities.pop_back();
+    entityIDXs[idxToID.back()] = entityIDXs[id];
+    idxToID[entityIDXs[id]] = idxToID.back();
+    idxToID.pop_back();
+    hasEntity[id] = false;
 }
 
 void RenderSystem::refreshEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && !(entities[entityID->second].first->first && entities[entityID->second].second->first)) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    } else if (entityID != entityIDs.end() ) {
-        auto entity = manager->getEntity(id);
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
-            freeIDXs.push_back(entityID->second);
-            entityIDs.erase(entityID);
-        }
-    } else {
+    if (id >= hasEntity.size() || !hasEntity[id]) {
         addEntity(id);
+        return;
+    }
+    const auto& entity = entities[entityIDXs[id]];
+    if (!(entity.first->first && entity.second->first)) {
+        removeEntity(id);
+    } else {
+        const auto& fullEntity = manager->getEntity(id);
+        auto delay = fullEntity->find("fullDelay");
+        if ( (delay != fullEntity->end() && delay->second.first)) {
+            removeEntity(id);
+        }
     }
 
 }
@@ -93,8 +89,7 @@ void RenderSystem::render(float lerpT) {
 
     SDL_RenderClear(window->getRenderer());
 
-    for(auto& entityID : entityIDs) {
-        auto& entity = entities[entityID.second];
+    for(const auto& entity : entities) {
         Position& position = (*positionPool)[entity.first->second].data;
         Renderable& render = (*renderPool)[entity.second->second].data;
         if (*render.sheet) {

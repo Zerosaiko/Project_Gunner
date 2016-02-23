@@ -1,4 +1,5 @@
 #include "EntityManager.h"
+#include "SDL.h"
 #include <iostream>
 #include <algorithm>
 
@@ -20,16 +21,25 @@ EntityManager::~EntityManager() {
 }
 
 void EntityManager::update(float dt) {
+    auto beg = SDL_GetPerformanceCounter();
     for (auto system : systems) {
         system->process(dt);
     }
+    auto ed = SDL_GetPerformanceCounter();
+    std::cout << "PROCESS - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << std::endl;
+    beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToRefresh) {
         refreshEntity(entity);
     }
+    ed = SDL_GetPerformanceCounter();
     entitiesToRefresh.clear();
+    std::cout << "REFRESH - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << std::endl;
+    beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToDestroy) {
         destroyEntity(entity);
     }
+    ed = SDL_GetPerformanceCounter();
+    std::cout << "DESTROY - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << std::endl;
     entitiesToDestroy.clear();
 }
 
@@ -57,8 +67,11 @@ uint32_t EntityManager::createEntity() {
 
 void EntityManager::destroyEntity(uint32_t id) {
     if (!isAlive[id]) return;
+    for (auto& system : systems) {
+        system->removeEntity(id);
+    }
     entity_map& components = entities[id];
-    for(auto compPair : components) {
+    for(auto& compPair : components) {
         freeComponents[compPair.first].push_back(compPair.second.second);
     }
     components.clear();
@@ -68,9 +81,6 @@ void EntityManager::destroyEntity(uint32_t id) {
     groupManager.ungroupEntity(id);
     removeParent(id);
     clearChildren(id);
-    for (auto& system : systems) {
-        system->removeEntity(id);
-    }
 }
 
 void EntityManager::addComponent(std::string& instructions, uint32_t id) {

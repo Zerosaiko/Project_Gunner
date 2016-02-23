@@ -9,59 +9,55 @@ MovementSystem::MovementSystem(EntityManager* const manager, int32_t priority) :
 void MovementSystem::initialize() {}
 
 void MovementSystem::addEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID == entityIDs.end()) {
-        auto entity = manager->getEntity(id);
-        if (entity) {
-            auto position = entity->find("position");
-            auto velocity = entity->find("velocity");
-            auto delay = entity->find("fullDelay");
-            auto pause = entity->find("pauseDelay");
-            if ( (delay == entity->end() || !delay->second.first)
-                && (pause == entity->end() || !pause->second.first)
-                && position != entity->end() && velocity != entity->end()
-                && position->second.first && velocity->second.first) {
+    if (id >= hasEntity.size()) {
+        hasEntity.resize(id + 1, false);
+        entityIDXs.resize(id + 1, 0);
+    }
+    if (hasEntity[id]) return;
+    const auto& entity = manager->getEntity(id);
+    if (entity) {
+        auto position = entity->find("position");
+        auto velocity = entity->find("velocity");
+        auto delay = entity->find("fullDelay");
+        auto pause = entity->find("pauseDelay");
+        if ( (delay == entity->end() || !delay->second.first)
+            && (pause == entity->end() || !pause->second.first)
+            && position != entity->end() && velocity != entity->end()
+            && position->second.first && velocity->second.first) {
 
-                if (freeIDXs.empty()) {
-                    entityIDs[id] = entities.size();
-                    entities.emplace_back(&position->second, &velocity->second);
-                }
-                else {
-                    auto idx = freeIDXs.back();
-                    entityIDs[id] = idx;
-                    freeIDXs.pop_back();
-                    std::pair<EntityManager::component_pair const *, EntityManager::component_pair const *>
-                        pos_vel_pair{&position->second, &velocity->second};
-                    entities[idx] = pos_vel_pair;
-                }
-            }
+            entityIDXs[id] = entities.size();
+            hasEntity[id] = true;
+            idxToID.emplace_back(id);
+            entities.emplace_back(&position->second, &velocity->second);
         }
     }
 }
 
 void MovementSystem::removeEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end()) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    }
+    if (!hasEntity[id]) return;
+    entities[entityIDXs[id]] = entities.back();
+    entities.pop_back();
+    entityIDXs[idxToID.back()] = entityIDXs[id];
+    idxToID[entityIDXs[id]] = idxToID.back();
+    idxToID.pop_back();
+    hasEntity[id] = false;
 }
 
 void MovementSystem::refreshEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && !(entities[entityID->second].first->first && entities[entityID->second].second->first)) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    } else if (entityID != entityIDs.end() ) {
-        auto entity = manager->getEntity(id);
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
-            freeIDXs.push_back(entityID->second);
-            entityIDs.erase(entityID);
-        }
-    } else {
+    if (id >= hasEntity.size() || !hasEntity[id]) {
         addEntity(id);
+        return;
+    }
+    const auto& entity = entities[entityIDXs[id]];
+    if (!(entity.first->first && entity.second->first)) {
+        removeEntity(id);
+    } else {
+        const auto& fullEntity = manager->getEntity(id);
+        auto delay = fullEntity->find("fullDelay");
+        auto pause = fullEntity->find("pauseDelay");
+        if ( (delay != fullEntity->end() && delay->second.first) || (pause != fullEntity->end() && pause->second.first) ) {
+            removeEntity(id);
+        }
     }
 
 }
@@ -70,8 +66,7 @@ void MovementSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
 
-    for(auto& entityID : entityIDs) {
-        auto& entity = entities[entityID.second];
+    for(auto& entity : entities) {
         Position& position = (*positionPool)[entity.first->second].data;
         Velocity& velocity = (*velocityPool)[entity.second->second].data;
         position.pastPosX = position.posX;
@@ -93,44 +88,43 @@ PositionSyncSystem::PositionSyncSystem(EntityManager* const manager, int32_t pri
 void PositionSyncSystem::initialize() {}
 
 void PositionSyncSystem::addEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID == entityIDs.end()) {
-        auto entity = manager->getEntity(id);
-        if (entity) {
-            auto position = entity->find("position");
-            if ( position != entity->end()
-                && position->second.first ) {
+    if (id >= hasEntity.size()) {
+        hasEntity.resize(id + 1, false);
+        entityIDXs.resize(id + 1, 0);
+    }
+    if (hasEntity[id]) return;
+    const auto& entity = manager->getEntity(id);
+    if (entity) {
+        auto position = entity->find("position");
+        if ( position != entity->end()
+            && position->second.first ) {
 
-                if (freeIDXs.empty()) {
-                    entityIDs[id] = entities.size();
-                    entities.emplace_back(&position->second);
-                }
-                else {
-                    auto idx = freeIDXs.back();
-                    entityIDs[id] = idx;
-                    freeIDXs.pop_back();
-                    entities[idx] = &position->second;
-                }
-            }
+            entityIDXs[id] = entities.size();
+            hasEntity[id] = true;
+            idxToID.emplace_back(id);
+            entities.emplace_back(&position->second);
         }
     }
 }
 
 void PositionSyncSystem::removeEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end()) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    }
+    if (!hasEntity[id]) return;
+    entities[entityIDXs[id]] = entities.back();
+    entities.pop_back();
+    entityIDXs[idxToID.back()] = entityIDXs[id];
+    idxToID[entityIDXs[id]] = idxToID.back();
+    idxToID.pop_back();
+    hasEntity[id] = false;
 }
 
 void PositionSyncSystem::refreshEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && !(entities[entityID->second]->first)) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    } else {
+    if (id >= hasEntity.size() || !hasEntity[id]) {
         addEntity(id);
+        return;
+    }
+    const auto& entity = entities[entityIDXs[id]];
+    if (!(entity->first)) {
+        removeEntity(id);
     }
 
 }
@@ -139,9 +133,9 @@ void PositionSyncSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
 
-    for(auto& entityID : entityIDs) {
-        auto& entity = entities[entityID.second];
-        Position& position = (*positionPool)[entity->second].data;
+    for(size_t i = 0; i < entities.size(); ++i) {
+        auto& entity = entities[i];
+        Position& position = positionPool->at(entity->second).data;
         position.pastPosX = position.posX;
         position.pastPosY = position.posY;
     }

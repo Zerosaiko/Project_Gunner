@@ -9,83 +9,106 @@ BoundsSystem::BoundsSystem(EntityManager* const manager, int32_t priority) : Ent
 void BoundsSystem::initialize() {}
 
 void BoundsSystem::addEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID == entityIDs.end()) {
-        auto entity = manager->getEntity(id);
-        if (entity) {
-            auto position = entity->find("position");
-            auto bounds = entity->find("bounds");
-            auto delay = entity->find("fullDelay");
-            auto pause = entity->find("pauseDelay");
-            if ((delay == entity->end() || !delay->second.first)
-                && (pause == entity->end() || !pause->second.first)
-                && position != entity->end() && bounds != entity->end() && position->second.first && bounds->second.first) {
+    if (id >= hasEntity.size()) {
+        hasEntity.resize(id + 1, false);
+        entityIDXs.resize(id + 1, 0);
+    }
+    if (hasEntity[id]) return;
+    const auto& entity = manager->getEntity(id);
 
-                if (freeIDXs.empty()) {
-                    entityIDs[id] = entities.size();
-                    entities.emplace_back(&position->second, &bounds->second);
-                }
-                else {
-                    auto idx = freeIDXs.back();
-                    entityIDs[id] = idx;
-                    freeIDXs.pop_back();
-                    std::pair<EntityManager::component_pair const *, EntityManager::component_pair const *>
-                        pos_vel_pair{&position->second, &bounds->second};
-                    entities[idx] = pos_vel_pair;
-                }
+    if (entity) {
+        auto position = entity->find("position");
+        auto bounds = entity->find("bounds");
+        auto delay = entity->find("fullDelay");
+        auto pause = entity->find("pauseDelay");
+        if ((delay == entity->end() || !delay->second.first)
+            && (pause == entity->end() || !pause->second.first)
+            && position != entity->end() && bounds != entity->end() && position->second.first && bounds->second.first) {
 
-                Position& pos = (*positionPool)[position->second.second].data;
-                Bounds& b = (*boundsPool)[bounds->second.second].data;
+            entityIDXs[id] = entities.size();
+            hasEntity[id] = true;
+            idxToID.emplace_back(id);
+            entities.emplace_back(&position->second, &bounds->second);
 
-                if (b.behavior == Bounds::Behavior::wrap) {
-                    if (pos.posX < b.minX) pos.posX = b.minX;
-                    else if (pos.posX > b.maxX) pos.posX = b.maxX;
-                    if (pos.posY < b.minY) pos.posY = b.minY;
-                    else if (pos.posY > b.maxY) pos.posY = b.maxY;
-                    if (pos.pastPosX < b.minX) pos.pastPosX = b.minX;
-                    else if (pos.pastPosX > b.maxX) pos.pastPosX = b.maxX;
-                    if (pos.pastPosY < b.minY) pos.pastPosY = b.minY;
-                    else if (pos.pastPosY > b.maxY) pos.pastPosY = b.maxY;
-                } else if (b.behavior == Bounds::Behavior::wrap_x) {
-                    if (pos.posX < b.minX) pos.posX = b.minX;
-                    else if (pos.posX > b.maxX) pos.posX = b.maxX;
-                    if (pos.pastPosX < b.minX) pos.pastPosX = b.minX;
-                    else if (pos.pastPosX > b.maxX) pos.pastPosX = b.maxX;
-                } else if (b.behavior == Bounds::Behavior::wrap_y) {
-                    if (pos.posY < b.minY) pos.posY = b.minY;
-                    else if (pos.posY > b.maxY) pos.posY = b.maxY;
-                    if (pos.pastPosY < b.minY) pos.pastPosY = b.minY;
-                    else if (pos.pastPosY > b.maxY) pos.pastPosY = b.maxY;
-                }
+            Position& pos = (*positionPool)[position->second.second].data;
+            Bounds& b = (*boundsPool)[bounds->second.second].data;
 
+            if (b.behavior == Bounds::Behavior::wrap) {
+                if (pos.posX < b.minX) pos.posX = b.minX;
+                else if (pos.posX > b.maxX) pos.posX = b.maxX;
+                if (pos.posY < b.minY) pos.posY = b.minY;
+                else if (pos.posY > b.maxY) pos.posY = b.maxY;
+                if (pos.pastPosX < b.minX) pos.pastPosX = b.minX;
+                else if (pos.pastPosX > b.maxX) pos.pastPosX = b.maxX;
+                if (pos.pastPosY < b.minY) pos.pastPosY = b.minY;
+                else if (pos.pastPosY > b.maxY) pos.pastPosY = b.maxY;
+            } else if (b.behavior == Bounds::Behavior::wrap_x) {
+                if (pos.posX < b.minX) pos.posX = b.minX;
+                else if (pos.posX > b.maxX) pos.posX = b.maxX;
+                if (pos.pastPosX < b.minX) pos.pastPosX = b.minX;
+                else if (pos.pastPosX > b.maxX) pos.pastPosX = b.maxX;
+            } else if (b.behavior == Bounds::Behavior::wrap_y) {
+                if (pos.posY < b.minY) pos.posY = b.minY;
+                else if (pos.posY > b.maxY) pos.posY = b.maxY;
+                if (pos.pastPosY < b.minY) pos.pastPosY = b.minY;
+                else if (pos.pastPosY > b.maxY) pos.pastPosY = b.maxY;
             }
+
         }
     }
 }
 
 void BoundsSystem::removeEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end()) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    }
+    if (!hasEntity[id]) return;
+    entities[entityIDXs[id]] = entities.back();
+    entities.pop_back();
+    entityIDXs[idxToID.back()] = entityIDXs[id];
+    idxToID[entityIDXs[id]] = idxToID.back();
+    idxToID.pop_back();
+    hasEntity[id] = false;
 }
 
 void BoundsSystem::refreshEntity(uint32_t id) {
-    auto entityID = entityIDs.find(id);
-    if (entityID != entityIDs.end() && !(entities[entityID->second].first->first && entities[entityID->second].second->first)) {
-        freeIDXs.push_back(entityID->second);
-        entityIDs.erase(entityID);
-    }  else if (entityID != entityIDs.end() ) {
-        auto entity = manager->getEntity(id);
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
-            freeIDXs.push_back(entityID->second);
-            entityIDs.erase(entityID);
-        }
-    } else {
+    if (id >= hasEntity.size() || !hasEntity[id]) {
         addEntity(id);
+        return;
+    }
+    const auto& entity = entities[entityIDXs[id]];
+    if (!(entity.first->first && entity.second->first)) {
+        removeEntity(id);
+    }  else {
+        auto fullEntity = manager->getEntity(id);
+        auto delay = fullEntity->find("fullDelay");
+        auto pause = fullEntity->find("pauseDelay");
+        if ( (delay != fullEntity->end() && delay->second.first) || (pause != fullEntity->end() && pause->second.first) ) {
+            removeEntity(id);
+        } else {
+
+            Position& pos = (*positionPool)[entity.first->second].data;
+            Bounds& b = (*boundsPool)[entity.second->second].data;
+
+            if (b.behavior == Bounds::Behavior::wrap) {
+                if (pos.posX < b.minX) pos.posX = b.minX;
+                else if (pos.posX > b.maxX) pos.posX = b.maxX;
+                if (pos.posY < b.minY) pos.posY = b.minY;
+                else if (pos.posY > b.maxY) pos.posY = b.maxY;
+                if (pos.pastPosX < b.minX) pos.pastPosX = b.minX;
+                else if (pos.pastPosX > b.maxX) pos.pastPosX = b.maxX;
+                if (pos.pastPosY < b.minY) pos.pastPosY = b.minY;
+                else if (pos.pastPosY > b.maxY) pos.pastPosY = b.maxY;
+            } else if (b.behavior == Bounds::Behavior::wrap_x) {
+                if (pos.posX < b.minX) pos.posX = b.minX;
+                else if (pos.posX > b.maxX) pos.posX = b.maxX;
+                if (pos.pastPosX < b.minX) pos.pastPosX = b.minX;
+                else if (pos.pastPosX > b.maxX) pos.pastPosX = b.maxX;
+            } else if (b.behavior == Bounds::Behavior::wrap_y) {
+                if (pos.posY < b.minY) pos.posY = b.minY;
+                else if (pos.posY > b.maxY) pos.posY = b.maxY;
+                if (pos.pastPosY < b.minY) pos.pastPosY = b.minY;
+                else if (pos.pastPosY > b.maxY) pos.pastPosY = b.maxY;
+            }
+
+        }
     }
 
 }
@@ -94,8 +117,8 @@ void BoundsSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
 
-    for(auto& entityID : entityIDs) {
-        auto& entity = entities[entityID.second];
+    for(size_t i = 0; i < entities.size(); ++i) {
+        const auto& entity = entities[i];
         Position& position = (*positionPool)[entity.first->second].data;
         Bounds& bounds = (*boundsPool)[entity.second->second].data;
         if (bounds.behavior == Bounds::Behavior::block) {
@@ -113,7 +136,7 @@ void BoundsSystem::process(float dt) {
         } else if (bounds.behavior == Bounds::Behavior::destroy
             && (position.posX < bounds.minX || position.posX > bounds.maxX || position.posY < bounds.minY || position.posY > bounds.maxY) ) {
 
-            manager->entitiesToDestroy.insert(entityID.first);
+            manager->entitiesToDestroy.insert(idxToID[i]);
 
         } else if (bounds.behavior == Bounds::Behavior::wrap) {
             if (position.posX < bounds.minX) {
