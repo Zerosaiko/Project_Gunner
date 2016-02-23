@@ -4,6 +4,7 @@
 #include <iostream>
 
 PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000}, renderSys{&manager, 10000, window},
+PlayState::PlayState(Window* w) : manager{}, window(w), moveSys{&manager, 6000}, renderSys(&manager, 10000, window),
         scriptSys(&manager, 0), mInpSys(&manager, 1), boundsSys(&manager, 7500), colSys{&manager, 5999},
         spawnSys(&manager, 0), posSyncSys(&manager, 5500), delaySys(&manager, 0) {
 
