@@ -17,7 +17,7 @@
 1455826052 c:\users\aceforce\documents\github\project_gunner\componentname.h
 	<string>
 
-1456210508 source:c:\users\aceforce\documents\github\project_gunner\boundscorrection.cpp
+1456245766 source:c:\users\aceforce\documents\github\project_gunner\boundscorrection.cpp
 	"BoundsCorrection.h"
 	"SDL.h"
 
@@ -31,7 +31,7 @@
 	"EntityManager.h"
 	<cstdint>
 
-1456020061 c:\users\aceforce\documents\github\project_gunner\entitymanager.h
+1456249951 c:\users\aceforce\documents\github\project_gunner\entitymanager.h
 	<cstdint>
 	<unordered_map>
 	<unordered_set>
@@ -440,7 +440,7 @@
 1455826052 source:c:\users\aceforce\documents\github\project_gunner\delaycomponent.cpp
 	"delayComponent.h"
 
-1456210781 source:c:\users\aceforce\documents\github\project_gunner\delaysystem.cpp
+1456245835 source:c:\users\aceforce\documents\github\project_gunner\delaysystem.cpp
 	"DelaySystem.h"
 	"SDL.h"
 	<iostream>
@@ -528,8 +528,9 @@
 	"Spawner.h"
 	"displace.h"
 
-1456199118 source:c:\users\aceforce\documents\github\project_gunner\entitymanager.cpp
+1456249710 source:c:\users\aceforce\documents\github\project_gunner\entitymanager.cpp
 	"EntityManager.h"
+	"SDL.h"
 	<iostream>
 	<algorithm>
 
@@ -539,7 +540,7 @@
 1455826052 source:c:\users\aceforce\documents\github\project_gunner\gamestate.cpp
 	"gameState.h"
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\groupmanager.cpp
+1456213799 source:c:\users\aceforce\documents\github\project_gunner\groupmanager.cpp
 	"GroupManager.h"
 	"EntityManager.h"
 	<algorithm>
@@ -558,16 +559,17 @@
 	"SDL.h"
 	<iostream>
 
-1456211203 source:c:\users\aceforce\documents\github\project_gunner\movementsystem.cpp
+1456245856 source:c:\users\aceforce\documents\github\project_gunner\movementsystem.cpp
 	"MovementSystem.h"
 	"SDL.h"
 
 1455826052 source:c:\users\aceforce\documents\github\project_gunner\playercomponents.cpp
 	"playerComponents.h"
 
-1456204095 source:c:\users\aceforce\documents\github\project_gunner\playstate.cpp
+1456250243 source:c:\users\aceforce\documents\github\project_gunner\playstate.cpp
 	"playState.h"
 	"SDL_image.h"
+	"SDL.h"
 	"scriptcomponent.h"
 	<iostream>
 
@@ -576,7 +578,7 @@
 	<cstdlib>
 	<vector>
 
-1456211138 source:c:\users\aceforce\documents\github\project_gunner\rendersystem.cpp
+1456245866 source:c:\users\aceforce\documents\github\project_gunner\rendersystem.cpp
 	"RenderSystem.h"
 	"SDL_image.h"
 
@@ -584,7 +586,7 @@
 	"scriptcomponent.h"
 	<iostream>
 
-1456211836 source:c:\users\aceforce\documents\github\project_gunner\scriptsystem.cpp
+1456245906 source:c:\users\aceforce\documents\github\project_gunner\scriptsystem.cpp
 	"ScriptSystem.h"
 	"SDL.h"
 
@@ -592,7 +594,7 @@
 	"Spawner.h"
 	<cmath>
 
-1456211464 source:c:\users\aceforce\documents\github\project_gunner\spawnsystem.cpp
+1456249493 source:c:\users\aceforce\documents\github\project_gunner\spawnsystem.cpp
 	"SpawnSystem.h"
 	"SDL.h"
 	<cmath>
@@ -601,7 +603,7 @@
 	"spriteSheet.h"
 	<iostream>
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\tagmanager.cpp
+1456245424 source:c:\users\aceforce\documents\github\project_gunner\tagmanager.cpp
 	"TagManager.h"
 	"EntityManager.h"
 
