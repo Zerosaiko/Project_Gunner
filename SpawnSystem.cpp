@@ -5,6 +5,10 @@
 SpawnSystem::SpawnSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     spawnPool = manager->getComponentPool<Component<Spawner::name, Spawner>>();
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
+    entityIDXs.reserve(1 << 16);
+    hasEntity.reserve(1 << 16);
+    idxToID.reserve(1 << 16);
+    entities.reserve(1 << 16);
 };
 
 void SpawnSystem::initialize() {}

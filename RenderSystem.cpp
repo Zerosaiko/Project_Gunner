@@ -5,6 +5,10 @@ RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Windo
     renderTarget = SDL_CreateTexture(this->window->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 320, 480);
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     renderPool = manager->getComponentPool<Component<Renderable::name, Renderable>>();
+    entityIDXs.reserve(1 << 16);
+    hasEntity.reserve(1 << 16);
+    idxToID.reserve(1 << 16);
+    entities.reserve(1 << 16);
 };
 
 RenderSystem::~RenderSystem() {

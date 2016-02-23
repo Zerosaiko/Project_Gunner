@@ -4,6 +4,10 @@
 BoundsSystem::BoundsSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     boundsPool = manager->getComponentPool<Component<Bounds::name, Bounds>>();
+    entityIDXs.reserve(1 << 16);
+    hasEntity.reserve(1 << 16);
+    idxToID.reserve(1 << 16);
+    entities.reserve(1 << 16);
 };
 
 void BoundsSystem::initialize() {}

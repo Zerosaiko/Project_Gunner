@@ -4,6 +4,10 @@
 
 DelaySystem::DelaySystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     delayPool = manager->getComponentPool<Component<delayComponent::fullDelay, float>>();
+    entityIDXs.reserve(1 << 16);
+    hasEntity.reserve(1 << 16);
+    idxToID.reserve(1 << 16);
+    entities.reserve(1 << 16);
 };
 
 void DelaySystem::initialize() {}

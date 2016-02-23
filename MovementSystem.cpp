@@ -4,6 +4,10 @@
 MovementSystem::MovementSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     velocityPool = manager->getComponentPool<Component<Velocity::name, Velocity>>();
+    entityIDXs.reserve(1 << 16);
+    hasEntity.reserve(1 << 16);
+    idxToID.reserve(1 << 16);
+    entities.reserve(1 << 16);
 };
 
 void MovementSystem::initialize() {}
@@ -83,6 +87,10 @@ void MovementSystem::process(float dt) {
 
 PositionSyncSystem::PositionSyncSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
+    entityIDXs.reserve(1 << 16);
+    hasEntity.reserve(1 << 16);
+    idxToID.reserve(1 << 16);
+    entities.reserve(1 << 16);
 };
 
 void PositionSyncSystem::initialize() {}

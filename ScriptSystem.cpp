@@ -3,6 +3,10 @@
 
 ScriptSystem::ScriptSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     scriptPool = manager->getComponentPool<Component<Script::name, Script>>();
+    entityIDXs.reserve(1 << 16);
+    hasEntity.reserve(1 << 16);
+    idxToID.reserve(1 << 16);
+    entities.reserve(1 << 16);
 };
 
 void ScriptSystem::initialize() {}
