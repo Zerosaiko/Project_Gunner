@@ -219,18 +219,18 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             }
 
             if (group.empty() || !children) {
-                manager->entitiesToDestroy.insert(targetID);
+                manager->destroyEntity(targetID);
             }
             else if (children){
                 for (auto& child: manager->getChildren(id)) {
-                    manager->entitiesToDestroy.insert(child);
+                    manager->destroyEntity(child);
                 }
             }
             else if (!group.empty()) {
                 auto groupVec = manager->groupManager.getIDGroup(group);
                 if (groupVec) {
                     for (auto& entity: *groupVec) {
-                        manager->entitiesToDestroy.insert(entity);
+                        manager->destroyEntity(entity);
                     }
                 }
             }

@@ -136,7 +136,7 @@ void BoundsSystem::process(float dt) {
         } else if (bounds.behavior == Bounds::Behavior::destroy
             && (position.posX < bounds.minX || position.posX > bounds.maxX || position.posY < bounds.minY || position.posY > bounds.maxY) ) {
 
-            manager->entitiesToDestroy.insert(idxToID[i]);
+            manager->destroyEntity(idxToID[i]);
 
         } else if (bounds.behavior == Bounds::Behavior::wrap) {
             if (position.posX < bounds.minX) {
