@@ -142,8 +142,8 @@ SpriteSheet* const RenderSystem::loadSprite(std::string spriteName) {
         int32_t cellSepWidth = buildFromString<int32_t>(finalData, 2);
         int32_t cellSepHeight = buildFromString<int32_t>(finalData, 3);
         metadata.close();
-        spriteName += ".png";
-        SDL_Surface* surf = IMG_Load(spriteName.c_str());
+        std::string fileName = spriteName + ".png";
+        SDL_Surface* surf = IMG_Load(fileName.c_str());
         SpriteSheet* sheet = new SpriteSheet(surf, cellWidth, cellHeight, cellSepWidth, cellSepHeight, window);
         sprites[spriteName] = sheet;
     }
