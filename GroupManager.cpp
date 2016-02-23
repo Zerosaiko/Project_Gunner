@@ -7,7 +7,10 @@ GroupManager::GroupManager(EntityManager* manager) : manager(manager) {}
 void GroupManager::groupEntity(std::string group, uint32_t entityID) {
 
     entityIDs[group].push_back(entityID);
-    manager->entitiesToRefresh.insert(entityID);
+    if (!manager->toRefresh[entityID]) {
+        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->toRefresh[entityID] = true;
+    }
 
 }
 
@@ -21,7 +24,10 @@ void GroupManager::ungroupEntity(std::string group, uint32_t entityID) {
             it->second.pop_back();
         }
     }
-    manager->entitiesToRefresh.insert(entityID);
+    if (!manager->toRefresh[entityID]) {
+        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->toRefresh[entityID] = true;
+    }
 
 
 }
@@ -31,13 +37,19 @@ void GroupManager::ungroupEntity(uint32_t entityID) {
     for( auto it = entityIDs.begin(); it != entityIDs.end(); ++it) {
         ungroupEntity(it->first, entityID);
     };
-    manager->entitiesToRefresh.insert(entityID);
+    if (!manager->toRefresh[entityID]) {
+        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->toRefresh[entityID] = true;
+    }
 
 }
 
 void GroupManager::removeGroup(std::string group) {
     for (auto id : entityIDs[group]) {
-        manager->entitiesToRefresh.insert(id);
+        if (!manager->toRefresh[id]) {
+            manager->entitiesToRefresh.emplace_back(id);
+            manager->toRefresh[id] = true;
+        }
     }
     entityIDs.erase(group);
 }

@@ -6,7 +6,10 @@ TagManager::TagManager(EntityManager* manager) : manager{manager} {}
 void TagManager::tagEntity(std::string tag, uint32_t entityID) {
 
     entityIDs[tag] = entityID;
-    manager->entitiesToRefresh.insert(entityID);
+    if (!manager->toRefresh[entityID]) {
+        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->toRefresh[entityID] = true;
+    }
 
 }
 
@@ -15,7 +18,10 @@ void TagManager::untagEntity(std::string tag, uint32_t entityID) {
     auto it = entityIDs.find(tag);
     if (it != entityIDs.end() && it->second == entityID)
         entityIDs.erase(it);
-    manager->entitiesToRefresh.insert(entityID);
+    if (!manager->toRefresh[entityID]) {
+        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->toRefresh[entityID] = true;
+    }
 
 }
 
@@ -25,14 +31,20 @@ void TagManager::untagEntity(uint32_t entityID) {
             it = entityIDs.erase(it);
         else ++it;
     }
-    manager->entitiesToRefresh.insert(entityID);
+    if (!manager->toRefresh[entityID]) {
+        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->toRefresh[entityID] = true;
+    }
 
 }
 
 void TagManager::removeTag(std::string tag) {
     uint32_t id = entityIDs[tag];
     entityIDs.erase(tag);
-    manager->entitiesToRefresh.insert(id);
+    if (!manager->toRefresh[id]) {
+        manager->entitiesToRefresh.emplace_back(id);
+        manager->toRefresh[id] = true;
+    }
 }
 
 uint32_t* TagManager::getIDByTag(std::string tag) {
