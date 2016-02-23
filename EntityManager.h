@@ -15,10 +15,13 @@ class EntitySystem;
 // intermediates between systems and components, making entities composed of a variable number of components
 class EntityManager {
 
+    friend TagManager;
+    friend GroupManager;
+
 public:
 
     typedef std::pair<bool, std::size_t> component_pair;
-    typedef std::unordered_map<std::string, component_pair> entity_map;
+    typedef std::map<std::string, component_pair> entity_map;
 
     EntityManager();
     ~EntityManager();
@@ -49,8 +52,6 @@ public:
 
     template<typename CMPType> std::vector<CMPType>* getComponentPool();
 
-    void refreshEntity(uint32_t id);
-
     void setParent(uint32_t child, uint32_t parent);
 
     void addChild(uint32_t parent, uint32_t child);
@@ -68,17 +69,25 @@ public:
     TagManager tagManager;
     GroupManager groupManager;
 
-    //  deferred system adding of entities for post-update
-    std::unordered_set<uint32_t> entitiesToDestroy;
-    std::unordered_set<uint32_t> entitiesToRefresh;
+    //  deferred system adding/removing of entities for post-update
+    std::vector<uint32_t> entitiesToDestroy;
+    std::vector<uint32_t> entitiesToRefresh;
 
 protected:
 
 private:
+
+    void eraseEntity(uint32_t id);
+
+    void refreshEntity(uint32_t id);
     //  mapping from entity id to an entity, basically a map of components
     std::vector<entity_map> entities;
 
     std::vector<uint8_t> isAlive;
+
+    std::vector<uint8_t> toRefresh;
+
+    std::vector<uint8_t> toDestroy;
 
     //  recycles entity ids from destroyed entities
     std::vector<uint32_t> freeIDs;
@@ -115,7 +124,10 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
         factory->build(this, componentID->second.second, &comp);
     }
 
-    entitiesToRefresh.insert(id);
+    if (!toRefresh[id]) {
+        entitiesToRefresh.emplace_back(id);
+        toRefresh[id] = true;
+    }
 }
 
 template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint32_t id) {
@@ -141,7 +153,10 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
         factory->build(this, componentID->second.second, comp);
     }
 
-    entitiesToRefresh.insert(id);
+    if (!toRefresh[id]) {
+        entitiesToRefresh.emplace_back(id);
+        toRefresh[id] = true;
+    }
 
 }
 
@@ -155,8 +170,16 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
     for (auto it = entity.begin(); !alive && it != entity.end(); ++it) {
         alive = it->second.first;
     }
-    if (!alive) entitiesToDestroy.insert(id);
-    else entitiesToRefresh.insert(id);
+    if (!alive) {
+        if (!toDestroy[id]) {
+            entitiesToDestroy.emplace_back(id);
+            toDestroy[id] = true;
+        }
+    }
+    else if (!toRefresh[id]) {
+        entitiesToRefresh.emplace_back(id);
+        toRefresh[id] = true;
+    }
 
 }
 
