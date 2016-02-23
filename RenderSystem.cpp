@@ -69,6 +69,12 @@ void RenderSystem::refreshEntity(uint32_t id) {
         auto delay = fullEntity->find("fullDelay");
         if ( (delay != fullEntity->end() && delay->second.first)) {
             removeEntity(id);
+        } else {
+
+            Renderable& ren = (*renderPool)[entity.second->second].data;
+
+            ren.sheet = loadSprite(ren.spriteName);
+
         }
     }
 
