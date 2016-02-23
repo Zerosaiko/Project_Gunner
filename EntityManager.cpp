@@ -101,19 +101,19 @@ void EntityManager::addComponent(std::string& instructions, uint32_t id) {
 
     std::string::size_type colon = instructions.find_first_of(':');
     std::string::size_type endName = instructions.find_first_of(" \n\r\f\t\v", colon);
-    std::string compName = instructions.substr(colon + 1, endName - colon - 1);
+    std::string cmpName = instructions.substr(colon + 1, endName - colon - 1);
 
     auto& entity = entities[id];
-    auto componentID = entity.find(compName);
-    auto& factory = componentUtils::factoryMap.at(compName);
+    auto componentID = entity.find(cmpName);
+    auto& factory = componentUtils::factoryMap.at(cmpName);
     if (componentID == entity.end() ) {
-        if (freeComponents[compName].empty()) {
-            entities[id][compName] = component_pair{true, factory->build(this, instructions)};
+        if (freeComponents[cmpName].empty()) {
+            entities[id][cmpName] = component_pair{true, factory->build(this, instructions)};
         }
         else {
-            component_pair compPair{true, freeComponents[compName].front()};
-            entity[compName] = compPair;
-            freeComponents[compName].pop_front();
+            component_pair compPair{true, freeComponents[cmpName].front()};
+            entity[cmpName] = compPair;
+            freeComponents[cmpName].pop_front();
             factory->build(this, compPair.second, instructions);
         }
     }
@@ -131,20 +131,20 @@ void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
 
     std::string::size_type colon = instructions.find_first_of(':');
     std::string::size_type endName = instructions.find_first_of(" \n\r\f\t\v", colon);
-    std::string compName = instructions.substr(colon + 1, endName - colon - 1);
+    std::string cmpName = instructions.substr(colon + 1, endName - colon - 1);
 
     auto& entity = entities[id];
 
-    auto componentID = entity.find(compName);
-    auto& factory = componentUtils::factoryMap.at(compName);
+    auto componentID = entity.find(cmpName);
+    auto& factory = componentUtils::factoryMap.at(cmpName);
     if (componentID == entity.end() ) {
-        if (freeComponents[compName].empty()) {
-            entity[compName] = component_pair{true, factory->build(this, instructions)};
+        if (freeComponents[cmpName].empty()) {
+            entity[cmpName] = component_pair{true, factory->build(this, instructions)};
         }
         else {
-            entity[compName] = component_pair{true, freeComponents[compName].front()};
-            freeComponents[compName].pop_front();
-            entity[compName] = component_pair{true, factory->build(this, componentID->second.second, instructions)};
+            entity[cmpName] = component_pair{true, freeComponents[cmpName].front()};
+            freeComponents[cmpName].pop_front();
+            entity[cmpName] = component_pair{true, factory->build(this, componentID->second.second, instructions)};
         }
     }
     else {
@@ -158,9 +158,9 @@ void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
     }
 }
 
-void EntityManager::removeComponent(std::string& compName, uint32_t id) {
+void EntityManager::removeComponent(std::string& cmpName, uint32_t id) {
     auto& entity = entities[id];
-    auto componentID = entity.find(compName);
+    auto componentID = entity.find(cmpName);
     if (componentID != entity.end())
         componentID->second.first = false;
 
@@ -177,10 +177,10 @@ void EntityManager::removeComponent(std::string& compName, uint32_t id) {
     }
 }
 
-void EntityManager::removeComponent(std::string&& compName, uint32_t id) {
+void EntityManager::removeComponent(std::string&& cmpName, uint32_t id) {
 
     auto& entity = entities[id];
-    auto componentID = entity.find(compName);
+    auto componentID = entity.find(cmpName);
     if (componentID != entity.end())
         componentID->second.first = false;
 

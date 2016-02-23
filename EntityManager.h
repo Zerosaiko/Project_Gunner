@@ -21,7 +21,7 @@ class EntityManager {
 public:
 
     typedef std::pair<bool, std::size_t> component_pair;
-    typedef std::map<std::string, component_pair> entity_map;
+    typedef std::unordered_map<std::string, component_pair> entity_map;
 
     EntityManager();
     ~EntityManager();
@@ -44,9 +44,9 @@ public:
 
     template<typename CMPType> void removeComponent(uint32_t id);
 
-    void removeComponent(std::string& compName, uint32_t id);
+    void removeComponent(std::string& cmpName, uint32_t id);
 
-    void removeComponent(std::string&& compName, uint32_t id);
+    void removeComponent(std::string&& cmpName, uint32_t id);
 
     entity_map const * getEntity(uint32_t id);
 
@@ -103,19 +103,19 @@ private:
 
 template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint32_t id) {
 
-    const std::string& compName = CMPType::getName();
+    const std::string& cmpName = CMPType::getName();
 
     auto& entity = entities[id];
-    auto componentID = entity.find(compName);
-    auto& factory = componentUtils::factoryMap.at(compName);
+    auto componentID = entity.find(cmpName);
+    auto& factory = componentUtils::factoryMap.at(cmpName);
     if (componentID == entity.end() ) {
-        if (freeComponents[compName].empty()) {
-            entities[id][compName] = component_pair{true, factory->build(this, &comp)};
+        if (freeComponents[cmpName].empty()) {
+            entities[id][cmpName] = component_pair{true, factory->build(this, &comp)};
         }
         else {
-            component_pair compPair{true, freeComponents[compName].front()};
-            entity[compName] = compPair;
-            freeComponents[compName].pop_front();
+            component_pair compPair{true, freeComponents[cmpName].front()};
+            entity[cmpName] = compPair;
+            freeComponents[cmpName].pop_front();
             factory->build(this, compPair.second, &comp);
         }
     }
@@ -132,19 +132,19 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
 
 template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint32_t id) {
 
-    const std::string& compName = CMPType::getName();
+    const std::string& cmpName = CMPType::getName();
 
     auto& entity = entities[id];
-    auto componentID = entity.find(compName);
-    auto& factory = componentUtils::factoryMap.at(compName);
+    auto componentID = entity.find(cmpName);
+    auto& factory = componentUtils::factoryMap.at(cmpName);
     if (componentID == entity.end() ) {
-        if (freeComponents[compName].empty()) {
-            entities[id][compName] = component_pair{true, factory->build(this, comp)};
+        if (freeComponents[cmpName].empty()) {
+            entities[id][cmpName] = component_pair{true, factory->build(this, comp)};
         }
         else {
-            component_pair compPair{true, freeComponents[compName].front()};
-            entity[compName] = compPair;
-            freeComponents[compName].pop_front();
+            component_pair compPair{true, freeComponents[cmpName].front()};
+            entity[cmpName] = compPair;
+            freeComponents[cmpName].pop_front();
             factory->build(this, compPair.second, comp);
         }
     }
@@ -161,9 +161,9 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
 }
 
 template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
-    const std::string& compName = CMPType::getName();
+    const std::string& cmpName = CMPType::getName();
     auto& entity = entities[id];
-    auto componentID = entity.find(compName);
+    auto componentID = entity.find(cmpName);
     if (componentID != entity.end())
         componentID->second.first = false;
     bool alive = false;
