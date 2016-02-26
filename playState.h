@@ -39,7 +39,6 @@ private:
     SpawnSystem spawnSys;
     PositionSyncSystem posSyncSys;
     DelaySystem delaySys;
-    PauseSystem pauseSys;
 };
 
 #endif // PLAYSTATE_H_INCLUDED

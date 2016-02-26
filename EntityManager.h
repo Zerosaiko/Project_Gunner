@@ -21,7 +21,7 @@ class EntityManager {
 public:
 
     typedef std::pair<bool, std::size_t> component_pair;
-    typedef std::map<std::string, component_pair> entity_map;
+    typedef std::unordered_map<std::string, component_pair> entity_map;
 
     EntityManager();
     ~EntityManager();
@@ -85,8 +85,6 @@ private:
 
     std::vector<uint8_t> isAlive;
 
-    std::size_t aliveCount;
-
     std::vector<uint8_t> toRefresh;
 
     std::vector<uint8_t> toDestroy;
@@ -94,7 +92,7 @@ private:
     //  recycles entity ids from destroyed entities
     std::vector<uint32_t> freeIDs;
     //  recycles component indexes from destroyed components
-    std::map<std::string, std::deque<std::size_t>> freeComponents;
+    std::unordered_map<std::string, std::deque<std::size_t>> freeComponents;
     std::vector<EntitySystem*> systems;
     //  maps for two-way entity relationships
     std::unordered_map<uint32_t, uint32_t> childToParent;
@@ -129,7 +127,6 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
     if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
         toRefresh[id] = true;
-        toDestroy[id] = false;
     }
 }
 
@@ -159,7 +156,6 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
     if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
         toRefresh[id] = true;
-        toDestroy[id] = false;
     }
 
 }
@@ -175,13 +171,14 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
         alive = it->second.first;
     }
     if (!alive) {
-        destroyEntity(id);
-        toRefresh[id] = false;
+        if (!toDestroy[id]) {
+            entitiesToDestroy.emplace_back(id);
+            toDestroy[id] = true;
+        }
     }
     else if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
         toRefresh[id] = true;
-        toDestroy[id] = false;
     }
 
 }

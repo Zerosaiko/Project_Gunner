@@ -48,11 +48,10 @@ struct Spawner {
         None = 0,
         Default = 1,
         Aimed = 2,
-        AimedBySource = 3,
-        AwayFromPlayer = 4,
-        TowardOrigin = 5,
-        AwayFromOrigin = 6,
-        UseList = 7,
+        AwayFromPlayer = 3,
+        TowardOrigin = 4,
+        AwayFromOrigin = 5,
+        UseList = 6,
     };
 
     enum class SpawnAccel : size_t {
