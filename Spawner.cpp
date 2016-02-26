@@ -136,6 +136,10 @@ Spawner buildFromString<Spawner>(std::vector<std::string> str, size_t pos) {
 
         s.spawnVelocity = Spawner::SpawnVel::Aimed;
         ++pos;
+    } else if (str[pos] == "AimedBySource") {
+
+        s.spawnVelocity = Spawner::SpawnVel::AimedBySource;
+        ++pos;
     } else if (str[pos] == "TowardOrigin") {
 
         s.spawnVelocity = Spawner::SpawnVel::TowardOrigin;

@@ -21,13 +21,12 @@ void DelaySystem::addEntity(uint32_t id) {
     const auto& entity = manager->getEntity(id);
     if (entity) {
         auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ((delay == entity->end() || !delay->second.first) && (pause != entity->end() && pause->second.first)) {
+        if (delay != entity->end() && delay->second.first) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
             idxToID.emplace_back(id);
-            entities.emplace_back(&pause->second);
+            entities.emplace_back(&delay->second);
 
         }
     }
@@ -85,14 +84,14 @@ void PauseSystem::addEntity(uint32_t id) {
     if (hasEntity[id]) return;
     const auto& entity = manager->getEntity(id);
     if (entity) {
-        auto pause = entity->find("fullPause");
-        if (pause != entity->end() && pause->second.first) {
+        auto delay = entity->find("fullDelay");
+        auto pause = entity->find("pauseDelay");
+        if ((delay == entity->end() || !delay->second.first) && (pause != entity->end() && pause->second.first)) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
             idxToID.emplace_back(id);
             entities.emplace_back(&pause->second);
-
 
         }
     }
@@ -119,7 +118,7 @@ void PauseSystem::refreshEntity(uint32_t id) {
     } else {
         const auto& fullEntity = manager->getEntity(id);
         auto delay = fullEntity->find("fullDelay");
-        if (delay != fullEntity->end() && delay->second.first) {
+        if (delay != fullEntity->end() && delay->second.first ) {
             removeEntity(id);
         }
     }
@@ -137,4 +136,3 @@ void PauseSystem::process(float dt) {
     }
 
 }
-

@@ -13,6 +13,7 @@ EntityManager::EntityManager() : tagManager{this}, groupManager{this} {
     isAlive.reserve(1 << 16);
     toRefresh.reserve(1 << 16);
     toDestroy.reserve(1 << 16);
+    aliveCount = 0;
 
 }
 
@@ -28,10 +29,11 @@ void EntityManager::update(float dt) {
         system->process(dt);
     }
     auto ed = SDL_GetPerformanceCounter();
-    std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << " entities" << std::endl;
+    std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToRefresh) {
-        refreshEntity(entity);
+        if (toRefresh[entity])
+            refreshEntity(entity);
         toRefresh[entity] = false;
     }
     ed = SDL_GetPerformanceCounter();
@@ -39,7 +41,8 @@ void EntityManager::update(float dt) {
     entitiesToRefresh.clear();
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToDestroy) {
-        eraseEntity(entity);
+        if (toDestroy[entity])
+            eraseEntity(entity);
         toDestroy[entity] = false;
     }
     ed = SDL_GetPerformanceCounter();
@@ -66,6 +69,7 @@ uint32_t EntityManager::createEntity() {
         entities.emplace_back();
         isAlive.emplace_back(true);
     }
+    ++aliveCount;
     toRefresh.emplace_back(false);
     toDestroy.emplace_back(false);
     return id;
@@ -82,6 +86,7 @@ void EntityManager::eraseEntity(uint32_t id) {
     }
     components.clear();
     isAlive[id] = false;
+    --aliveCount;
     toRefresh[id] = false;
     toDestroy[id] = false;
     freeIDs.push_back(id);
@@ -95,6 +100,7 @@ void EntityManager::destroyEntity(uint32_t id) {
     if (!isAlive[id] || toDestroy[id]) return;
     entitiesToDestroy.emplace_back(id);
     toDestroy[id] = true;
+    toRefresh[id] = false;
 }
 
 void EntityManager::addComponent(std::string& instructions, uint32_t id) {
@@ -124,6 +130,7 @@ void EntityManager::addComponent(std::string& instructions, uint32_t id) {
     if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
         toRefresh[id] = true;
+        toDestroy[id] = false;
     }
 }
 
@@ -155,6 +162,7 @@ void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
     if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
         toRefresh[id] = true;
+        toDestroy[id] = false;
     }
 }
 
@@ -174,6 +182,7 @@ void EntityManager::removeComponent(std::string& cmpName, uint32_t id) {
     else if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
         toRefresh[id] = true;
+        toDestroy[id] = false;
     }
 }
 
@@ -194,6 +203,7 @@ void EntityManager::removeComponent(std::string&& cmpName, uint32_t id) {
     else if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
         toRefresh[id] = true;
+        toDestroy[id] = false;
     }
 }
 
