@@ -22,7 +22,7 @@ public:
     void process(float dt);
 private:
 
-    std::vector<std::unordered_map<uint32_t, std::pair<EntityManager::component_pair const *,EntityManager::component_pair const *>>> entities;
+    std::vector<std::unordered_map<uint32_t, std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>>> entities;
 
     std::vector<Component<Position::name, Position>>* positionPool;
 

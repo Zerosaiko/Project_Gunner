@@ -23,7 +23,7 @@ void SpawnSystem::addEntity(uint32_t id) {
     if (entity) {
         auto spawner = entity->find("spawner");
         auto position = entity->find("position");
-        if (spawner != entity->end() && position != entity->end() && spawner->second.first && position->second.first) {
+        if (spawner != entity->end() && position != entity->end() && spawner->second.active && position->second.active) {
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
             idxToID.emplace_back(id);
@@ -48,13 +48,13 @@ void SpawnSystem::refreshEntity(uint32_t id) {
         return;
     }
     const auto& entity = entities[entityIDXs[id]];
-    if (!(entity.first->first && entity.second->first)) {
+    if (!(entity.first->active && entity.second->active )) {
         removeEntity(id);
     } else {
         const auto& fullEntity = manager->getEntity(id);
         auto delay = fullEntity->find("fullDelay");
         auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.first) || (pause != fullEntity->end() && pause->second.first) ) {
+        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
             removeEntity(id);
         }
     }
@@ -70,7 +70,7 @@ void SpawnSystem::process(float dt) {
 
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];
-        Spawner& spawner = (*spawnPool)[entity.first->second].data;
+        Spawner& spawner = (*spawnPool)[entity.first->index].data;
         spawner.currentTime += dt;
         while (spawner.currentTime >= spawner.repeatRate) {
             spawned = true;
@@ -112,7 +112,7 @@ void SpawnSystem::process(float dt) {
             }
 
             for (uint32_t i = 0; i < spawner.spawnsPerRun; ++i) {
-                const Position& position = (*positionPool)[entity.second->second].data;
+                const Position& position = (*positionPool)[entity.second->index].data;
 
                 Position newPos, adjPos;
                 Velocity newVel;

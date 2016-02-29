@@ -18,9 +18,9 @@ void MovementInputSystem::addEntity(uint32_t id) {
                 auto velocity = entity->find("velocity");
                 auto delay = entity->find("fullDelay");
                 auto pause = entity->find("pauseDelay");
-                if ((delay == entity->end() || !delay->second.first )
-                    && (pause == entity->end() || !pause->second.first )
-                    && velocity != entity->end() && velocity->second.first) {
+                if ((delay == entity->end() || !delay->second.active )
+                    && (pause == entity->end() || !pause->second.active )
+                    && velocity != entity->end() && velocity->second.active) {
                     if (freeIDXs.empty()) {
                         entityIDs[id] = entities.size();
                         entities.emplace_back(&velocity->second);
@@ -48,14 +48,14 @@ void MovementInputSystem::removeEntity(uint32_t id) {
 void MovementInputSystem::refreshEntity(uint32_t id) {
     uint32_t* player = manager->tagManager.getIDByTag("player");
     auto entityID = entityIDs.find(id);
-    if ((!player || *player != id) && entityID != entityIDs.end() && !(entities[entityID->second]->first)) {
+    if ((!player || *player != id) && entityID != entityIDs.end() && !(entities[entityID->second]->active)) {
         freeIDXs.push_back(entityID->second);
         entityIDs.erase(entityID);
     } else if (entityID != entityIDs.end() ) {
         auto entity = manager->getEntity(id);
         auto delay = entity->find("fullDelay");
         auto pause = entity->find("pauseDelay");
-        if ( (delay != entity->end() && delay->second.first) || (pause != entity->end() && pause->second.first) ) {
+        if ( (delay != entity->end() && delay->second.active) || (pause != entity->end() && pause->second.active) ) {
             freeIDXs.push_back(entityID->second);
             entityIDs.erase(entityID);
         }
@@ -78,9 +78,9 @@ void MovementInputSystem::process(float dt) {
         auto speed = e->find("speed");
         auto focusSpeed = e->find("focusSpeed");
         float spdMod = 0;
-        if (speed != e->end() && !keys[inputMap["Focus"]]) spdMod = (*speedPool)[speed->second.second].data;
-        else if (focusSpeed != e->end() && keys[inputMap["Focus"]]) spdMod = (*focusSpeedPool)[focusSpeed->second.second].data;
-        Velocity& velocity = (*velocityPool)[entity->second].data;
+        if (speed != e->end() && !keys[inputMap["Focus"]]) spdMod = (*speedPool)[speed->second.index].data;
+        else if (focusSpeed != e->end() && keys[inputMap["Focus"]]) spdMod = (*focusSpeedPool)[focusSpeed->second.index].data;
+        Velocity& velocity = (*velocityPool)[entity->index].data;
         velocity.velX = (keys[inputMap["Move_Right"]] - keys[inputMap["Move_Left"]]) * spdMod;
         velocity.velY = (keys[inputMap["Move_Down"]] - keys[inputMap["Move_Up"]]) * spdMod;
     }

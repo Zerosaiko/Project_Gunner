@@ -23,11 +23,11 @@ public:
 
 private:
 
-    std::unordered_map<uint32_t, std::vector<EntityManager::component_pair const *>::size_type> entityIDs;
+    std::unordered_map<uint32_t, std::vector<EntityManager::ComponentHandle const *>::size_type> entityIDs;
 
-    std::vector<std::vector<EntityManager::component_pair const *>::size_type> freeIDXs;
+    std::vector<std::vector<EntityManager::ComponentHandle const *>::size_type> freeIDXs;
 
-    std::vector<EntityManager::component_pair const *> entities;
+    std::vector<EntityManager::ComponentHandle const *> entities;
 
     std::vector<Component<Velocity::name, Velocity>>* velocityPool;
 

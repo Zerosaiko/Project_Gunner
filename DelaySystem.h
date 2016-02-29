@@ -27,7 +27,7 @@ private:
 
     std::vector<uint32_t> idxToID;
 
-    std::vector<EntityManager::component_pair const *> entities;
+    std::vector<EntityManager::ComponentHandle const *> entities;
 
     std::vector<Component<delayComponent::fullDelay, float>>* delayPool;
 
@@ -56,7 +56,7 @@ private:
 
     std::vector<uint32_t> idxToID;
 
-    std::vector<EntityManager::component_pair const *> entities;
+    std::vector<EntityManager::ComponentHandle const *> entities;
 
     std::vector<Component<delayComponent::pauseDelay, float>>* pausePool;
 

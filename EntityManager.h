@@ -20,8 +20,19 @@ class EntityManager {
 
 public:
 
-    typedef std::pair<bool, std::size_t> component_pair;
-    typedef std::map<std::string, component_pair> entity_map;
+    struct ComponentHandle {
+
+        bool active;
+        bool dirty;
+
+        std::size_t index;
+
+        ComponentHandle();
+
+        void setHandle(bool act, bool dir, std::size_t idx);
+    };
+
+    typedef std::map<std::string, ComponentHandle> entity_map;
 
     EntityManager();
     ~EntityManager();
@@ -112,18 +123,19 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
     auto& factory = componentUtils::factoryMap.at(cmpName);
     if (componentID == entity.end() ) {
         if (freeComponents[cmpName].empty()) {
-            entities[id][cmpName] = component_pair{true, factory->build(this, &comp)};
+            entities[id][cmpName].setHandle( true, true, factory->build(this, &comp));
         }
         else {
-            component_pair compPair{true, freeComponents[cmpName].front()};
-            entity[cmpName] = compPair;
+            auto front = freeComponents[cmpName].front();
             freeComponents[cmpName].pop_front();
-            factory->build(this, compPair.second, &comp);
+            factory->build(this, front, &comp);
+            entities[id][cmpName].setHandle( true, true, front);
         }
     }
     else {
-        componentID->second.first = true;
-        factory->build(this, componentID->second.second, &comp);
+        componentID->second.active = true;
+        componentID->second.dirty = true;
+        factory->build(this, componentID->second.index, &comp);
     }
 
     if (!toRefresh[id]) {
@@ -142,18 +154,19 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
     auto& factory = componentUtils::factoryMap.at(cmpName);
     if (componentID == entity.end() ) {
         if (freeComponents[cmpName].empty()) {
-            entities[id][cmpName] = component_pair{true, factory->build(this, comp)};
+            entities[id][cmpName].setHandle( true, true, factory->build(this, &comp));
         }
         else {
-            component_pair compPair{true, freeComponents[cmpName].front()};
-            entity[cmpName] = compPair;
+            auto front = freeComponents[cmpName].front();
             freeComponents[cmpName].pop_front();
-            factory->build(this, compPair.second, comp);
+            factory->build(this, front, &comp);
+            entities[id][cmpName].setHandle( true, true, front);
         }
     }
     else {
-        componentID->second.first = true;
-        factory->build(this, componentID->second.second, comp);
+        componentID->second.active = true;
+        componentID->second.dirty = true;
+        factory->build(this, componentID->second.index, &comp);
     }
 
     if (!toRefresh[id]) {
@@ -161,18 +174,19 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
         toRefresh[id] = true;
         toDestroy[id] = false;
     }
-
 }
 
 template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
     const std::string& cmpName = CMPType::getName();
     auto& entity = entities[id];
     auto componentID = entity.find(cmpName);
-    if (componentID != entity.end())
-        componentID->second.first = false;
+    if (componentID != entity.end()) {
+        componentID->second.active = false;
+        componentID->second.dirty = true;
+    }
     bool alive = false;
     for (auto it = entity.begin(); !alive && it != entity.end(); ++it) {
-        alive = it->second.first;
+        alive = it->second.active;
     }
     if (!alive) {
         destroyEntity(id);

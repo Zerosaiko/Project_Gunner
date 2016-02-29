@@ -29,8 +29,8 @@ void RenderSystem::addEntity(uint32_t id) {
         auto position = entity->find("position");
         auto render = entity->find("sprite");
         auto delay = entity->find("fullDelay");
-        if ( (delay == entity->end() || !delay->second.first)
-        && position != entity->end() && render != entity->end() && position->second.first && render->second.first) {
+        if ( (delay == entity->end() || !delay->second.active)
+        && position != entity->end() && render != entity->end() && position->second.active && render->second.active) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
@@ -39,7 +39,7 @@ void RenderSystem::addEntity(uint32_t id) {
 
             dirty = true;
 
-            Renderable& ren = (*renderPool)[render->second.second].data;
+            Renderable& ren = (*renderPool)[render->second.index].data;
 
             ren.sheet = loadSprite(ren.spriteName);
         }
@@ -62,16 +62,16 @@ void RenderSystem::refreshEntity(uint32_t id) {
         return;
     }
     const auto& entity = entities[entityIDXs[id]];
-    if (!(entity.first->first && entity.second->first)) {
+    if (!(entity.first->active && entity.second->active)) {
         removeEntity(id);
     } else {
         const auto& fullEntity = manager->getEntity(id);
         auto delay = fullEntity->find("fullDelay");
-        if ( (delay != fullEntity->end() && delay->second.first)) {
+        if ( (delay != fullEntity->end() && delay->second.active)) {
             removeEntity(id);
         } else {
 
-            Renderable& ren = (*renderPool)[entity.second->second].data;
+            Renderable& ren = (*renderPool)[entity.second->index].data;
 
             ren.sheet = loadSprite(ren.spriteName);
 
@@ -100,8 +100,8 @@ void RenderSystem::render(float lerpT) {
     SDL_RenderClear(window->getRenderer());
 
     for(const auto& entity : entities) {
-        Position& position = (*positionPool)[entity.first->second].data;
-        Renderable& render = (*renderPool)[entity.second->second].data;
+        Position& position = (*positionPool)[entity.first->index].data;
+        Renderable& render = (*renderPool)[entity.second->index].data;
         if (*render.sheet) {
             const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
             SDL_Rect dstRect = srcRect;

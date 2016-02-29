@@ -25,17 +25,17 @@ void BoundsSystem::addEntity(uint32_t id) {
         auto bounds = entity->find("bounds");
         auto delay = entity->find("fullDelay");
         auto pause = entity->find("pauseDelay");
-        if ((delay == entity->end() || !delay->second.first)
-            && (pause == entity->end() || !pause->second.first)
-            && position != entity->end() && bounds != entity->end() && position->second.first && bounds->second.first) {
+        if ((delay == entity->end() || !delay->second.active)
+            && (pause == entity->end() || !pause->second.active)
+            && position != entity->end() && bounds != entity->end() && position->second.active && bounds->second.active) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
             idxToID.emplace_back(id);
             entities.emplace_back(&position->second, &bounds->second);
 
-            Position& pos = (*positionPool)[position->second.second].data;
-            Bounds& b = (*boundsPool)[bounds->second.second].data;
+            Position& pos = (*positionPool)[position->second.index].data;
+            Bounds& b = (*boundsPool)[bounds->second.index].data;
 
             if (b.behavior == Bounds::Behavior::wrap) {
                 if (pos.posX < b.minX) pos.posX = b.minX;
@@ -78,18 +78,18 @@ void BoundsSystem::refreshEntity(uint32_t id) {
         return;
     }
     const auto& entity = entities[entityIDXs[id]];
-    if (!(entity.first->first && entity.second->first)) {
+    if (!(entity.first->active && entity.second->active)) {
         removeEntity(id);
     }  else {
         auto fullEntity = manager->getEntity(id);
         auto delay = fullEntity->find("fullDelay");
         auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.first) || (pause != fullEntity->end() && pause->second.first) ) {
+        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
             removeEntity(id);
         } else {
 
-            Position& pos = (*positionPool)[entity.first->second].data;
-            Bounds& b = (*boundsPool)[entity.second->second].data;
+            Position& pos = (*positionPool)[entity.first->index].data;
+            Bounds& b = (*boundsPool)[entity.second->index].data;
 
             if (b.behavior == Bounds::Behavior::wrap) {
                 if (pos.posX < b.minX) pos.posX = b.minX;
@@ -123,8 +123,8 @@ void BoundsSystem::process(float dt) {
 
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];
-        Position& position = (*positionPool)[entity.first->second].data;
-        Bounds& bounds = (*boundsPool)[entity.second->second].data;
+        Position& position = (*positionPool)[entity.first->index].data;
+        Bounds& bounds = (*boundsPool)[entity.second->index].data;
         if (bounds.behavior == Bounds::Behavior::block) {
 
             if (position.posX < bounds.minX) position.posX = bounds.minX;

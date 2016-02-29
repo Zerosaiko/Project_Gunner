@@ -82,7 +82,7 @@ void EntityManager::eraseEntity(uint32_t id) {
     }
     entity_map& components = entities[id];
     for(auto& compPair : components) {
-        freeComponents[compPair.first].push_back(compPair.second.second);
+        freeComponents[compPair.first].push_back(compPair.second.index);
     }
     components.clear();
     isAlive[id] = false;
@@ -114,18 +114,19 @@ void EntityManager::addComponent(std::string& instructions, uint32_t id) {
     auto& factory = componentUtils::factoryMap.at(cmpName);
     if (componentID == entity.end() ) {
         if (freeComponents[cmpName].empty()) {
-            entities[id][cmpName] = component_pair{true, factory->build(this, instructions)};
+            entities[id][cmpName].setHandle( true, true, factory->build(this, instructions));
         }
         else {
-            component_pair compPair{true, freeComponents[cmpName].front()};
-            entity[cmpName] = compPair;
+            auto front = freeComponents[cmpName].front();
             freeComponents[cmpName].pop_front();
-            factory->build(this, compPair.second, instructions);
+            factory->build(this, front, instructions);
+            entities[id][cmpName].setHandle( true, true, front);
         }
     }
     else {
-        componentID->second.first = true;
-        factory->build(this, componentID->second.second, instructions);
+        componentID->second.active = true;
+        componentID->second.dirty = true;
+        factory->build(this, componentID->second.index, instructions);
     }
     if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
@@ -141,24 +142,24 @@ void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
     std::string cmpName = instructions.substr(colon + 1, endName - colon - 1);
 
     auto& entity = entities[id];
-
     auto componentID = entity.find(cmpName);
     auto& factory = componentUtils::factoryMap.at(cmpName);
     if (componentID == entity.end() ) {
         if (freeComponents[cmpName].empty()) {
-            entity[cmpName] = component_pair{true, factory->build(this, instructions)};
+            entities[id][cmpName].setHandle( true, true, factory->build(this, instructions));
         }
         else {
-            entity[cmpName] = component_pair{true, freeComponents[cmpName].front()};
+            auto front = freeComponents[cmpName].front();
             freeComponents[cmpName].pop_front();
-            entity[cmpName] = component_pair{true, factory->build(this, componentID->second.second, instructions)};
+            factory->build(this, front, instructions);
+            entities[id][cmpName].setHandle( true, true, front);
         }
     }
     else {
-        componentID->second.first = true;
-        factory->build(this, componentID->second.second, instructions);
+        componentID->second.active = true;
+        componentID->second.dirty = true;
+        factory->build(this, componentID->second.index, instructions);
     }
-
     if (!toRefresh[id]) {
         entitiesToRefresh.emplace_back(id);
         toRefresh[id] = true;
@@ -169,12 +170,14 @@ void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
 void EntityManager::removeComponent(std::string& cmpName, uint32_t id) {
     auto& entity = entities[id];
     auto componentID = entity.find(cmpName);
-    if (componentID != entity.end())
-        componentID->second.first = false;
+    if (componentID != entity.end()) {
+        componentID->second.active = false;
+        componentID->second.dirty = true;
+    }
 
     bool alive = false;
     for (auto it = entity.begin(); !alive && it != entity.end(); ++it) {
-        alive = it->second.first;
+        alive = it->second.active;
     }
     if (!alive) {
         destroyEntity(id);
@@ -187,15 +190,16 @@ void EntityManager::removeComponent(std::string& cmpName, uint32_t id) {
 }
 
 void EntityManager::removeComponent(std::string&& cmpName, uint32_t id) {
-
     auto& entity = entities[id];
     auto componentID = entity.find(cmpName);
-    if (componentID != entity.end())
-        componentID->second.first = false;
+    if (componentID != entity.end()) {
+        componentID->second.active = false;
+        componentID->second.dirty = true;
+    }
 
     bool alive = false;
     for (auto it = entity.begin(); !alive && it != entity.end(); ++it) {
-        alive = it->second.first;
+        alive = it->second.active;
     }
     if (!alive) {
         destroyEntity(id);
@@ -287,3 +291,17 @@ std::vector<uint32_t>& EntityManager::getChildren(uint32_t parent) {
     return parentToChildren[parent];
 }
 
+EntityManager::ComponentHandle::ComponentHandle() {
+    active = false;
+    dirty = false;
+
+    index = 0;
+
+}
+
+void EntityManager::ComponentHandle::setHandle(bool act, bool dir, std::size_t idx) {
+    active = act;
+    dirty = dir;
+    index = idx;
+
+}

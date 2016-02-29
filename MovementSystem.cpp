@@ -24,10 +24,10 @@ void MovementSystem::addEntity(uint32_t id) {
         auto velocity = entity->find("velocity");
         auto delay = entity->find("fullDelay");
         auto pause = entity->find("pauseDelay");
-        if ( (delay == entity->end() || !delay->second.first)
-            && (pause == entity->end() || !pause->second.first)
+        if ( (delay == entity->end() || !delay->second.active)
+            && (pause == entity->end() || !pause->second.active)
             && position != entity->end() && velocity != entity->end()
-            && position->second.first && velocity->second.first) {
+            && position->second.active && velocity->second.active) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
@@ -53,13 +53,13 @@ void MovementSystem::refreshEntity(uint32_t id) {
         return;
     }
     const auto& entity = entities[entityIDXs[id]];
-    if (!(entity.first->first && entity.second->first)) {
+    if (!(entity.first->active && entity.second->active)) {
         removeEntity(id);
     } else {
         const auto& fullEntity = manager->getEntity(id);
         auto delay = fullEntity->find("fullDelay");
         auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.first) || (pause != fullEntity->end() && pause->second.first) ) {
+        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
             removeEntity(id);
         }
     }
@@ -71,8 +71,8 @@ void MovementSystem::process(float dt) {
     auto startT = SDL_GetPerformanceCounter();
 
     for(auto& entity : entities) {
-        Position& position = (*positionPool)[entity.first->second].data;
-        Velocity& velocity = (*velocityPool)[entity.second->second].data;
+        Position& position = (*positionPool)[entity.first->index].data;
+        Velocity& velocity = (*velocityPool)[entity.second->index].data;
         position.pastPosX = position.posX;
         position.pastPosY = position.posY;
         position.posX += dt * velocity.velX;
@@ -105,7 +105,7 @@ void PositionSyncSystem::addEntity(uint32_t id) {
     if (entity) {
         auto position = entity->find("position");
         if ( position != entity->end()
-            && position->second.first ) {
+            && position->second.active ) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
@@ -131,7 +131,7 @@ void PositionSyncSystem::refreshEntity(uint32_t id) {
         return;
     }
     const auto& entity = entities[entityIDXs[id]];
-    if (!(entity->first)) {
+    if (!(entity->active)) {
         removeEntity(id);
     }
 
@@ -143,7 +143,7 @@ void PositionSyncSystem::process(float dt) {
 
     for(size_t i = 0; i < entities.size(); ++i) {
         auto& entity = entities[i];
-        Position& position = positionPool->at(entity->second).data;
+        Position& position = positionPool->at(entity->index).data;
         position.pastPosX = position.posX;
         position.pastPosY = position.posY;
     }

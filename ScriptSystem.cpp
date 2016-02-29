@@ -20,14 +20,14 @@ void ScriptSystem::addEntity(uint32_t id) {
     const auto& entity = manager->getEntity(id);
     if (entity) {
         auto script = entity->find("script");
-        if (script != entity->end() && script->second.first) {
+        if (script != entity->end() && script->second.active) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
             idxToID.emplace_back(id);
             entities.push_back(&script->second);
 
-            Script& scr = (*scriptPool)[script->second.second].data;
+            Script& scr = (*scriptPool)[script->second.index].data;
             size_t beg = scr.tokenizedScript.size(), end = 0;
             for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
                 if (scr.tokenizedScript[i] == "@onStart") beg = i;
@@ -46,7 +46,7 @@ void ScriptSystem::removeEntity(uint32_t id) {
     if (!hasEntity[id]) return;
 
     const auto& entity = entities[id];
-    Script& scr = (*scriptPool)[entity->second].data;
+    Script& scr = (*scriptPool)[entity->index].data;
     size_t beg = scr.tokenizedScript.size(), end = 0;
     for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
         if (scr.tokenizedScript[i] == "@onEnd") beg = i;
@@ -69,16 +69,16 @@ void ScriptSystem::refreshEntity(uint32_t id) {
         return;
     }
     const auto& entity = entities[entityIDXs[id]];
-    if (!entity->first) {
+    if (!entity->active) {
         removeEntity(id);
     } else {
         const auto& fullEntity = manager->getEntity(id);
         auto delay = fullEntity->find("fullDelay");
         auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.first) || (pause != fullEntity->end() && pause->second.first) ) {
+        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
             removeEntity(id);
         } else {
-            Script& scr = (*scriptPool)[entity->second].data;
+            Script& scr = (*scriptPool)[entity->index].data;
             size_t beg = scr.tokenizedScript.size(), end = 0;
             for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
                 if (scr.tokenizedScript[i] == "@onStart") beg = i;
@@ -97,7 +97,7 @@ void ScriptSystem::process(float dt) {
     dt *= 1000;
     for(size_t idx = 0; idx < entities.size(); ++idx) {
         const auto& entity = entities[idx];
-        Script& script = (*scriptPool)[entity->second].data;
+        Script& script = (*scriptPool)[entity->index].data;
         if (script.updateRate > 0) {
             size_t beg = script.tokenizedScript.size(), end = 0;
             for(size_t i = 0; i < script.tokenizedScript.size() && script.updateRate > 0; ++i) {

@@ -31,7 +31,7 @@ private:
 
     std::vector<uint32_t> idxToID;
 
-    std::vector<std::pair<EntityManager::component_pair const *,EntityManager::component_pair const *>> entities;
+    std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
     std::vector<Component<Position::name, Position>>* positionPool;
 
@@ -61,7 +61,7 @@ private:
 
     std::vector<uint32_t> idxToID;
 
-    std::vector<EntityManager::component_pair const *> entities;
+    std::vector<EntityManager::ComponentHandle const *> entities;
 
     std::vector<Component<Position::name, Position>>* positionPool;
 
