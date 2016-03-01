@@ -29,7 +29,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::vector<Component<Velocity::name, Velocity>>* velocityPool;
+    std::deque<Component<Velocity::name, Velocity>>* velocityPool;
 
 };
 

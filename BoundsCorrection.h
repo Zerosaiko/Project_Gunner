@@ -31,9 +31,9 @@ private:
 
     std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
-    std::vector<Component<Position::name, Position>>* positionPool;
+    std::deque<Component<Position::name, Position>>* positionPool;
 
-    std::vector<Component<Bounds::name, Bounds>>* boundsPool;
+    std::deque<Component<Bounds::name, Bounds>>* boundsPool;
 
 };
 

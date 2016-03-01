@@ -70,6 +70,7 @@ void SpawnSystem::process(float dt) {
 
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];
+        const Position& position = (*positionPool)[entity.second->index].data;
         Spawner& spawner = (*spawnPool)[entity.first->index].data;
         spawner.currentTime += dt;
         while (spawner.currentTime >= spawner.repeatRate) {
@@ -112,7 +113,6 @@ void SpawnSystem::process(float dt) {
             }
 
             for (uint32_t i = 0; i < spawner.spawnsPerRun; ++i) {
-                const Position& position = (*positionPool)[entity.second->index].data;
 
                 Position newPos, adjPos;
                 Velocity newVel;

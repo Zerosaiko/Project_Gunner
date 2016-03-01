@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <deque>
 #include <string>
 #include <map>
 #include <iostream>
@@ -81,7 +82,7 @@ private:
         std::vector<std::string> tokenize(std::string instructions);
     };
 
-    typedef std::vector<Component<cmpName, DataType>> cmpPool;
+    typedef std::deque<Component<cmpName, DataType>> cmpPool;
 public:
     static std::map<EntityManager*, cmpPool> componentPools;
     static const std::string getName();
@@ -140,7 +141,7 @@ std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(Entity
 template <const std::string& cmpName, typename DataType>
 void Component<cmpName, DataType>::ComponentFactoryInternal::registerManager(EntityManager* manager) {
 
-    Component<cmpName, DataType>::componentPools[manager].reserve(Component<cmpName, DataType>::reserveCapacity);
+    Component<cmpName, DataType>::componentPools[manager];
 
 }
 
@@ -221,7 +222,7 @@ void Component<cmpName, DataType>::registerComponent(size_t capacity) {
 }
 
 template <const std::string& cmpName, typename DataType>
-std::map<EntityManager*, std::vector<Component<cmpName, DataType>>> Component<cmpName, DataType>::componentPools{};
+std::map<EntityManager*, std::deque<Component<cmpName, DataType>>> Component<cmpName, DataType>::componentPools{};
 
 template <const std::string& cmpName, typename DataType>
 size_t Component<cmpName, DataType>::reserveCapacity{1};

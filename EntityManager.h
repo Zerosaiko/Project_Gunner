@@ -61,7 +61,7 @@ public:
 
     entity_map const * getEntity(uint32_t id);
 
-    template<typename CMPType> std::vector<CMPType>* getComponentPool();
+    template<typename CMPType> std::deque<CMPType>* getComponentPool();
 
     void setParent(uint32_t child, uint32_t parent);
 
@@ -200,7 +200,7 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
 
 }
 
-template<typename CMPType> std::vector<CMPType>* EntityManager::getComponentPool() {
+template<typename CMPType> std::deque<CMPType>* EntityManager::getComponentPool() {
     return &CMPType::componentPools[this];
 
 }

@@ -29,7 +29,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::vector<Component<delayComponent::fullDelay, float>>* delayPool;
+    std::deque<Component<delayComponent::fullDelay, float>>* delayPool;
 
 };
 
@@ -58,7 +58,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::vector<Component<delayComponent::pauseDelay, float>>* pausePool;
+    std::deque<Component<delayComponent::pauseDelay, float>>* pausePool;
 
 };
 

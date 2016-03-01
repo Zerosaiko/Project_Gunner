@@ -33,9 +33,9 @@ private:
 
     std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
-    std::vector<Component<Position::name, Position>>* positionPool;
+    std::deque<Component<Position::name, Position>>* positionPool;
 
-    std::vector<Component<Velocity::name, Velocity>>* velocityPool;
+    std::deque<Component<Velocity::name, Velocity>>* velocityPool;
 
 };
 class PositionSyncSystem : public EntitySystem {
@@ -63,7 +63,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::vector<Component<Position::name, Position>>* positionPool;
+    std::deque<Component<Position::name, Position>>* positionPool;
 
 };
 

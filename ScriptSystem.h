@@ -32,7 +32,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::vector<Component<Script::name, Script>>* scriptPool;
+    std::deque<Component<Script::name, Script>>* scriptPool;
 
 };
 

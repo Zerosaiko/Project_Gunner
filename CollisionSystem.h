@@ -24,9 +24,9 @@ private:
 
     std::vector<std::unordered_map<uint32_t, std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>>> entities;
 
-    std::vector<Component<Position::name, Position>>* positionPool;
+    std::deque<Component<Position::name, Position>>* positionPool;
 
-    std::vector<Component<Collider::name, Collider>>* colliderPool;
+    std::deque<Component<Collider::name, Collider>>* colliderPool;
 
     std::function<bool(Collider&, Collider&)> collisionTable[3][3];
 
