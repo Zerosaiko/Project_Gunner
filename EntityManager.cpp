@@ -34,6 +34,9 @@ void EntityManager::update(float dt) {
     for (uint32_t entity : entitiesToRefresh) {
         if (toRefresh[entity])
             refreshEntity(entity);
+        for (auto& component: entities[entity]) {
+            component.second.dirty = false;
+        }
         toRefresh[entity] = false;
     }
     ed = SDL_GetPerformanceCounter();
