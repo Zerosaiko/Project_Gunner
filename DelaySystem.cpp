@@ -60,8 +60,10 @@ void DelaySystem::process(float dt) {
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];
         float& delay = (*delayPool)[entity->index].data;
-        delay -= dt;
-        if (delay <= 0.0f) manager->removeComponent<Component<delayComponent::fullDelay, float>>(idxToID[i]);
+        if (delay >= 0.0f) {
+            delay -= dt;
+            if (delay <= 0.0f) manager->removeComponent<Component<delayComponent::fullDelay, float>>(idxToID[i]);
+        }
     }
 
 }

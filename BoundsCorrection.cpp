@@ -77,6 +77,7 @@ void BoundsSystem::refreshEntity(uint32_t id) {
         addEntity(id);
         return;
     }
+
     const auto& entity = entities[entityIDXs[id]];
     if (!(entity.first->active && entity.second->active)) {
         removeEntity(id);
@@ -86,7 +87,7 @@ void BoundsSystem::refreshEntity(uint32_t id) {
         auto pause = fullEntity->find("pauseDelay");
         if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
             removeEntity(id);
-        } else {
+        } else if (entity.first->dirty || entity.second->dirty){
 
             Position& pos = (*positionPool)[entity.first->index].data;
             Bounds& b = (*boundsPool)[entity.second->index].data;

@@ -77,7 +77,7 @@ void ScriptSystem::refreshEntity(uint32_t id) {
         auto pause = fullEntity->find("pauseDelay");
         if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
             removeEntity(id);
-        } else {
+        } else if (entity->dirty) {
             Script& scr = (*scriptPool)[entity->index].data;
             size_t beg = scr.tokenizedScript.size(), end = 0;
             for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {

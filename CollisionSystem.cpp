@@ -66,7 +66,7 @@ void CollisionSystem::refreshEntity(uint32_t id) {
             auto pause = entity->find("pauseDelay");
             if ( (delay != entity->end() && delay->second.active) || (pause != entity->end() && pause->second.active) ) {
                 removeEntity(id);
-            } else
+            } else if (collider->second.dirty)
                 addEntity(id);
         }
     }
