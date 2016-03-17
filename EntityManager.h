@@ -45,9 +45,17 @@ public:
 
     void destroyEntity(uint32_t id);
 
+    std::vector<std::string> tokenize(std::string& instructions);
+
+    std::vector<std::string> tokenize(std::string&& instructions);
+
     void addComponent(std::string& instructions, uint32_t id);
 
     void addComponent(std::string&& instructions, uint32_t id);
+
+    void addComponent(std::vector<std::string>& instructions, uint32_t id);
+
+    void addComponent(std::vector<std::string>&& instructions, uint32_t id);
 
     template<typename CMPType> void addComponent(CMPType& comp, uint32_t id);
 

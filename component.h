@@ -36,9 +36,9 @@ struct Component;
 class ComponentFactory {
 public:
 
-    virtual std::size_t build(EntityManager* manager, size_t idx, std::string instructions) = 0;
+    virtual std::size_t build(EntityManager* manager, size_t idx, std::vector<std::string> instructions) = 0;
     virtual std::size_t build(EntityManager* manager, size_t idx, ComponentBase* cmp) = 0;
-    virtual std::size_t build(EntityManager* manager, std::string instructions) = 0;
+    virtual std::size_t build(EntityManager* manager, std::vector<std::string> instructions) = 0;
     virtual std::size_t build(EntityManager* manager, ComponentBase* cmp) = 0;
 
     virtual std::vector<std::string> tokenize(std::string instructions) = 0;
@@ -67,11 +67,11 @@ private:
 
     public:
 
-        std::size_t build(EntityManager* manager, size_t idx, std::string instructions);
+        std::size_t build(EntityManager* manager, size_t idx, std::vector<std::string> instructions);
 
         std::size_t build(EntityManager* manager, size_t idx, ComponentBase* cmp);
 
-        std::size_t build(EntityManager* manager, std::string instructions);
+        std::size_t build(EntityManager* manager, std::vector<std::string> instructions);
 
         std::size_t build(EntityManager* manager, ComponentBase* cmp);
 
@@ -110,9 +110,9 @@ public:
 };
 
 template <const std::string& cmpName, typename DataType>
-std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, size_t idx, std::string instructions) {
+std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, size_t idx, std::vector<std::string> instructions) {
     auto& pool = Component<cmpName, DataType>::componentPools[manager];
-    pool[idx].build(tokenize(instructions));
+    pool[idx].build(instructions);
     return idx;
 
 }
@@ -125,9 +125,9 @@ std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(Entity
 }
 
 template <const std::string& cmpName, typename DataType>
-std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, std::string instructions) {
+std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, std::vector<std::string> instructions) {
     auto& pool = Component<cmpName, DataType>::componentPools[manager];
-    pool.emplace_back(tokenize(instructions));
+    pool.emplace_back(instructions);
     return pool.size() - 1;
 }
 

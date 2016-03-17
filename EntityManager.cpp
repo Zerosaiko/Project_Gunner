@@ -106,11 +106,42 @@ void EntityManager::destroyEntity(uint32_t id) {
     toRefresh[id] = false;
 }
 
-void EntityManager::addComponent(std::string& instructions, uint32_t id) {
+std::vector<std::string> EntityManager::tokenize(std::string& instructions) {
 
     std::string::size_type colon = instructions.find_first_of(':');
     std::string::size_type endName = instructions.find_first_of(" \n\r\f\t\v", colon);
     std::string cmpName = instructions.substr(colon + 1, endName - colon - 1);
+
+    auto& factory = componentUtils::factoryMap.at(cmpName);
+
+    return factory->tokenize(instructions);
+
+}
+
+std::vector<std::string> EntityManager::tokenize(std::string&& instructions) {
+
+    std::string::size_type colon = instructions.find_first_of(':');
+    std::string::size_type endName = instructions.find_first_of(" \n\r\f\t\v", colon);
+    std::string cmpName = instructions.substr(colon + 1, endName - colon - 1);
+
+    auto& factory = componentUtils::factoryMap.at(cmpName);
+
+    return factory->tokenize(instructions);
+
+}
+
+void EntityManager::addComponent(std::string& instructions, uint32_t id) {
+    addComponent(tokenize(instructions), id);
+}
+
+void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
+
+    addComponent(tokenize(instructions), id);
+}
+
+void EntityManager::addComponent(std::vector<std::string>& instructions, uint32_t id) {
+
+    auto& cmpName = instructions.at(1);
 
     auto& entity = entities[id];
     auto componentID = entity.find(cmpName);
@@ -137,12 +168,9 @@ void EntityManager::addComponent(std::string& instructions, uint32_t id) {
         toDestroy[id] = false;
     }
 }
+void EntityManager::addComponent(std::vector<std::string>&& instructions, uint32_t id) {
 
-void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
-
-    std::string::size_type colon = instructions.find_first_of(':');
-    std::string::size_type endName = instructions.find_first_of(" \n\r\f\t\v", colon);
-    std::string cmpName = instructions.substr(colon + 1, endName - colon - 1);
+    auto& cmpName = instructions.at(1);
 
     auto& entity = entities[id];
     auto componentID = entity.find(cmpName);
