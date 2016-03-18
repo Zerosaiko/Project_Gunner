@@ -23,6 +23,22 @@ public:
 
 private:
 
+    struct EntityPreallocationInfo {
+
+        size_t dataIdx;
+
+        size_t currentSpawnCount;
+
+        std::vector<uint32_t> idList;
+
+        std::vector<bool> isAllocated;
+
+        std::vector< std::vector< std::vector< std::string > > > data;
+
+        EntityPreallocationInfo( size_t spawnCnt);
+
+    };
+
     std::vector<size_t> entityIDXs;
 
     std::vector<uint8_t> hasEntity;
@@ -35,7 +51,11 @@ private:
 
     std::deque<Component<Spawner::name, Spawner>>* spawnPool;
 
-    void defaultPositioning(Spawner& spawner, Position& position);
+    std::deque<EntityPreallocationInfo> preAllocationData;
+
+    size_t preAlloIdx;
+
+    size_t totalSpawnCount;
 
 };
 
