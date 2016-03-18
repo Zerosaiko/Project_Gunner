@@ -92,6 +92,10 @@ public:
     std::vector<uint32_t> entitiesToDestroy;
     std::vector<uint32_t> entitiesToRefresh;
 
+    void excludeFromRefresh(uint32_t id);
+
+    void allowRefresh(uint32_t id);
+
 protected:
 
 private:

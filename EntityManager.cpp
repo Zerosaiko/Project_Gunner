@@ -32,12 +32,13 @@ void EntityManager::update(float dt) {
     std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToRefresh) {
-        if (toRefresh[entity])
+        if (toRefresh[entity] == true) {
             refreshEntity(entity);
+            toRefresh[entity] = false;
+        }
         for (auto& component: entities[entity]) {
             component.second.dirty = false;
         }
-        toRefresh[entity] = false;
     }
     ed = SDL_GetPerformanceCounter();
     std::cout << "REFRESH - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entitiesToRefresh.size() << " entities" << std::endl;
@@ -320,6 +321,15 @@ uint32_t EntityManager::getParent(uint32_t child) {
 
 std::vector<uint32_t>& EntityManager::getChildren(uint32_t parent) {
     return parentToChildren[parent];
+}
+
+void EntityManager::excludeFromRefresh(uint32_t id) {
+    toRefresh[id] = 2;
+}
+
+void EntityManager::allowRefresh(uint32_t id) {
+    toRefresh[id] = true;
+    entitiesToRefresh.emplace_back(id);
 }
 
 EntityManager::ComponentHandle::ComponentHandle() {
