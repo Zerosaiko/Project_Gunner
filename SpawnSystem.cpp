@@ -53,7 +53,7 @@ void SpawnSystem::addEntity(uint32_t id) {
 }
 
 void SpawnSystem::removeEntity(uint32_t id) {
-    if (!hasEntity[id]) return;
+    if (id >= hasEntity.size() || !hasEntity[id]) return;
     for (size_t i = 0; i < preAllocationData[entityIDXs[id]].idList.size(); ++i) {
         if (preAllocationData[entityIDXs[id]].isAllocated[i]) {
             manager->destroyEntity(preAllocationData[entityIDXs[id]].idList[i]);

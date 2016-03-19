@@ -56,7 +56,7 @@ void CollisionSystem::addEntity(uint32_t id) {
 }
 
 void CollisionSystem::removeEntity(uint32_t id) {
-    if (!hasEntity[id]) return;
+    if (id >= hasEntity.size() || !hasEntity[id]) return;
     entities[entityIDXs[id]] = entities.back();
     entities.pop_back();
     entityIDXs[idxToID.back()] = entityIDXs[id];

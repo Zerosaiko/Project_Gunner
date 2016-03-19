@@ -38,7 +38,7 @@ void MovementSystem::addEntity(uint32_t id) {
 }
 
 void MovementSystem::removeEntity(uint32_t id) {
-    if (!hasEntity[id]) return;
+    if (id >= hasEntity.size() || !hasEntity[id]) return;
     entities[entityIDXs[id]] = entities.back();
     entities.pop_back();
     entityIDXs[idxToID.back()] = entityIDXs[id];
@@ -116,7 +116,7 @@ void PositionSyncSystem::addEntity(uint32_t id) {
 }
 
 void PositionSyncSystem::removeEntity(uint32_t id) {
-    if (!hasEntity[id]) return;
+    if (id >= hasEntity.size() || !hasEntity[id]) return;
     entities[entityIDXs[id]] = entities.back();
     entities.pop_back();
     entityIDXs[idxToID.back()] = entityIDXs[id];
