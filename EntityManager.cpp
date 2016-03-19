@@ -327,7 +327,7 @@ void EntityManager::excludeFromRefresh(uint32_t id) {
     toRefresh[id] = 2;
 }
 
-void EntityManager::allowRefresh(uint32_t id) {
+void EntityManager::forceRefresh(uint32_t id) {
     toRefresh[id] = true;
     entitiesToRefresh.emplace_back(id);
 }

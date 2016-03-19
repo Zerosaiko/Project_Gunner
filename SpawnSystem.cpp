@@ -315,7 +315,7 @@ void SpawnSystem::process(float dt) {
 
 
                 }
-                manager->allowRefresh(preAlloc.idList[j]);
+                manager->forceRefresh(preAlloc.idList[j]);
                 preAlloc.idList[j] = 0;
                 preAlloc.isAllocated[j] = false;
                 preAlloc.dataIdx = 0;

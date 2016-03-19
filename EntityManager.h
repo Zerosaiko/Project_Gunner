@@ -94,7 +94,7 @@ public:
 
     void excludeFromRefresh(uint32_t id);
 
-    void allowRefresh(uint32_t id);
+    void forceRefresh(uint32_t id);
 
 protected:
 
