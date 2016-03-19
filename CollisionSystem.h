@@ -22,13 +22,21 @@ public:
     void process(float dt);
 private:
 
-    std::vector<std::unordered_map<uint32_t, std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>>> entities;
+    std::vector<size_t> entityIDXs;
+
+    std::vector<uint8_t> hasEntity;
+
+    std::vector<uint32_t> idxToID;
+
+    std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
     std::deque<Component<Position::name, Position>>* positionPool;
 
     std::deque<Component<Collider::name, Collider>>* colliderPool;
 
     std::function<bool(Collider&, Collider&)> collisionTable[3][3];
+
+    std::vector<std::unordered_set<uint32_t>> collisionGroups;
 
 };
 

@@ -5,7 +5,12 @@
 CollisionSystem::CollisionSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     colliderPool = manager->getComponentPool<Component<Collider::name, Collider>>();
-    entities.resize(5);
+    entityIDXs.reserve(1 << 16);
+    hasEntity.reserve(1 << 16);
+    idxToID.reserve(1 << 16);
+    entities.reserve(1 << 16);
+
+    collisionGroups.resize(5);
 
     collisionTable[Collider::ColliderType::AABB][Collider::ColliderType::AABB] = aabbToaabbCollision;
     collisionTable[Collider::ColliderType::AABB][Collider::ColliderType::Point] = aabbToPointCollision;
@@ -23,7 +28,12 @@ CollisionSystem::CollisionSystem(EntityManager* const manager, int32_t priority)
 void CollisionSystem::initialize() {}
 
 void CollisionSystem::addEntity(uint32_t id) {
-    auto entity = manager->getEntity(id);
+    if (id >= hasEntity.size()) {
+        hasEntity.resize(id + 1, false);
+        entityIDXs.resize(id + 1, 0);
+    }
+    if (hasEntity[id]) return;
+    const auto& entity = manager->getEntity(id);
     if (entity) {
         auto collider = entity->find("collider");
         auto position = entity->find("position");
@@ -33,41 +43,55 @@ void CollisionSystem::addEntity(uint32_t id) {
             && collider != entity->end() && position!= entity->end()
             && collider->second.active && position->second.active) {
 
+            entityIDXs[id] = entities.size();
+            hasEntity[id] = true;
+            idxToID.emplace_back(id);
+            entities.emplace_back(&collider->second, &position->second);
+
             Collider& col = (*colliderPool)[collider->second.index].data;
-            std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *> col_pos_pair{&collider->second, &position->second};
-            entities[col.collisionGroup][id] = col_pos_pair;
-            for (size_t i = 0; i < entities.size(); ++i) {
-                if (col.collisionGroup != i)
-                    entities[i].erase(id);
-            }
+            collisionGroups[col.collisionGroup].insert(id);
 
         }
     }
 }
 
 void CollisionSystem::removeEntity(uint32_t id) {
-    for (auto& cGroup: entities) {
+    if (!hasEntity[id]) return;
+    entities[entityIDXs[id]] = entities.back();
+    entities.pop_back();
+    entityIDXs[idxToID.back()] = entityIDXs[id];
+    idxToID[entityIDXs[id]] = idxToID.back();
+    idxToID.pop_back();
+    hasEntity[id] = false;
+    for (auto& cGroup: collisionGroups) {
         cGroup.erase(id);
     }
 
 }
 
 void CollisionSystem::refreshEntity(uint32_t id) {
-    auto entity = manager->getEntity(id);
-    if (entity) {
-        auto collider = entity->find("collider");
-        auto position = entity->find("position");
-        if (collider != entity->end() && position != entity->end()
-            && !(collider->second.active && position->second.active)) {
+    if (id >= hasEntity.size() || !hasEntity[id]) {
+        addEntity(id);
+        return;
+    }
+    const auto& entity = entities[entityIDXs[id]];
+    if (!(entity.first->active && entity.second->active )) {
+        removeEntity(id);
+    } else {
+        const auto& fullEntity = manager->getEntity(id);
+        auto delay = fullEntity->find("fullDelay");
+        auto pause = fullEntity->find("pauseDelay");
+        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
             removeEntity(id);
-        } else {
-            auto entity = manager->getEntity(id);
-            auto delay = entity->find("fullDelay");
-            auto pause = entity->find("pauseDelay");
-            if ( (delay != entity->end() && delay->second.active) || (pause != entity->end() && pause->second.active) ) {
-                removeEntity(id);
-            } else if (collider->second.dirty)
-                addEntity(id);
+        } else if (entity.first->dirty) {
+
+            Collider& col = (*colliderPool)[entity.first->index].data;
+            collisionGroups[col.collisionGroup].insert(id);
+            for (size_t i = 0; i < collisionGroups.size(); ++i) {
+                if (col.collisionGroup != i)
+                    collisionGroups[i].erase(id);
+            }
+
         }
     }
 
@@ -77,19 +101,21 @@ void CollisionSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
 
-    auto& playerColliders = entities[Collider::CollisionGroup::Player];
-    auto& playerBulletColliders = entities[Collider::CollisionGroup::PlayerBullet];
-    auto& enemyColliders = entities[Collider::CollisionGroup::Enemy];
-    auto& enemyBulletColliders = entities[Collider::CollisionGroup::EnemyBullet];
-    auto& pickupColliders = entities[Collider::CollisionGroup::Pickup];
+    auto& playerColliders = collisionGroups[Collider::CollisionGroup::Player];
+    auto& playerBulletColliders = collisionGroups[Collider::CollisionGroup::PlayerBullet];
+    auto& enemyColliders = collisionGroups[Collider::CollisionGroup::Enemy];
+    auto& enemyBulletColliders = collisionGroups[Collider::CollisionGroup::EnemyBullet];
+    auto& pickupColliders = collisionGroups[Collider::CollisionGroup::Pickup];
     for (auto playerIT = playerColliders.begin(); playerIT != playerColliders.end(); ++playerIT) {
-        Collider& playerCollider = (*colliderPool)[playerIT->second.first->index].data;
-        Position& playerPosition = (*positionPool)[playerIT->second.second->index].data;
+        uint32_t id = *playerIT;
+        Collider& playerCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+        Position& playerPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
         playerCollider.position.x = playerPosition.posX;
         playerCollider.position.y = playerPosition.posY;
         for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-            Collider& enemyCollider = (*colliderPool)[enemyIT->second.first->index].data;
-            Position& enemyPosition = (*positionPool)[enemyIT->second.second->index].data;
+            uint32_t id = *enemyIT;
+            Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+            Position& enemyPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
             enemyCollider.position.x = enemyPosition.posX;
             enemyCollider.position.y = enemyPosition.posY;
             if (collisionTable[playerCollider.colliderType][enemyCollider.colliderType](playerCollider, enemyCollider)) {
@@ -97,8 +123,9 @@ void CollisionSystem::process(float dt) {
             }
         }
         for (auto enemyBulletIT = enemyBulletColliders.begin(); enemyBulletIT != enemyBulletColliders.end(); ++enemyBulletIT) {
-            Collider& enemyBulletCollider = (*colliderPool)[enemyBulletIT->second.first->index].data;
-            Position& enemyBulletPosition = (*positionPool)[enemyBulletIT->second.second->index].data;
+            uint32_t id = *enemyBulletIT;
+            Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+            Position& enemyBulletPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
             enemyBulletCollider.position.x = enemyBulletPosition.posX;
             enemyBulletCollider.position.y = enemyBulletPosition.posY;
             if (collisionTable[playerCollider.colliderType][enemyBulletCollider.colliderType](playerCollider, enemyBulletCollider)) {
@@ -106,8 +133,9 @@ void CollisionSystem::process(float dt) {
             }
         }
         for (auto pickupIT = pickupColliders.begin(); pickupIT != pickupColliders.end(); ++pickupIT) {
-            Collider& pickupCollider = (*colliderPool)[pickupIT->second.first->index].data;
-            Position& pickupPosition = (*positionPool)[pickupIT->second.second->index].data;
+            uint32_t id = *pickupIT;
+            Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+            Position& pickupPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
             pickupCollider.position.x = pickupPosition.posX;
             pickupCollider.position.y = pickupPosition.posY;
             if (collisionTable[playerCollider.colliderType][pickupCollider.colliderType](playerCollider, pickupCollider)) {
@@ -116,13 +144,15 @@ void CollisionSystem::process(float dt) {
         }
     }
     for (auto playerBulletIT = playerBulletColliders.begin(); playerBulletIT != playerBulletColliders.end(); ++playerBulletIT) {
-        Collider& playerBulletCollider = (*colliderPool)[playerBulletIT->second.first->index].data;
-        Position& playerBulletPosition = (*positionPool)[playerBulletIT->second.second->index].data;
+        uint32_t id = *playerBulletIT;
+        Collider& playerBulletCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+        Position& playerBulletPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
         playerBulletCollider.position.x = playerBulletPosition.posX;
         playerBulletCollider.position.y = playerBulletPosition.posY;
         for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-            Collider& enemyCollider = (*colliderPool)[enemyIT->second.first->index].data;
-            Position& enemyPosition = (*positionPool)[enemyIT->second.second->index].data;
+            uint32_t id = *enemyIT;
+            Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+            Position& enemyPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
             enemyCollider.position.x = enemyPosition.posX;
             enemyCollider.position.y = enemyPosition.posY;
             if (collisionTable[playerBulletCollider.colliderType][enemyCollider.colliderType](playerBulletCollider, enemyCollider)) {
