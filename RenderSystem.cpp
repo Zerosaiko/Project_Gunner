@@ -2,7 +2,7 @@
 #include "SDL_image.h"
 
 RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Window* window) : EntitySystem{manager, priority}, dirty(false), window(window) {
-    renderTarget = SDL_CreateTexture(this->window->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 320, 480);
+    renderTarget = SDL_CreateTexture(this->window->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 360, 480);
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     renderPool = manager->getComponentPool<Component<Renderable::name, Renderable>>();
     entityIDXs.reserve(1 << 16);
@@ -92,10 +92,10 @@ void RenderSystem::render(float lerpT) {
 
     SDL_SetRenderTarget(window->getRenderer(), renderTarget);
 
-    SDL_Rect targetSrc{0, 0, 320, 480};
+    SDL_Rect targetSrc{0, 0, 360, 480};
     SDL_Rect targetDst{window->getWidth() / 2 - window->getHeight() / 3, 0, window->getHeight() * 2 / 3, window->getHeight()};
 
-    SDL_SetRenderDrawColor(window->getRenderer(), 0, 255, 0, 255);
+    SDL_SetRenderDrawColor(window->getRenderer(), 64,96, 64, 255);
 
     SDL_RenderClear(window->getRenderer());
 
