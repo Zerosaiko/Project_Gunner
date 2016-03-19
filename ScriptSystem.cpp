@@ -45,7 +45,7 @@ void ScriptSystem::addEntity(uint32_t id) {
 void ScriptSystem::removeEntity(uint32_t id) {
     if (!hasEntity[id]) return;
 
-    const auto& entity = entities[id];
+    const auto& entity = entities[entityIDXs[id]];
     Script& scr = (*scriptPool)[entity->index].data;
     size_t beg = scr.tokenizedScript.size(), end = 0;
     for(size_t i = 0; i < scr.tokenizedScript.size(); ++i) {
