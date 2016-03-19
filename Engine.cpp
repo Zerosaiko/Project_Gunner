@@ -63,9 +63,11 @@ void Engine::run() {
 
             }
         }
-        if (currentTime < 0.1f / currentFPS)
-            SDL_Delay(1);
         currentTime += (float)(SDL_GetPerformanceCounter() - beginTime) / SDL_GetPerformanceFrequency();
+        while (currentTime < 0.5f / currentFPS) {
+            SDL_Delay(1);
+            currentTime += (float)(SDL_GetPerformanceCounter() - beginTime) / SDL_GetPerformanceFrequency();
+        }
         beginTime = SDL_GetPerformanceCounter();
         if (currentState) {
 
