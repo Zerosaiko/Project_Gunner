@@ -330,14 +330,15 @@ void SpawnSystem::process(float dt) {
             }
         }
     }
+    auto endT = SDL_GetPerformanceCounter();
 
     // if spawning hasn't taken above a certain amount of time, preallocate until the time limit is reached
 
-    float timeLimit = (1000.f / SDL_GetPerformanceFrequency() * (SDL_GetPerformanceCounter() - startT));
+    float timeLimit = (1000.f / SDL_GetPerformanceFrequency() * (endT - startT));
     bool preAllocated = false;
     auto fullPreAlloT = SDL_GetPerformanceCounter();
     auto cpyCount = totalSpawnCount;
-    while ( totalSpawnCount && timeLimit < 3.0f ) {
+    while ( totalSpawnCount && timeLimit < 4.30f ) {
 
         preAllocated = true;
         auto preAlloT = SDL_GetPerformanceCounter();
@@ -366,9 +367,8 @@ void SpawnSystem::process(float dt) {
         timeLimit += (1000.f / SDL_GetPerformanceFrequency() * (postAlloT - preAlloT));
 
     }
-    decltype(startT) fullPostAlloT;
 
-    auto endT = fullPostAlloT = SDL_GetPerformanceCounter();
+    auto fullPostAlloT = SDL_GetPerformanceCounter();
 
     if (spawned)
         std::cout << "SPAWN - " << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
