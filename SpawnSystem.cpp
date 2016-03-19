@@ -25,7 +25,10 @@ void SpawnSystem::addEntity(uint32_t id) {
     if (entity) {
         auto spawner = entity->find("spawner");
         auto position = entity->find("position");
-        if (spawner != entity->end() && position != entity->end() && spawner->second.active && position->second.active) {
+        auto delay = entity->find("fullDelay");
+        auto pause = entity->find("pauseDelay");
+        if ( (delay == entity->end() || !delay->second.active) && (pause == entity->end() || !pause->second.active)
+            && spawner != entity->end() && position != entity->end() && spawner->second.active && position->second.active) {
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
             idxToID.emplace_back(id);
