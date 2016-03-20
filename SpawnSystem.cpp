@@ -326,7 +326,10 @@ void SpawnSystem::process(float dt) {
             spawner.currentTime -= spawner.repeatRate;
             if (spawner.runCount > 0) {
                 --spawner.runCount;
-                if (spawner.runCount == 0) manager->removeComponent<Spawner>(idxToID[i]);;
+                if (spawner.runCount == 0){
+                    manager->removeComponent<Spawner>(idxToID[i]);
+                    break;
+                }
             }
         }
     }
