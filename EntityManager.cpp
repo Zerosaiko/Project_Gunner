@@ -29,7 +29,7 @@ void EntityManager::update(float dt) {
         system->process(dt);
     }
     auto ed = SDL_GetPerformanceCounter();
-    std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
+    //std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToRefresh) {
         if (toRefresh[entity] == true) {
@@ -41,7 +41,7 @@ void EntityManager::update(float dt) {
         }
     }
     ed = SDL_GetPerformanceCounter();
-    std::cout << "REFRESH - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entitiesToRefresh.size() << " entities" << std::endl;
+    //std::cout << "REFRESH - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entitiesToRefresh.size() << " entities" << std::endl;
     entitiesToRefresh.clear();
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToDestroy) {
@@ -50,7 +50,7 @@ void EntityManager::update(float dt) {
         toDestroy[entity] = false;
     }
     ed = SDL_GetPerformanceCounter();
-    std::cout << "DESTROY - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entitiesToDestroy.size() << " entities" << std::endl;
+    //std::cout << "DESTROY - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entitiesToDestroy.size() << " entities" << std::endl;
     entitiesToDestroy.clear();
 }
 
