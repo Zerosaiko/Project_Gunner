@@ -115,6 +115,28 @@ void BoundsSystem::process(float dt) {
         Position& position = (*positionPool)[entity.first->index].data;
         Bounds& bounds = (*boundsPool)[entity.second->index].data;
 
+        switch (bounds.limitType) {
+        case Bounds::LimitType::none :
+            break;
+
+        case Bounds::LimitType::time :
+            if (bounds.limitType == Bounds::LimitType::time) {
+                bounds.timeLimit -= dt;
+            }
+            break;
+
+        case Bounds::LimitType::boundsLimit :
+            if (bounds.boundsLimit.x > 0 && (position.posX < bounds.minX || position.posX > bounds.maxX)) {
+                --bounds.boundsLimit.x;
+            }
+
+            if (bounds.boundsLimit.y > 0 && (position.posY < bounds.minY || position.posY > bounds.maxY)) {
+                --bounds.boundsLimit.y;
+            }
+            break;
+
+        }
+
         if (bounds.xBehavior == Bounds::Behavior::block) {
 
             if (position.posX < bounds.minX) position.posX = bounds.minX;
@@ -194,6 +216,57 @@ void BoundsSystem::process(float dt) {
                 else if (position.pastPosY > bounds.maxY) position.pastPosY = bounds.maxY;
             }
         }
+
+        switch (bounds.limitType) {
+        case Bounds::LimitType::none :
+            break;
+
+        case Bounds::LimitType::time :
+            if (bounds.timeLimit <= 0.0f) {
+                switch (bounds.postLimit) {
+                case Bounds::PostLimitBehavior::none : break;
+
+                case Bounds::PostLimitBehavior::change :
+                    manager->addComponent(bounds.changeBounds, idxToID[i]);
+                    break;
+
+                case Bounds::PostLimitBehavior::destroy : manager->destroyEntity(idxToID[i]); break;
+
+                }
+            }
+            break;
+
+        case Bounds::LimitType::boundsLimit :
+
+            if (bounds.boundsLimit.x == 0) {
+                switch (bounds.postLimit) {
+                case Bounds::PostLimitBehavior::none : break;
+
+                case Bounds::PostLimitBehavior::change :
+                    manager->addComponent(bounds.changeBounds, idxToID[i]);
+                    break;
+
+                case Bounds::PostLimitBehavior::destroy : bounds.xBehavior = bounds.yBehavior = Bounds::Behavior::destroy; break;
+
+                }
+            }
+
+            if (bounds.boundsLimit.y == 0) {
+                switch (bounds.postLimit) {
+                case Bounds::PostLimitBehavior::none : break;
+
+                case Bounds::PostLimitBehavior::change :
+                    manager->addComponent(bounds.changeBounds, idxToID[i]);
+                    break;
+
+                case Bounds::PostLimitBehavior::destroy : bounds.xBehavior = bounds.yBehavior = Bounds::Behavior::destroy; break;
+
+                }
+            }
+            break;
+
+        }
+
     }
 
     auto endT = SDL_GetPerformanceCounter();

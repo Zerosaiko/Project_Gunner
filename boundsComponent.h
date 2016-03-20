@@ -22,7 +22,12 @@ struct Bounds {
     enum class LimitType {
         none,
         time,
-        boundLimit
+        boundsLimit
+    };
+
+    struct BoundsLimit {
+        int32_t x;
+        int32_t y;
     };
 
     enum class PostLimitBehavior {
@@ -40,10 +45,10 @@ struct Bounds {
     LimitType limitType;
     union {
         float timeLimit;
-        uint32_t boundLimit;
+        BoundsLimit boundsLimit;
     };
     PostLimitBehavior postLimit;
-    std::vector<std::string> changeBound;
+    std::vector<std::string> changeBounds;
 
 };
 

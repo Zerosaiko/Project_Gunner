@@ -3,8 +3,8 @@
 
 
 
-Bounds::Bounds() : xBehavior(Bounds::Behavior::none), yBehavior(Bounds::Behavior::none), minX(0.f), minY(0.f), maxX(0.f), maxY(0.f) {
-}
+Bounds::Bounds() : xBehavior(Bounds::Behavior::none), yBehavior(Bounds::Behavior::none), minX(0.f), minY(0.f), maxX(0.f), maxY(0.f),
+    limitType(Bounds::LimitType::none), postLimit(Bounds::PostLimitBehavior::none) {}
 
 const std::string Bounds::name{"bounds"};
 
@@ -35,26 +35,23 @@ Bounds buildFromString<Bounds>(std::vector<std::string> str, std::vector<std::st
     b.maxY = buildFromString<float>(str, ++pos);
 
     if (++pos < str.size()) {
-        if (str[pos] == "none") {
-            b.limitType = Bounds::LimitType::none;
-        } else if (str[pos] == "timeLimit") {
+        if (str[pos] == "timeLimit") {
             b.limitType = Bounds::LimitType::time;
             b.timeLimit = buildFromString<float>(str, ++pos);
-        } else if (str[pos] == "boundLimit") {
-            b.limitType = Bounds::LimitType::boundLimit;
-            b.boundLimit = buildFromString<uint32_t>(str, ++pos);
+        } else if (str[pos] == "boundsLimit") {
+            b.limitType = Bounds::LimitType::boundsLimit;
+            b.boundsLimit.x = buildFromString<int32_t>(str, ++pos);
+            b.boundsLimit.y = buildFromString<int32_t>(str, ++pos);
         }
     }
 
     if (++pos < str.size()) {
-        if (str[pos] == "none") {
-            b.postLimit = Bounds::PostLimitBehavior::none;
-        } else if (str[pos] == "destroy") {
+        if (str[pos] == "destroy") {
             b.postLimit = Bounds::PostLimitBehavior::destroy;
         } else if (str[pos] == "change") {
             b.postLimit = Bounds::PostLimitBehavior::change;
             while (++pos < str.size()) {
-                b.changeBound.emplace_back(str[pos]);
+                b.changeBounds.emplace_back(str[pos]);
             }
         }
     }
