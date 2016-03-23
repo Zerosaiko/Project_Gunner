@@ -28,7 +28,8 @@ struct Collider {
         PlayerBullet = 1,
         Enemy = 2,
         EnemyBullet = 3,
-        Pickup = 4
+        Pickup = 4,
+        GroupSize
 
     };
 
