@@ -120,7 +120,7 @@ void ScriptSystem::process(float dt) {
 }
 
 void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>::size_type beg, std::vector<std::string>::size_type end ) {
-    std::string str;
+    /*std::string str;
     for(auto i = beg; i < end;) {
         if (script.tokenizedScript[i] == "create") {
             str.clear();
@@ -133,7 +133,7 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
                 ++i;
             }
             else if (script.tokenizedScript[i] == "%parent") {
-                targetID = manager->getParent(id);
+,                targetID = manager->getParent(id);
                 ++i;
             }
             else if (script.tokenizedScript[i] == "%tag"){
@@ -250,4 +250,5 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             }
         } else ++i;
     }
+    */
 }
