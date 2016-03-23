@@ -23,8 +23,8 @@ Collider buildFromString<Collider>(std::vector<std::string> str, std::vector<std
     c.offset.x = c.offset.y = 0.f;
     if (str[++pos] == "Point") {
         c.colliderType = Collider::ColliderType::Point;
-        c.offset.x = buildFromString<float>(str, ++pos);
-        c.offset.y = buildFromString<float>(str, ++pos);
+        c.offset.x = c.spatialBox.minX = c.spatialBox.maxX = buildFromString<float>(str, ++pos);
+        c.offset.y = c.spatialBox.minY = c.spatialBox.maxY  = buildFromString<float>(str, ++pos);
     } else if (str[pos] == "AABB") {
         c.colliderType = Collider::ColliderType::AABB;
         c.position.x = c.position.y = c.aabb.minX = c.aabb.minY = c.aabb.maxX = c.aabb.maxY = 0.f;
@@ -34,12 +34,21 @@ Collider buildFromString<Collider>(std::vector<std::string> str, std::vector<std
         c.aabb.minY = buildFromString<float>(str, ++pos);
         c.aabb.maxX = buildFromString<float>(str, ++pos);
         c.aabb.maxY = buildFromString<float>(str, ++pos);
+        c.spatialBox = c.aabb;
+        c.spatialBox.minX += c.offset.x;
+        c.spatialBox.maxX += c.offset.x;
+        c.spatialBox.minY += c.offset.y;
+        c.spatialBox.maxY += c.offset.y;
     } else if (str[pos] == "Circle") {
         c.colliderType = Collider::ColliderType::Circle;
         c.circle.radius = 0.0f;
         c.offset.x = buildFromString<float>(str, ++pos);
         c.offset.y = buildFromString<float>(str, ++pos);
         c.circle.radius = buildFromString<float>(str, ++pos);
+        c.spatialBox.minX = c.offset.x - c.circle.radius;
+        c.spatialBox.maxX = c.offset.x + c.circle.radius;
+        c.spatialBox.minY = c.offset.y - c.circle.radius;
+        c.spatialBox.maxY = c.offset.y + c.circle.radius;
     }
 
     return c;

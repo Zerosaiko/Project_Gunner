@@ -2,15 +2,14 @@
 #include "EntityManager.h"
 #include "SDL.h"
 
-CollisionSystem::CollisionSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
+CollisionSystem::CollisionSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority}, collisionWidth(360), collisionHeight(480),
+        gridWidth(collisionWidth / spatialCollisionGroups.size()), gridHeight(collisionHeight / spatialCollisionGroups[0].size()) {
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     colliderPool = manager->getComponentPool<Component<Collider::name, Collider>>();
     entityIDXs.reserve(1 << 16);
     hasEntity.reserve(1 << 16);
     idxToID.reserve(1 << 16);
     entities.reserve(1 << 16);
-
-    collisionGroups.resize(5);
 
     collisionTable[Collider::ColliderType::AABB][Collider::ColliderType::AABB] = aabbToaabbCollision;
     collisionTable[Collider::ColliderType::AABB][Collider::ColliderType::Point] = aabbToPointCollision;
@@ -49,8 +48,25 @@ void CollisionSystem::addEntity(uint32_t id) {
             entities.emplace_back(&collider->second, &position->second);
 
             Collider& col = (*colliderPool)[collider->second.index].data;
-            collisionGroups[col.collisionGroup].insert(id);
+            Position& pos = positionPool->operator[](position->second.index).data;
 
+            int32_t minX = int32_t(col.spatialBox.minX + pos.posX), maxX = int32_t(col.spatialBox.maxX + pos.posX),
+            minY = int32_t(col.spatialBox.minY + pos.posY), maxY = int32_t(col.spatialBox.maxY + pos.posY);
+
+            if (minX < 0) minX = 0; if (minX > collisionWidth - 1) minX = collisionWidth - 1;
+            if (maxX < 0) maxX = 0; if (maxX > collisionWidth - 1) maxX = collisionWidth - 1;
+            if (minY < 0) minY = 0; if (minY > collisionHeight - 1) minY = collisionHeight - 1;
+            if (maxY < 0) maxY = 0; if (maxY > collisionHeight - 1) maxY = collisionHeight - 1;
+
+            size_t spatialMinX = minX / gridWidth, spatialMaxX = maxX / gridWidth, spatialMinY = minY / gridHeight, spatialMaxY = maxY / gridHeight;
+
+            spatialIndices.emplace_back(spatialMinX, spatialMaxX, spatialMinY, spatialMaxY);
+
+            if (spatialMinX == spatialMaxX && spatialMinY == spatialMaxY) {
+                spatialCollisionGroups[spatialMinX][spatialMinY][col.collisionGroup].insert(id);
+            } else {
+                collisionGroups[col.collisionGroup].insert(id);
+            }
         }
     }
 }
@@ -59,6 +75,8 @@ void CollisionSystem::removeEntity(uint32_t id) {
     if (id >= hasEntity.size() || !hasEntity[id]) return;
     entities[entityIDXs[id]] = entities.back();
     entities.pop_back();
+    spatialIndices[entityIDXs[id]] = spatialIndices.back();
+    spatialIndices.pop_back();
     entityIDXs[idxToID.back()] = entityIDXs[id];
     idxToID[entityIDXs[id]] = idxToID.back();
     idxToID.pop_back();
@@ -83,13 +101,48 @@ void CollisionSystem::refreshEntity(uint32_t id) {
         auto pause = fullEntity->find("pauseDelay");
         if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
             removeEntity(id);
-        } else if (entity.first->dirty) {
+        } else if (entity.first->dirty || entity.second->dirty) {
 
             Collider& col = (*colliderPool)[entity.first->index].data;
-            collisionGroups[col.collisionGroup].insert(id);
-            for (size_t i = 0; i < collisionGroups.size(); ++i) {
-                if (col.collisionGroup != i)
-                    collisionGroups[i].erase(id);
+            Position& pos = positionPool->operator[](entity.second->index).data;
+
+            if (entity.first->dirty || entity.second->dirty) {
+
+                int32_t minX = int32_t(col.spatialBox.minX + pos.posX), maxX = int32_t(col.spatialBox.maxX + pos.posX),
+                minY = int32_t(col.spatialBox.minY + pos.posY), maxY = int32_t(col.spatialBox.maxY + pos.posY);
+
+                if (minX < 0) minX = 0; if (minX > collisionWidth - 1) minX = collisionWidth - 1;
+                if (maxX < 0) maxX = 0; if (maxX > collisionWidth - 1) maxX = collisionWidth - 1;
+                if (minY < 0) minY = 0; if (minY > collisionHeight - 1) minY = collisionHeight - 1;
+                if (maxY < 0) maxY = 0; if (maxY > collisionHeight - 1) maxY = collisionHeight - 1;
+
+                size_t spatialMinX = minX / gridWidth, spatialMaxX = maxX / gridWidth, spatialMinY = minY / gridHeight, spatialMaxY = maxY / gridHeight;
+
+                SpatialIndices& oldIndices = spatialIndices[entityIDXs[id]];
+
+                if (spatialMinX != oldIndices.minX || spatialMaxX != oldIndices.maxX || spatialMinY != oldIndices.minY
+                    || spatialMaxY != oldIndices.maxY) {
+
+                    for (size_t i = 0; i < collisionGroups.size(); ++i) {
+                        if (col.collisionGroup != i) {
+                            collisionGroups[i].erase(id);
+                            for (size_t j = 0; j < spatialCollisionGroups.size(); ++j) {
+                                for (size_t k = 0; k < spatialCollisionGroups[i].size(); ++k) {
+                                    spatialCollisionGroups[j][k][i].erase(id);
+                                }
+                            }
+                        }
+                    }
+
+                    if (spatialMinX == spatialMaxX && spatialMinY == spatialMaxY) {
+                        spatialCollisionGroups[spatialMinX][spatialMinY][col.collisionGroup].insert(id);
+                    } else {
+                        collisionGroups[col.collisionGroup].insert(id);
+                    }
+                    oldIndices.minX = spatialMinX; oldIndices.maxX = spatialMaxX;
+                    oldIndices.minY = spatialMinY; oldIndices.maxY = spatialMaxY;
+                }
+
             }
 
         }
@@ -101,17 +154,79 @@ void CollisionSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
 
+    for (size_t idx = 0; idx < entities.size(); ++idx) {
+
+        const auto& entity = entities[idx];
+        const Position& position = (*positionPool)[entity.second->index].data;
+        Collider& collider = (*colliderPool)[entity.first->index].data;
+
+        int32_t minX = int32_t(collider.spatialBox.minX + position.posX), maxX = int32_t(collider.spatialBox.maxX + position.posX),
+        minY = int32_t(collider.spatialBox.minY + position.posY), maxY = int32_t(collider.spatialBox.maxY + position.posY);
+
+        if (minX < 0) minX = 0; if (minX > collisionWidth - 1) minX = collisionWidth - 1;
+        if (maxX < 0) maxX = 0; if (maxX > collisionWidth - 1) maxX = collisionWidth - 1;
+        if (minY < 0) minY = 0; if (minY > collisionHeight - 1) minY = collisionHeight - 1;
+        if (maxY < 0) maxY = 0; if (maxY > collisionHeight - 1) maxY = collisionHeight - 1;
+
+        size_t spatialMinX = minX / gridWidth, spatialMaxX = maxX / gridWidth, spatialMinY = minY / gridHeight, spatialMaxY = maxY / gridHeight;
+
+        SpatialIndices& oldIndices = spatialIndices[idx];
+
+        if (spatialMinX != oldIndices.minX || spatialMaxX != oldIndices.maxX || spatialMinY != oldIndices.minY
+            || spatialMaxY != oldIndices.maxY) {
+
+            collisionGroups[collider.collisionGroup].erase(idxToID[idx]);
+
+            spatialCollisionGroups[oldIndices.maxX][oldIndices.maxY][collider.collisionGroup].erase(idxToID[idx]);
+
+            if (spatialMinX == spatialMaxX && spatialMinY == spatialMaxY) {
+                spatialCollisionGroups[spatialMinX][spatialMinY][collider.collisionGroup].insert(idxToID[idx]);
+            } else {
+                collisionGroups[collider.collisionGroup].insert(idxToID[idx]);
+            }
+            oldIndices.minX = spatialMinX; oldIndices.maxX = spatialMaxX;
+            oldIndices.minY = spatialMinY; oldIndices.maxY = spatialMaxY;
+        }
+
+    }
+
+    checkPlayerCollisions();
+
+    checkPlayerBulletCollisions();
+
+    auto endT = SDL_GetPerformanceCounter();
+
+    //std::cout << "C-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
+}
+
+void CollisionSystem::checkPlayerCollisions() {
+
     auto& playerColliders = collisionGroups[Collider::CollisionGroup::Player];
-    auto& playerBulletColliders = collisionGroups[Collider::CollisionGroup::PlayerBullet];
+    checkPlayerCollisions(playerColliders);
+
+    for(size_t i = 0; i < spatialCollisionGroups.size(); ++i) {
+        for (size_t j = 0; j < spatialCollisionGroups[i].size(); ++j) {
+            checkPlayerCollisions(spatialCollisionGroups[i][j][Collider::CollisionGroup::Player]);
+        }
+    }
+
+}
+
+void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& playerColliders) {
+
     auto& enemyColliders = collisionGroups[Collider::CollisionGroup::Enemy];
     auto& enemyBulletColliders = collisionGroups[Collider::CollisionGroup::EnemyBullet];
     auto& pickupColliders = collisionGroups[Collider::CollisionGroup::Pickup];
+
     for (auto playerIT = playerColliders.begin(); playerIT != playerColliders.end(); ++playerIT) {
         uint32_t id = *playerIT;
         Collider& playerCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
         Position& playerPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
         playerCollider.position.x = playerPosition.posX;
         playerCollider.position.y = playerPosition.posY;
+
+        auto& spatialIndex = spatialIndices[idxToID[id]];
+
         for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
             uint32_t id = *enemyIT;
             Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
@@ -122,6 +237,23 @@ void CollisionSystem::process(float dt) {
                 // probably do something to kill the player unless there's some kind of shield
             }
         }
+
+        for (size_t i = spatialIndex.minX; i <= spatialIndex.maxX; ++i) {
+            for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
+                auto& enemyColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Enemy];
+                for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
+                    uint32_t id = *enemyIT;
+                    Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+                    Position& enemyPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+                    enemyCollider.position.x = enemyPosition.posX;
+                    enemyCollider.position.y = enemyPosition.posY;
+                    if (collisionTable[playerCollider.colliderType][enemyCollider.colliderType](playerCollider, enemyCollider)) {
+                        // probably do something to kill the player unless there's some kind of shield
+                    }
+                }
+            }
+        }
+
         for (auto enemyBulletIT = enemyBulletColliders.begin(); enemyBulletIT != enemyBulletColliders.end(); ++enemyBulletIT) {
             uint32_t id = *enemyBulletIT;
             Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
@@ -129,9 +261,26 @@ void CollisionSystem::process(float dt) {
             enemyBulletCollider.position.x = enemyBulletPosition.posX;
             enemyBulletCollider.position.y = enemyBulletPosition.posY;
             if (collisionTable[playerCollider.colliderType][enemyBulletCollider.colliderType](playerCollider, enemyBulletCollider)) {
-                // probably do something to kill the player unless there's some kind of shield
+                        // probably do something to kill the player unless there's some kind of shield
             }
         }
+
+        for (size_t i = spatialIndex.minX; i <= spatialIndex.maxX; ++i) {
+            for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
+                auto& enemyBulletColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::EnemyBullet];
+                for (auto enemyIT = enemyBulletColliders.begin(); enemyIT != enemyBulletColliders.end(); ++enemyIT) {
+                    uint32_t id = *enemyIT;
+                    Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+                    Position& enemyBulletPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+                    enemyBulletCollider.position.x = enemyBulletPosition.posX;
+                    enemyBulletCollider.position.y = enemyBulletPosition.posY;
+                    if (collisionTable[playerCollider.colliderType][enemyBulletCollider.colliderType](playerCollider, enemyBulletCollider)) {
+                        // probably do something to kill the player unless there's some kind of shield
+                    }
+                }
+            }
+        }
+
         for (auto pickupIT = pickupColliders.begin(); pickupIT != pickupColliders.end(); ++pickupIT) {
             uint32_t id = *pickupIT;
             Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
@@ -142,13 +291,51 @@ void CollisionSystem::process(float dt) {
                 // do whatever the pickup does
             }
         }
+
+        for (size_t i = spatialIndex.minX; i <= spatialIndex.maxX; ++i) {
+            for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
+                auto& pickupColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Pickup];
+                for (auto pickupIT = pickupColliders.begin(); pickupIT != pickupColliders.end(); ++pickupIT) {
+                    uint32_t id = *pickupIT;
+                    Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+                    Position& pickupPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+                    pickupCollider.position.x = pickupPosition.posX;
+                    pickupCollider.position.y = pickupPosition.posY;
+                    if (collisionTable[playerCollider.colliderType][pickupCollider.colliderType](playerCollider, pickupCollider)) {
+                        // do whatever the pickup does
+                    }
+                }
+            }
+        }
     }
+}
+
+void CollisionSystem::checkPlayerBulletCollisions() {
+    auto& playerBulletColliders = collisionGroups[Collider::CollisionGroup::PlayerBullet];
+    checkPlayerBulletCollisions(playerBulletColliders);
+
+    for(size_t i = 0; i < spatialCollisionGroups.size(); ++i) {
+        for (size_t j = 0; j < spatialCollisionGroups[i].size(); ++j) {
+            checkPlayerCollisions(spatialCollisionGroups[i][j][Collider::CollisionGroup::PlayerBullet]);
+        }
+    }
+
+}
+
+void CollisionSystem::checkPlayerBulletCollisions(std::unordered_set<uint32_t>& playerBulletColliders) {
+
+
+    auto& enemyColliders = collisionGroups[Collider::CollisionGroup::Enemy];
+
     for (auto playerBulletIT = playerBulletColliders.begin(); playerBulletIT != playerBulletColliders.end(); ++playerBulletIT) {
         uint32_t id = *playerBulletIT;
         Collider& playerBulletCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
         Position& playerBulletPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
         playerBulletCollider.position.x = playerBulletPosition.posX;
         playerBulletCollider.position.y = playerBulletPosition.posY;
+
+        auto& spatialIndex = spatialIndices[idxToID[id]];
+
         for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
             uint32_t id = *enemyIT;
             Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
@@ -159,11 +346,23 @@ void CollisionSystem::process(float dt) {
                 // probably do something to lower the health of the enemy
             }
         }
+
+        for (size_t i = spatialIndex.minX; i <= spatialIndex.maxX; ++i) {
+            for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
+                auto& enemyColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Enemy];
+                for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
+                    uint32_t id = *enemyIT;
+                    Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
+                    Position& enemyPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+                    enemyCollider.position.x = enemyPosition.posX;
+                    enemyCollider.position.y = enemyPosition.posY;
+                    if (collisionTable[playerBulletCollider.colliderType][enemyCollider.colliderType](playerBulletCollider, enemyCollider)) {
+                        // probably do something to kill the player unless there's some kind of shield
+                    }
+                }
+            }
+        }
     }
-
-    auto endT = SDL_GetPerformanceCounter();
-
-    //std::cout << "C-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
 }
 
 float dst2(float x1, float y1, float x2, float y2) {
@@ -198,27 +397,18 @@ bool pointToCircleCollision(Collider& p, Collider& c) {
 }
 
 bool aabbToaabbCollision(Collider& r1, Collider& r2) {
-    float minX1 = r1.position.x + r1.aabb.minX + r1.offset.x;
-    float maxX1 = r1.position.x + r1.aabb.maxX + r1.offset.x;
-    float minY1 = r1.position.y + r1.aabb.minY + r1.offset.y;
-    float maxY1 = r1.position.y + r1.aabb.maxY + r1.offset.y;
-    float minX2 = r2.position.x + r2.aabb.minX + r2.offset.x;
-    float maxX2 = r2.position.x + r2.aabb.maxX + r2.offset.x;
-    float minY2 = r2.position.y + r2.aabb.minY + r2.offset.y;
-    float maxY2 = r2.position.y + r2.aabb.maxY + r2.offset.y;
-    return
-            (
-                ( (minX1 >= minX2 && minX1 <= maxX2)
-                    || (maxX1 >= minX2 && maxX1 <= maxX2) )
-                && ( (minY1 >= minY2 && minY1 <= maxY2)
-                    || (maxY1 >= minY2 && maxY1 <= maxY2) ) )
-
-            ||
-            (
-                ( (minX2 >= minX1 && minX2 <= maxX1)
-                    || (maxX2 >= minX1 && maxX2 <= maxX1) )
-                && ( (minY2 >= minY1 && minY2 <= maxY1)
-                    || (maxY2 >= minY1 && maxY2 <= maxY1) ) );
+    float aabbWidthGrowth = (r2.aabb.maxX - r2.aabb.minX) / 2;
+    float aabbHeightGrowth = (r2.aabb.maxY - r2.aabb.minY) / 2;
+    float minX = r1.position.x + r1.aabb.minX + r1.offset.x - aabbWidthGrowth;
+    float maxX = r1.position.x + r1.aabb.maxX + r1.offset.x + aabbWidthGrowth;
+    float minY = r1.position.y + r1.aabb.minY + r1.offset.y - aabbHeightGrowth;
+    float maxY = r1.position.y + r1.aabb.maxY + r1.offset.y + aabbHeightGrowth;
+    float posX = r2.position.x + r2.offset.x;
+    float posY = r2.position.y + r2.offset.y;
+    return (posX >= minX && posX <= maxX
+        && posY >= minY && posY <= maxY)
+        || ( ( (minX >= posX && minX <= posX + 1) || (maxX >= posX && maxX <= posX + 1) )
+        && ( (minY >= posY && minY <= posY + 1) || (maxY >= posY && maxY <= posY + 1) ) );
 }
 
 bool aabbToPointCollision(Collider& r1, Collider& p2) {

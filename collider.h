@@ -48,8 +48,9 @@ struct Collider {
     union {
         AABoundingBox aabb;
         CollisionCircle circle;
-
     };
+
+    AABoundingBox spatialBox;
 
 
 };
