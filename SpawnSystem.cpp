@@ -86,8 +86,10 @@ void SpawnSystem::refreshEntity(uint32_t id) {
             removeEntity(id);
         } else if (entity.first->dirty) {
             Spawner& spawnCmp = (*spawnPool)[entity.first->index].data;
-            for (auto& entityID : preAllocationData[entityIDXs[id]].idList) {
-                manager->destroyEntity(entityID);
+            for (size_t i = 0; i < preAllocationData[entityIDXs[id]].idList.size(); ++i) {
+                if (preAllocationData[entityIDXs[id]].isAllocated[i]) {
+                    manager->destroyEntity(preAllocationData[entityIDXs[id]].idList[i]);
+                }
             }
             totalSpawnCount -= preAllocationData[entityIDXs[id]].currentSpawnCount;
             totalSpawnCount += spawnCmp.spawnsPerRun;
