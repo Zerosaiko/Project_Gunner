@@ -97,8 +97,6 @@ void EntityManager::eraseEntity(uint32_t id) {
     freeIDs.push_back(id);
     tagManager.untagEntity(id);
     groupManager.ungroupEntity(id);
-    removeParent(id);
-    clearChildren(id);
 }
 
 void EntityManager::destroyEntity(uint32_t id) {
