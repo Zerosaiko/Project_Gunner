@@ -45,9 +45,10 @@ void EntityManager::update(float dt) {
     entitiesToRefresh.clear();
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToDestroy) {
-        if (toDestroy[entity])
-            eraseEntity(entity);
-        toDestroy[entity] = false;
+        if (entity < toDestroy.size() && toDestroy[entity])
+            eraseEntity(entity); {
+            toDestroy[entity] = false;
+        }
     }
     ed = SDL_GetPerformanceCounter();
     //std::cout << "DESTROY - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entitiesToDestroy.size() << " entities" << std::endl;
@@ -254,73 +255,6 @@ void EntityManager::refreshEntity(uint32_t id) {
     for (auto& system : systems) {
         system->refreshEntity(id);
     }
-}
-
-void EntityManager::setParent(uint32_t child, uint32_t parent) {
-    auto getParent = childToParent.find(child);
-    if (getParent != childToParent.end()) {
-        if (getParent->second != parent)
-            removeParent(child);
-    }
-    childToParent[child] = parent;
-    auto& children = parentToChildren[parent];
-    auto it = std::find(children.begin(), children.end(), child);
-    if (it == children.end()) {
-        children.push_back(child);
-    }
-}
-
-void EntityManager::addChild(uint32_t parent, uint32_t child) {
-    auto getParent = childToParent.find(child);
-    if (getParent != childToParent.end()) {
-        if (getParent->second != parent)
-            removeParent(child);
-    }
-    childToParent[child] = parent;
-    auto& children = parentToChildren[parent];
-    auto it = std::find(children.begin(), children.end(), child);
-    if (it == children.end()) {
-        children.push_back(child);
-    }
-}
-
-void EntityManager::removeParent(uint32_t child) {
-    uint32_t parent = childToParent[child];
-    auto& children = parentToChildren[parent];
-    auto it = std::find(children.begin(), children.end(), child);
-    if (it != children.end()) {
-        *it = children.back();
-        children.pop_back();
-    }
-    childToParent.erase(child);
-
-}
-
-void EntityManager::removeChild(uint32_t parent, uint32_t child) {
-    auto& children = parentToChildren[parent];
-    auto it = std::find(children.begin(), children.end(), child);
-    if (it != children.end()) {
-        *it = children.back();
-        children.pop_back();
-    }
-    childToParent.erase(child);
-
-}
-
-void EntityManager::clearChildren(uint32_t parent) {
-    auto& children = parentToChildren[parent];
-    for (uint32_t child : children) {
-        childToParent.erase(child);
-    }
-    parentToChildren.erase(parent);
-}
-
-uint32_t EntityManager::getParent(uint32_t child) {
-    return childToParent[child];
-}
-
-std::vector<uint32_t>& EntityManager::getChildren(uint32_t parent) {
-    return parentToChildren[parent];
 }
 
 void EntityManager::excludeFromRefresh(uint32_t id) {
