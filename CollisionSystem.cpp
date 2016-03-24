@@ -73,6 +73,18 @@ void CollisionSystem::addEntity(uint32_t id) {
 
 void CollisionSystem::removeEntity(uint32_t id) {
     if (id >= hasEntity.size() || !hasEntity[id]) return;
+    for (auto& cGroup: collisionGroups) {
+        cGroup.erase(id);
+    }
+
+    SpatialIndices& oldIndices = spatialIndices[entityIDXs[id]];
+
+    if (oldIndices.minX == oldIndices.maxX && oldIndices.minY == oldIndices.maxY) {
+        for (auto& cGroup: spatialCollisionGroups[oldIndices.minX][oldIndices.minY]) {
+            cGroup.erase(id);
+        }
+    }
+
     entities[entityIDXs[id]] = entities.back();
     entities.pop_back();
     spatialIndices[entityIDXs[id]] = spatialIndices.back();
@@ -81,9 +93,6 @@ void CollisionSystem::removeEntity(uint32_t id) {
     idxToID[entityIDXs[id]] = idxToID.back();
     idxToID.pop_back();
     hasEntity[id] = false;
-    for (auto& cGroup: collisionGroups) {
-        cGroup.erase(id);
-    }
 
 }
 
