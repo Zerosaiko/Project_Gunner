@@ -75,8 +75,8 @@ public:
     GroupManager groupManager;
 
     //  deferred system adding/removing of entities for post-update
-    std::vector<uint32_t> entitiesToDestroy;
-    std::vector<uint32_t> entitiesToRefresh;
+    std::unordered_set<uint32_t> entitiesToDestroy;
+    std::unordered_set<uint32_t> entitiesToRefresh;
 
     void excludeFromRefresh(uint32_t id);
 
@@ -133,7 +133,7 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
     }
 
     if (!toRefresh[id]) {
-        entitiesToRefresh.emplace_back(id);
+        entitiesToRefresh.insert(id);
         toRefresh[id] = true;
         toDestroy[id] = false;
     }
@@ -164,7 +164,7 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
     }
 
     if (!toRefresh[id]) {
-        entitiesToRefresh.emplace_back(id);
+        entitiesToRefresh.insert(id);
         toRefresh[id] = true;
         toDestroy[id] = false;
     }
@@ -187,7 +187,7 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
         toRefresh[id] = false;
     }
     else if (!toRefresh[id]) {
-        entitiesToRefresh.emplace_back(id);
+        entitiesToRefresh.insert(id);
         toRefresh[id] = true;
         toDestroy[id] = false;
     }

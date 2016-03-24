@@ -29,7 +29,7 @@ void EntityManager::update(float dt) {
         system->process(dt);
     }
     auto ed = SDL_GetPerformanceCounter();
-    //std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
+    std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToRefresh) {
         if (toRefresh[entity] == true) {
@@ -45,7 +45,10 @@ void EntityManager::update(float dt) {
     entitiesToRefresh.clear();
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToDestroy) {
-        if (entity < toDestroy.size() && toDestroy[entity])
+        if (entity >= toDestroy.size()) {
+            std::cout << "Inappropriate Deletion: " << entity << '\n';
+        }
+        if (toDestroy[entity])
             eraseEntity(entity); {
             toDestroy[entity] = false;
         }
@@ -100,8 +103,14 @@ void EntityManager::eraseEntity(uint32_t id) {
 }
 
 void EntityManager::destroyEntity(uint32_t id) {
-    if (!isAlive[id] || toDestroy[id]) return;
-    entitiesToDestroy.emplace_back(id);
+    if (id >= entities.size()) {
+        std::cout << "Inappropriate Deletion: " << id;
+        return;
+    }
+    if (!isAlive[id] || toDestroy[id]){
+        return;
+    }
+    entitiesToDestroy.insert(id);
     toDestroy[id] = true;
     toRefresh[id] = false;
 }
@@ -163,7 +172,7 @@ void EntityManager::addComponent(std::vector<std::string>& instructions, uint32_
         factory->build(this, componentID->second.index, instructions);
     }
     if (!toRefresh[id]) {
-        entitiesToRefresh.emplace_back(id);
+        entitiesToRefresh.emplace(id);
         toRefresh[id] = true;
         toDestroy[id] = false;
     }
@@ -192,7 +201,7 @@ void EntityManager::addComponent(std::vector<std::string>&& instructions, uint32
         factory->build(this, componentID->second.index, instructions);
     }
     if (!toRefresh[id]) {
-        entitiesToRefresh.emplace_back(id);
+        entitiesToRefresh.insert(id);
         toRefresh[id] = true;
         toDestroy[id] = false;
     }
@@ -214,7 +223,7 @@ void EntityManager::removeComponent(std::string& cmpName, uint32_t id) {
         destroyEntity(id);
     }
     else if (!toRefresh[id]) {
-        entitiesToRefresh.emplace_back(id);
+        entitiesToRefresh.insert(id);
         toRefresh[id] = true;
         toDestroy[id] = false;
     }
@@ -236,7 +245,7 @@ void EntityManager::removeComponent(std::string&& cmpName, uint32_t id) {
         destroyEntity(id);
     }
     else if (!toRefresh[id]) {
-        entitiesToRefresh.emplace_back(id);
+        entitiesToRefresh.insert(id);
         toRefresh[id] = true;
         toDestroy[id] = false;
     }
@@ -261,7 +270,7 @@ void EntityManager::excludeFromRefresh(uint32_t id) {
 
 void EntityManager::forceRefresh(uint32_t id) {
     toRefresh[id] = true;
-    entitiesToRefresh.emplace_back(id);
+    entitiesToRefresh.insert(id);
 }
 
 EntityManager::ComponentHandle::ComponentHandle() {
