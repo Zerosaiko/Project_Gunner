@@ -47,7 +47,7 @@ private:
 
     std::array<std::unordered_set<uint32_t>, Collider::CollisionGroup::GroupSize> collisionGroups;
 
-    std::array < std::array< std::array< std::unordered_set<uint32_t>, Collider::CollisionGroup::GroupSize >, 5 >, 5 > spatialCollisionGroups;
+    std::array < std::array< std::array< std::unordered_set<uint32_t>, Collider::CollisionGroup::GroupSize >, 6 >, 6 > spatialCollisionGroups;
 
     int32_t collisionWidth;
 
