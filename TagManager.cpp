@@ -7,7 +7,7 @@ void TagManager::tagEntity(std::string tag, uint32_t entityID) {
 
     entityIDs[tag] = entityID;
     if (!manager->toRefresh[entityID]) {
-        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->entitiesToRefresh.emplace(entityID);
         manager->toRefresh[entityID] = true;
     }
 
@@ -19,7 +19,7 @@ void TagManager::untagEntity(std::string tag, uint32_t entityID) {
     if (it != entityIDs.end() && it->second == entityID)
         entityIDs.erase(it);
     if (!manager->toRefresh[entityID]) {
-        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->entitiesToRefresh.emplace(entityID);
         manager->toRefresh[entityID] = true;
     }
 
@@ -32,7 +32,7 @@ void TagManager::untagEntity(uint32_t entityID) {
         else ++it;
     }
     if (!manager->toRefresh[entityID]) {
-        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->entitiesToRefresh.emplace(entityID);
         manager->toRefresh[entityID] = true;
     }
 
@@ -42,7 +42,7 @@ void TagManager::removeTag(std::string tag) {
     uint32_t id = entityIDs[tag];
     entityIDs.erase(tag);
     if (!manager->toRefresh[id]) {
-        manager->entitiesToRefresh.emplace_back(id);
+        manager->entitiesToRefresh.emplace(id);
         manager->toRefresh[id] = true;
     }
 }

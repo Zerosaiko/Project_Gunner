@@ -8,7 +8,7 @@ void GroupManager::groupEntity(std::string group, uint32_t entityID) {
 
     entityIDs[group].push_back(entityID);
     if (!manager->toRefresh[entityID]) {
-        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->entitiesToRefresh.emplace(entityID);
         manager->toRefresh[entityID] = true;
     }
 
@@ -25,7 +25,7 @@ void GroupManager::ungroupEntity(std::string group, uint32_t entityID) {
         }
     }
     if (!manager->toRefresh[entityID]) {
-        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->entitiesToRefresh.emplace(entityID);
         manager->toRefresh[entityID] = true;
     }
 
@@ -38,7 +38,7 @@ void GroupManager::ungroupEntity(uint32_t entityID) {
         ungroupEntity(it->first, entityID);
     };
     if (!manager->toRefresh[entityID]) {
-        manager->entitiesToRefresh.emplace_back(entityID);
+        manager->entitiesToRefresh.emplace(entityID);
         manager->toRefresh[entityID] = true;
     }
 
@@ -47,7 +47,7 @@ void GroupManager::ungroupEntity(uint32_t entityID) {
 void GroupManager::removeGroup(std::string group) {
     for (auto id : entityIDs[group]) {
         if (!manager->toRefresh[id]) {
-            manager->entitiesToRefresh.emplace_back(id);
+            manager->entitiesToRefresh.emplace(id);
             manager->toRefresh[id] = true;
         }
     }
