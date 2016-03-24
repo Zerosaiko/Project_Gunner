@@ -31,8 +31,6 @@ private:
 
         std::vector<uint32_t> idList;
 
-        std::vector<bool> isAllocated;
-
         std::vector< std::vector< std::vector< std::string > > > data;
 
         EntityPreallocationInfo( size_t spawnCnt);

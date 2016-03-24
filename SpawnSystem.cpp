@@ -45,7 +45,6 @@ void SpawnSystem::addEntity(uint32_t id) {
             }
             for(size_t k = 0; k < spawnCmp.spawnsPerRun; ++k) {
                 preAllocationData.back().idList.emplace_back(0);
-                preAllocationData.back().isAllocated.emplace_back(false);
             }
             totalSpawnCount += spawnCmp.spawnsPerRun;
         }
@@ -54,10 +53,10 @@ void SpawnSystem::addEntity(uint32_t id) {
 
 void SpawnSystem::removeEntity(uint32_t id) {
     if (id >= hasEntity.size() || !hasEntity[id]) return;
+    for (size_t i = 0; i < preAllocationData[entityIDXs[id]].dataIdx; ++i) {
+        manager->destroyEntity(preAllocationData[entityIDXs[id]].idList[i]);
+    }
     for (size_t i = 0; i < preAllocationData[entityIDXs[id]].idList.size(); ++i) {
-        if (preAllocationData[entityIDXs[id]].isAllocated[i]) {
-            manager->destroyEntity(preAllocationData[entityIDXs[id]].idList[i]);
-        }
     }
     entities[entityIDXs[id]] = entities.back();
     entities.pop_back();
@@ -86,17 +85,13 @@ void SpawnSystem::refreshEntity(uint32_t id) {
             removeEntity(id);
         } else if (entity.first->dirty) {
             Spawner& spawnCmp = (*spawnPool)[entity.first->index].data;
-            for (size_t i = 0; i < preAllocationData[entityIDXs[id]].idList.size(); ++i) {
-                if (preAllocationData[entityIDXs[id]].isAllocated[i]) {
-                    manager->destroyEntity(preAllocationData[entityIDXs[id]].idList[i]);
-                }
+            for (size_t i = 0; i < preAllocationData[entityIDXs[id]].dataIdx; ++i) {
+                manager->destroyEntity(preAllocationData[entityIDXs[id]].idList[i]);
             }
             totalSpawnCount -= preAllocationData[entityIDXs[id]].currentSpawnCount;
             totalSpawnCount += spawnCmp.spawnsPerRun;
             preAllocationData[entityIDXs[id]].idList.clear();
             preAllocationData[entityIDXs[id]].idList.resize(spawnCmp.spawnsPerRun, 0);
-            preAllocationData[entityIDXs[id]].isAllocated.clear();
-            preAllocationData[entityIDXs[id]].isAllocated.resize(spawnCmp.spawnsPerRun, false);
             preAllocationData[entityIDXs[id]].data.clear();
             preAllocationData[entityIDXs[id]].data.resize(spawnCmp.addComponents.size());
 
@@ -120,6 +115,8 @@ void SpawnSystem::process(float dt) {
         const auto& entity = entities[i];
         const Position& position = (*positionPool)[entity.second->index].data;
         Spawner& spawner = (*spawnPool)[entity.first->index].data;
+        EntityPreallocationInfo& preAlloc = preAllocationData[i];
+
         spawner.currentTime += dt;
         while (spawner.currentTime >= spawner.repeatRate) {
             spawned = true;
@@ -295,34 +292,31 @@ void SpawnSystem::process(float dt) {
                 default: break;
                 }
 
-                EntityPreallocationInfo& preAlloc = preAllocationData[i];
                 uint32_t newEntityID = 0;
-                newEntityID = preAlloc.idList[j];
-                if (!preAlloc.isAllocated[j]) {
+                if (j >= preAlloc.dataIdx) {
                     newEntityID = manager->createEntity();
-                }
+                    if (spawner.addComponents.size() > 0) {
+                        auto idx = j % spawner.addComponents.size();
+                        for ( std::vector<std::string>& cmp : preAlloc.data.at(idx) ) {
+                            manager->addComponent(cmp, newEntityID);
+                        }
+                        --totalSpawnCount;
+                        --preAlloc.currentSpawnCount;
+                    }
 
+                } else {
+                    newEntityID = preAlloc.idList[j];
+                }
                 Component<Position::name, Position> posComponent{newPos};
                 Component<Velocity::name, Velocity> velComponent{newVel};
                 manager->addComponent<Component<Position::name, Position>>(posComponent, newEntityID);
                 manager->addComponent<Component<Velocity::name, Velocity>>(velComponent, newEntityID);
 
-                if (spawner.addComponents.size() > 0 && !preAlloc.isAllocated[j]) {
-                    auto idx = j % spawner.addComponents.size();
-                    for ( std::vector<std::string>& cmp : preAlloc.data.at(idx) ) {
-                        manager->addComponent(cmp, newEntityID);
-                    }
-                    --totalSpawnCount;
-                    --preAlloc.currentSpawnCount;
-
-
-                }
                 manager->forceRefresh(preAlloc.idList[j]);
                 preAlloc.idList[j] = 0;
-                preAlloc.isAllocated[j] = false;
-                preAlloc.dataIdx = 0;
 
             }
+            preAlloc.dataIdx = 0;
             totalSpawnCount += spawner.spawnsPerRun;
             preAllocationData[i].currentSpawnCount += spawner.spawnsPerRun;
             spawner.currentTime -= spawner.repeatRate;
@@ -336,14 +330,15 @@ void SpawnSystem::process(float dt) {
         }
     }
     auto endT = SDL_GetPerformanceCounter();
-
     // if spawning hasn't taken above a certain amount of time, preallocate until the time limit is reached
 
     float timeLimit = (1000.f / SDL_GetPerformanceFrequency() * (endT - startT));
     bool preAllocated = false;
+
     auto fullPreAlloT = SDL_GetPerformanceCounter();
     auto cpyCount = totalSpawnCount;
-    while ( totalSpawnCount && timeLimit < 4.30f ) {
+
+    while ( totalSpawnCount && timeLimit < 4.0f ) {
 
         preAllocated = true;
         auto preAlloT = SDL_GetPerformanceCounter();
@@ -351,7 +346,7 @@ void SpawnSystem::process(float dt) {
         if (preAlloIdx >= preAllocationData.size()) preAlloIdx = 0;
 
         EntityPreallocationInfo& preAlloc = preAllocationData[preAlloIdx];
-        if (preAlloc.dataIdx < preAlloc.idList.size() && !preAlloc.isAllocated[preAlloc.dataIdx]) {
+        if (preAlloc.dataIdx < preAlloc.idList.size()) {
             size_t idx = preAlloc.dataIdx % preAlloc.data.size();
             preAlloc.idList[preAlloc.dataIdx] = manager->createEntity();
             for ( std::vector<std::string>& cmp : preAlloc.data.at(idx) ) {
@@ -359,13 +354,11 @@ void SpawnSystem::process(float dt) {
             }
             --totalSpawnCount;
             --preAlloc.currentSpawnCount;
-            preAlloc.isAllocated[preAlloc.dataIdx] = true;
             manager->excludeFromRefresh(preAlloc.idList[preAlloc.dataIdx]);
+            ++preAlloc.dataIdx;
         }
-        ++preAlloc.dataIdx;
 
         if (preAlloc.dataIdx >= preAlloc.idList.size()) {
-            preAlloc.dataIdx = 0;
             ++preAlloIdx;
         }
         auto postAlloT = SDL_GetPerformanceCounter();
@@ -375,9 +368,11 @@ void SpawnSystem::process(float dt) {
 
     auto fullPostAlloT = SDL_GetPerformanceCounter();
 
-    if (spawned)
+
+
+    if (spawned && false)
         std::cout << "SPAWN - " << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
-    if (preAllocated)
+    if (preAllocated && false)
         std::cout << "PRE ALLOC - " << (cpyCount - totalSpawnCount)
             << " out of " << cpyCount << " in " << (1000.f / SDL_GetPerformanceFrequency() * (fullPostAlloT - fullPreAlloT)) << '\n';
 
