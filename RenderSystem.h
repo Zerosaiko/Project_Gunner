@@ -45,7 +45,7 @@ private:
 
     std::deque<Component<Position::name, Position>>* positionPool;
 
-    std::deque<Component<Renderable::name, Renderable>>* renderPool;
+    std::deque<Component<Sprite::name, Sprite>>* spritePool;
 
     std::unordered_map<std::string, SpriteSheet*> sprites;
 

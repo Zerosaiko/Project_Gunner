@@ -5,7 +5,7 @@
 #include "spriteSheet.h"
 #include "component.h"
 
-struct Renderable {
+struct Sprite {
     std::string spriteName;
     int spritePos;
     int zOrder;
@@ -13,20 +13,20 @@ struct Renderable {
     static const std::string name;
     static const std::string getName();
 
-    Renderable();
+    Sprite();
 
 };
 
-bool operator==(const Renderable& a, const Renderable& b);
+bool operator==(const Sprite& a, const Sprite& b);
 
-bool operator!=(const Renderable& a, const Renderable& b);
+bool operator!=(const Sprite& a, const Sprite& b);
 
-bool operator<(const Renderable& a, const Renderable& b);
+bool operator<(const Sprite& a, const Sprite& b);
 
-bool operator>(const Renderable& a, const Renderable& b);
+bool operator>(const Sprite& a, const Sprite& b);
 
-bool operator<=(const Renderable& a, const Renderable& b);
+bool operator<=(const Sprite& a, const Sprite& b);
 
-bool operator>=(const Renderable& a, const Renderable& b);
+bool operator>=(const Sprite& a, const Sprite& b);
 
 #endif // RENDERABLE_H_INCLUDED

@@ -4,7 +4,7 @@
 RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Window* window) : EntitySystem{manager, priority}, dirty(false), window(window) {
     renderTarget = SDL_CreateTexture(this->window->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 360, 480);
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
-    renderPool = manager->getComponentPool<Component<Renderable::name, Renderable>>();
+    spritePool = manager->getComponentPool<Component<Sprite::name, Sprite>>();
     entityIDXs.reserve(1 << 16);
     hasEntity.reserve(1 << 16);
     idxToID.reserve(1 << 16);
@@ -39,7 +39,7 @@ void RenderSystem::addEntity(uint32_t id) {
 
             dirty = true;
 
-            Renderable& ren = (*renderPool)[render->second.index].data;
+            Sprite& ren = (*spritePool)[render->second.index].data;
 
             ren.sheet = loadSprite(ren.spriteName);
         }
@@ -71,7 +71,7 @@ void RenderSystem::refreshEntity(uint32_t id) {
             removeEntity(id);
         } else {
 
-            Renderable& ren = (*renderPool)[entity.second->index].data;
+            Sprite& ren = (*spritePool)[entity.second->index].data;
 
             ren.sheet = loadSprite(ren.spriteName);
 
@@ -101,7 +101,7 @@ void RenderSystem::render(float lerpT) {
 
     for(const auto& entity : entities) {
         Position& position = (*positionPool)[entity.first->index].data;
-        Renderable& render = (*renderPool)[entity.second->index].data;
+        Sprite& render = (*spritePool)[entity.second->index].data;
         if (*render.sheet) {
             const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
             SDL_Rect dstRect = srcRect;

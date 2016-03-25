@@ -18,7 +18,7 @@ ComponentFactory::~ComponentFactory() {};
 
 void registerAllComponents() {
 
-    Component<Renderable::name, Renderable>::registerComponent(1024);
+    Component<Sprite::name, Sprite>::registerComponent(1024);
     Component<Script::name, Script>::registerComponent(128);
     Component<Position::name, Position>::registerComponent(1024);
     Component<Velocity::name, Velocity>::registerComponent(1024);
