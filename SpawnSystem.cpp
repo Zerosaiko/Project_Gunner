@@ -1,5 +1,6 @@
 #include "SpawnSystem.h"
 #include "SDL.h"
+#include "playerComponents.h"
 #include <cmath>
 
 SpawnSystem::SpawnSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
@@ -110,6 +111,31 @@ void SpawnSystem::process(float dt) {
     bool spawned = false;
 
     auto startT = SDL_GetPerformanceCounter();
+    const auto playerGroupPtr = manager->groupManager.getIDGroup("player");
+
+    Position aggroPlayerPos;
+    aggroPlayerPos.pastPosX = aggroPlayerPos.pastPosY = aggroPlayerPos.posX = aggroPlayerPos.posY = 0.0f;
+    if (playerGroupPtr) {
+        const auto& playerGroup = *playerGroupPtr;
+        const auto playerPool = manager->getComponentPool<Component<PlayerCmp::name, PlayerCmp>>();
+        float highestAggro = -1.0f;
+        for (const auto& id : playerGroup) {
+            const auto& entity = manager->getEntity(id);
+            const auto& playerCmp = entity->find("player");
+            if (playerCmp != entity->end()) {
+                PlayerCmp& player = playerPool->operator[](playerCmp->second.index).data;
+                if (player.aggro > highestAggro) {
+                    highestAggro = player.aggro;
+                    const auto& posCmp = entity->find("position");
+                    if (posCmp != entity->end()) {
+                        aggroPlayerPos = positionPool->operator[](posCmp->second.index).data;
+                    }
+                }
+
+            }
+        }
+
+    }
 
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];
@@ -226,10 +252,46 @@ void SpawnSystem::process(float dt) {
                     break;
 
                 case Spawner::SpawnVel::Aimed :
+                    newVel.velX = aggroPlayerPos.posX - newPos.posX;
+                    newVel.velY = aggroPlayerPos.posY - newPos.posY;
+                    {
+                        float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
+                        if (length != 0.0f)
+                            newVel.velX /= length; newVel.velY /= length;
+                    }
                     // needs code to aim at player now that position is known
                     break;
 
                 case Spawner::SpawnVel::AwayFromPlayer :
+                    newVel.velX = newPos.posX - aggroPlayerPos.posX;
+                    newVel.velY = newPos.posY - aggroPlayerPos.posY;
+                    {
+                        float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
+                        if (length != 0.0f)
+                            newVel.velX /= length; newVel.velY /= length;
+                    }
+                    // needs code to aim at player now that position is known
+                    break;
+
+                case Spawner::SpawnVel::AimedBySource :
+                    newVel.velX = aggroPlayerPos.posX - position.posX;
+                    newVel.velY = aggroPlayerPos.posY - position.posY;
+                    {
+                        float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
+                        if (length != 0.0f)
+                            newVel.velX /= length; newVel.velY /= length;
+                    }
+                    // needs code to aim at player now that position is known
+                    break;
+
+                case Spawner::SpawnVel::AimedAwayBySource :
+                    newVel.velX = position.posX - aggroPlayerPos.posX;
+                    newVel.velY = position.posY - aggroPlayerPos.posY;
+                    {
+                        float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
+                        if (length != 0.0f)
+                            newVel.velX /= length; newVel.velY /= length;
+                    }
                     // needs code to aim at player now that position is known
                     break;
 
