@@ -22,8 +22,8 @@ struct Collider {
 
     Collider();
 
-    enum CollisionGroup : size_t {
-        NoGroup = (size_t)-1,
+    enum CollisionGroup : uint8_t {
+        NoGroup = (uint8_t)-1,
         Player = 0,
         PlayerBullet = 1,
         Enemy = 2,
@@ -33,8 +33,8 @@ struct Collider {
 
     };
 
-    enum ColliderType : size_t {
-        NoType = (size_t)-1,
+    enum ColliderType : uint8_t {
+        NoType = (uint8_t)-1,
         AABB = 0,
         Point = 1,
         Circle = 2
