@@ -19,9 +19,9 @@ bool operator!=(const Sprite& a, const Sprite& b) {
 }
 
 bool operator<(const Sprite& a, const Sprite& b) {
-    if (a.sheet != b.sheet)
-        return a.sheet < b.sheet;
-    return a.zOrder < b.zOrder;
+    if (a.zOrder != b.zOrder)
+        return a.zOrder < b.zOrder;
+    return a.sheet < b.sheet;
 }
 
 bool operator>(const Sprite& a, const Sprite& b) {
