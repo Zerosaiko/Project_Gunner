@@ -7,8 +7,8 @@
 
 struct Sprite {
     std::string spriteName;
-    int spritePos;
-    int zOrder;
+    uint32_t spritePos;
+    int16_t zOrder;
     SpriteSheet* sheet;
     static const std::string name;
     static const std::string getName();
