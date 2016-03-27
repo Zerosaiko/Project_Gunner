@@ -3,9 +3,12 @@
 
 #include "EntitySystem.h"
 #include <unordered_map>
+#include <set>
+#include <map>
 #include "displace.h"
 #include "renderable.h"
 #include "window.h"
+#include "Orientation.h"
 #include <fstream>
 
 //  sort of hacky and incomplete system, should sort by z-order (texture doesn't matter because SDL has no concept of sprite batching sadly) if entities are added or removed
@@ -47,9 +50,13 @@ private:
 
     std::deque<Component<Sprite::name, Sprite>>* spritePool;
 
-    std::unordered_map<std::string, SpriteSheet*> sprites;
+    std::deque<Component<Orientation::name, Orientation>>* orientationPool;
 
-    bool dirty;
+    std::vector<int32_t> oldZOrderings;
+
+    std::map<int32_t, std::set<uint32_t> > zOrderMap;
+
+    std::unordered_map<std::string, SpriteSheet*> sprites;
 
     Window* window;
 
