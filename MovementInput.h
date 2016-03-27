@@ -23,13 +23,15 @@ public:
 
 private:
 
-    std::unordered_map<uint32_t, std::vector<EntityManager::ComponentHandle const *>::size_type> entityIDs;
+    std::unordered_map<uint32_t, std::vector<std::pair<EntityManager::ComponentHandle const *, EntityManager::ComponentHandle const *>>::size_type> entityIDs;
 
-    std::vector<std::vector<EntityManager::ComponentHandle const *>::size_type> freeIDXs;
+    std::vector<std::vector<std::pair<EntityManager::ComponentHandle const *, EntityManager::ComponentHandle const *>>::size_type> freeIDXs;
 
-    std::vector<EntityManager::ComponentHandle const *> entities;
+    std::vector<std::pair<EntityManager::ComponentHandle const *, EntityManager::ComponentHandle const *>> entities;
 
     std::deque<Component<Velocity::name, Velocity>>* velocityPool;
+
+    std::deque<Component<PlayerCmp::name, PlayerCmp>>* playerPool;
 
 };
 
