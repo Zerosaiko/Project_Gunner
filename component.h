@@ -87,10 +87,9 @@ public:
     static std::map<EntityManager*, cmpPool> componentPools;
     static const std::string getName();
     static ComponentFactoryInternal* factory;
-    static size_t reserveCapacity;
 
     //creates a ComponentFactory for the component type
-    static void registerComponent(size_t capacity);
+    static void registerComponent();
 
     void build(std::vector<std::string> instructions);
 
@@ -214,18 +213,14 @@ template <const std::string& cmpName, typename DataType>
 typename Component<cmpName, DataType>::ComponentFactoryInternal* Component<cmpName, DataType>::factory{nullptr};
 
 template <const std::string& cmpName, typename DataType>
-void Component<cmpName, DataType>::registerComponent(size_t capacity) {
+void Component<cmpName, DataType>::registerComponent() {
     if (!factory)
         factory = new ComponentFactoryInternal();
     componentUtils::factoryMap[cmpName] = factory;
-    reserveCapacity = capacity;
 }
 
 template <const std::string& cmpName, typename DataType>
 std::map<EntityManager*, std::deque<Component<cmpName, DataType>>> Component<cmpName, DataType>::componentPools{};
-
-template <const std::string& cmpName, typename DataType>
-size_t Component<cmpName, DataType>::reserveCapacity{1};
 
 template <const std::string& cmpName, typename DataType>
 const std::string Component<cmpName, DataType>::getName(){ return cmpName; };
