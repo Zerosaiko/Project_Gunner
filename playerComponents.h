@@ -3,9 +3,17 @@
 
 #include <string>
 
-namespace PlayerCmp {
-    extern const std::string speed;
-    extern const std::string focusSpeed;
-}
+struct PlayerCmp {
+
+    static const std::string name;
+
+    float speed;
+    float focusSpeed;
+
+    float aggro;
+
+    uint8_t playerNumber;
+
+};
 
 #endif // PLAYERCOMPONENTS_H_INCLUDED
