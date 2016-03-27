@@ -29,13 +29,13 @@ Engine::~Engine() {
 
 void Engine::run() {
 
-    inputMap["Shot"] = SDL_SCANCODE_Z;
-    inputMap["Bomb"] = SDL_SCANCODE_X;
-    inputMap["Move_Up"] = SDL_SCANCODE_UP;
-    inputMap["Move_Right"] = SDL_SCANCODE_RIGHT;
-    inputMap["Move_Down"] = SDL_SCANCODE_DOWN;
-    inputMap["Move_Left"] = SDL_SCANCODE_LEFT;
-    inputMap["Focus"] = SDL_SCANCODE_LSHIFT;
+    inputMap["P1Shot"] = SDL_SCANCODE_Z;
+    inputMap["P1Bomb"] = SDL_SCANCODE_X;
+    inputMap["P1Move_Up"] = SDL_SCANCODE_UP;
+    inputMap["P1Move_Right"] = SDL_SCANCODE_RIGHT;
+    inputMap["P1Move_Down"] = SDL_SCANCODE_DOWN;
+    inputMap["P1Move_Left"] = SDL_SCANCODE_LEFT;
+    inputMap["P1Focus"] = SDL_SCANCODE_LSHIFT;
 
     if (!window) {
         using namespace std;
