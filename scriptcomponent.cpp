@@ -4,9 +4,9 @@
 const std::string Script::name{"script"};
 
 template<>
-Script buildFromString<Script>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
+Script buildFromString<Script>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
     Script s;
-    s.updateRate = buildFromString<float>(str, pos++);
+    s.updateRate = buildFromString<float>(str, pos);
     std::string::size_type tokenStart = std::string::npos;
     std::locale loc;
     uint32_t nesting = 0;
@@ -39,6 +39,7 @@ Script buildFromString<Script>(std::vector<std::string> str, std::vector<std::st
     }
     if (tokenStart != std::string::npos)
         s.tokenizedScript.emplace_back(str[pos].substr(tokenStart));
+    ++pos;
 
 
     return s;

@@ -10,9 +10,16 @@ struct PlayerCmp {
     float speed;
     float focusSpeed;
 
-    float aggro;
+    uint8_t aggro;
 
     uint8_t playerNumber;
+
+    bool alive;
+    float deathTimer;
+
+    uint8_t lives;
+
+    PlayerCmp();
 
 };
 

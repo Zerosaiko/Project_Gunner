@@ -4,10 +4,13 @@
 #include "scriptcomponent.h"
 #include "playerComponents.h"
 #include "boundsComponent.h"
+#include "animation.h"
 #include "collider.h"
 #include "Spawner.h"
 #include "delayComponent.h"
 #include "Orientation.h"
+#include "health.h"
+#include "shieldComponent.h"
 #include <cstdlib>
 #include <string>
 
@@ -30,6 +33,10 @@ void registerAllComponents() {
     Component<delayComponent::fullDelay, float>::registerComponent();
     Component<delayComponent::pauseDelay, float>::registerComponent();
     Component<Orientation::name, Orientation>::registerComponent();
+    Component<Animation::name, Animation>::registerComponent();
+    Component<Health::name, Health>::registerComponent();
+    Component<HealthRegen::name, HealthRegen>::registerComponent();
+    Component<Shield::name, Shield>::registerComponent();
 
 }
 
@@ -51,31 +58,31 @@ void deregisterAllComponents() {
 }
 
 template<>
-int32_t buildFromString<int32_t>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
-    return std::atoi(str[pos].c_str());
+int32_t buildFromString<int32_t>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+    return std::atoi(str[pos++].c_str());
 }
 
 template<>
-int64_t buildFromString<int64_t>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
-    return std::strtol(str[pos].c_str(), nullptr, 0);
+int64_t buildFromString<int64_t>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+    return std::strtol(str[pos++].c_str(), nullptr, 0);
 }
 
 template<>
-uint32_t buildFromString<uint32_t>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {;
-    return std::strtoul(str[pos].c_str(), nullptr, 0);
+uint32_t buildFromString<uint32_t>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {;
+    return std::strtoul(str[pos++].c_str(), nullptr, 0);
 }
 
 template<>
-uint64_t buildFromString<uint64_t>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
-    return std::strtoul(str[pos].c_str(), nullptr, 0);
+uint64_t buildFromString<uint64_t>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+    return std::strtoul(str[pos++].c_str(), nullptr, 0);
 }
 
 template<>
-float buildFromString<float>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
-    return std::strtof(str[pos].c_str(), nullptr);
+float buildFromString<float>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+    return std::strtof(str[pos++].c_str(), nullptr);
 }
 
 template<>
-std::string buildFromString<std::string>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
-    return str[pos];
+std::string buildFromString<std::string>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+    return str[pos++];
 }

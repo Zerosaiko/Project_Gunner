@@ -37,7 +37,7 @@ bool operator>=(const Sprite& a, const Sprite& b) {
 }
 
 template<>
-Sprite buildFromString<Sprite>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
+Sprite buildFromString<Sprite>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
     Sprite r;
     r.spriteName = str[pos++];
     r.spritePos = std::atoi(str[pos++].c_str());

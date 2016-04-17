@@ -19,7 +19,7 @@ namespace componentUtils {
 
 // utility functions to turn parsed strings into objects
 template <typename DataType>
-DataType buildFromString(std::vector<std::string> str, std::vector<std::string>::size_type pos);
+DataType buildFromString(std::vector<std::string>& str, std::vector<std::string>::size_type& pos);
 
 struct ComponentBase {
 protected:
@@ -229,7 +229,8 @@ template <const std::string& cmpName, typename DataType>
 void Component<cmpName, DataType>::build(std::vector<std::string> instructions) {
 
     if (instructions.size() >= 3) {
-            data = buildFromString<DataType>(instructions, 2);
+        std::vector<std::string>::size_type pos = 2;
+        data = buildFromString<DataType>(instructions, pos);
     }
 
 }

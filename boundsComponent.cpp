@@ -9,7 +9,7 @@ Bounds::Bounds() : xBehavior(Bounds::Behavior::none), yBehavior(Bounds::Behavior
 const std::string Bounds::name{"bounds"};
 
 template<>
-Bounds buildFromString<Bounds>(std::vector<std::string> str, std::vector<std::string>::size_type pos) {
+Bounds buildFromString<Bounds>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
     Bounds b;
     if (str[pos] == "block")
         b.xBehavior = Bounds::Behavior::block;
@@ -30,27 +30,27 @@ Bounds buildFromString<Bounds>(std::vector<std::string> str, std::vector<std::st
         b.yBehavior = Bounds::Behavior::bounce;
 
     b.minX = buildFromString<float>(str, ++pos);
-    b.minY = buildFromString<float>(str, ++pos);
-    b.maxX = buildFromString<float>(str, ++pos);
-    b.maxY = buildFromString<float>(str, ++pos);
+    b.minY = buildFromString<float>(str, pos);
+    b.maxX = buildFromString<float>(str, pos);
+    b.maxY = buildFromString<float>(str, pos);
 
-    if (++pos < str.size()) {
+    if (pos < str.size()) {
         if (str[pos] == "timeLimit") {
             b.limitType = Bounds::LimitType::time;
             b.timeLimit = buildFromString<float>(str, ++pos);
         } else if (str[pos] == "boundsLimit") {
             b.limitType = Bounds::LimitType::boundsLimit;
             b.boundsLimit.x = buildFromString<int32_t>(str, ++pos);
-            b.boundsLimit.y = buildFromString<int32_t>(str, ++pos);
+            b.boundsLimit.y = buildFromString<int32_t>(str, pos);
         }
     }
 
-    if (++pos < str.size()) {
+    if (pos < str.size()) {
         if (str[pos] == "destroy") {
             b.postLimit = Bounds::PostLimitBehavior::destroy;
         } else if (str[pos] == "change") {
             b.postLimit = Bounds::PostLimitBehavior::change;
-            while (++pos < str.size()) {
+            while (pos < str.size()) {
                 b.changeBounds.emplace_back(str[pos]);
             }
         }

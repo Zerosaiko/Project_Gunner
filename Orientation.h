@@ -8,7 +8,7 @@ struct Orientation {
 
     Orientation();
 
-    static std::string name;
+    static const std::string name;
 
     float angle, scaleX, scaleY;
     bool flipX, flipY;
