@@ -118,8 +118,10 @@ void RenderSystem::render(float lerpT) {
                 const auto& entity = manager->getEntity(id);
                 const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
                 SDL_Rect dstRect = srcRect;
+
                 dstRect.x = (int32_t)( position.pastPosX + (position.posX - position.pastPosX) * lerpT) - srcRect.w / 2;
                 dstRect.y = (int32_t)( position.pastPosY + (position.posY - position.pastPosY) * lerpT) - srcRect.h / 2;
+
                 /*
                 std::cout << (position.pastPosX - srcRect.w / 2) << '\t'
                 << (position.pastPosY - srcRect.h / 2) << '\n'
@@ -173,10 +175,11 @@ SpriteSheet* const RenderSystem::loadSprite(std::string spriteName) {
 
         std::vector<std::string> finalData{{cWidth, cHeight, cSepW, cSepH}};
 
-        int32_t cellWidth = buildFromString<int32_t>(finalData, 0);
-        int32_t cellHeight = buildFromString<int32_t>(finalData, 1);
-        int32_t cellSepWidth = buildFromString<int32_t>(finalData, 2);
-        int32_t cellSepHeight = buildFromString<int32_t>(finalData, 3);
+        std::vector<std::string>::size_type pos = 0;
+        int32_t cellWidth = buildFromString<int32_t>(finalData, pos);
+        int32_t cellHeight = buildFromString<int32_t>(finalData, pos);
+        int32_t cellSepWidth = buildFromString<int32_t>(finalData, pos);
+        int32_t cellSepHeight = buildFromString<int32_t>(finalData, pos);
         metadata.close();
         std::string fileName = spriteName + ".png";
         SDL_Surface* surf = IMG_Load(fileName.c_str());
