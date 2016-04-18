@@ -1,6 +1,7 @@
 #include "CollisionSystem.h"
 #include "EntityManager.h"
 #include "SDL.h"
+#include "Message.h"
 
 CollisionSystem::CollisionSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority}, collisionWidth(360), collisionHeight(480),
         gridWidth(collisionWidth / spatialCollisionGroups.size()), gridHeight(collisionHeight / spatialCollisionGroups[0].size()) {
@@ -228,22 +229,23 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
     auto& pickupColliders = collisionGroups[Collider::CollisionGroup::Pickup];
 
     for (auto playerIT = playerColliders.begin(); playerIT != playerColliders.end(); ++playerIT) {
-        uint32_t id = *playerIT;
-        Collider& playerCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-        Position& playerPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+        uint32_t pid = *playerIT;
+        Collider& playerCollider = (*colliderPool)[entities[entityIDXs[pid]].first->index].data;
+        Position& playerPosition = (*positionPool)[entities[entityIDXs[pid]].second->index].data;
         playerCollider.position.x = playerPosition.posX;
         playerCollider.position.y = playerPosition.posY;
 
-        auto& spatialIndex = spatialIndices[idxToID[id]];
+        auto& spatialIndex = spatialIndices[entityIDXs[pid]];
 
         for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-            uint32_t id = *enemyIT;
-            Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-            Position& enemyPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+            uint32_t eid = *enemyIT;
+            Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
+            Position& enemyPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
             enemyCollider.position.x = enemyPosition.posX;
             enemyCollider.position.y = enemyPosition.posY;
             if (collisionTable[playerCollider.colliderType][enemyCollider.colliderType](playerCollider, enemyCollider)) {
-                // probably do something to kill the player unless there's some kind of shield
+                PlayerHit message{eid, pid};
+                manager->sendMessage(message);
             }
         }
 
@@ -251,26 +253,28 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
             for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
                 auto& enemyColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Enemy];
                 for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-                    uint32_t id = *enemyIT;
-                    Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-                    Position& enemyPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+                    uint32_t eid = *enemyIT;
+                    Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
+                    Position& enemyPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
                     enemyCollider.position.x = enemyPosition.posX;
                     enemyCollider.position.y = enemyPosition.posY;
                     if (collisionTable[playerCollider.colliderType][enemyCollider.colliderType](playerCollider, enemyCollider)) {
-                        // probably do something to kill the player unless there's some kind of shield
+                        PlayerHit message{eid, pid};
+                        manager->sendMessage(message);
                     }
                 }
             }
         }
 
         for (auto enemyBulletIT = enemyBulletColliders.begin(); enemyBulletIT != enemyBulletColliders.end(); ++enemyBulletIT) {
-            uint32_t id = *enemyBulletIT;
-            Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-            Position& enemyBulletPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+            uint32_t eid = *enemyBulletIT;
+            Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
+            Position& enemyBulletPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
             enemyBulletCollider.position.x = enemyBulletPosition.posX;
             enemyBulletCollider.position.y = enemyBulletPosition.posY;
             if (collisionTable[playerCollider.colliderType][enemyBulletCollider.colliderType](playerCollider, enemyBulletCollider)) {
-                        // probably do something to kill the player unless there's some kind of shield
+                PlayerHit message{eid, pid};
+                manager->sendMessage(message);
             }
         }
 
@@ -278,22 +282,23 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
             for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
                 auto& enemyBulletColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::EnemyBullet];
                 for (auto enemyIT = enemyBulletColliders.begin(); enemyIT != enemyBulletColliders.end(); ++enemyIT) {
-                    uint32_t id = *enemyIT;
-                    Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-                    Position& enemyBulletPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+                    uint32_t eid = *enemyIT;
+                    Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
+                    Position& enemyBulletPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
                     enemyBulletCollider.position.x = enemyBulletPosition.posX;
                     enemyBulletCollider.position.y = enemyBulletPosition.posY;
                     if (collisionTable[playerCollider.colliderType][enemyBulletCollider.colliderType](playerCollider, enemyBulletCollider)) {
-                        // probably do something to kill the player unless there's some kind of shield
+                        PlayerHit message{eid, pid};
+                        manager->sendMessage(message);
                     }
                 }
             }
         }
 
         for (auto pickupIT = pickupColliders.begin(); pickupIT != pickupColliders.end(); ++pickupIT) {
-            uint32_t id = *pickupIT;
-            Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-            Position& pickupPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+            uint32_t pkid = *pickupIT;
+            Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[pkid]].first->index].data;
+            Position& pickupPosition = (*positionPool)[entities[entityIDXs[pkid]].second->index].data;
             pickupCollider.position.x = pickupPosition.posX;
             pickupCollider.position.y = pickupPosition.posY;
             if (collisionTable[playerCollider.colliderType][pickupCollider.colliderType](playerCollider, pickupCollider)) {
@@ -305,9 +310,9 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
             for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
                 auto& pickupColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Pickup];
                 for (auto pickupIT = pickupColliders.begin(); pickupIT != pickupColliders.end(); ++pickupIT) {
-                    uint32_t id = *pickupIT;
-                    Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-                    Position& pickupPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+                    uint32_t pkid = *pickupIT;
+                    Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[pkid]].first->index].data;
+                    Position& pickupPosition = (*positionPool)[entities[entityIDXs[pkid]].second->index].data;
                     pickupCollider.position.x = pickupPosition.posX;
                     pickupCollider.position.y = pickupPosition.posY;
                     if (collisionTable[playerCollider.colliderType][pickupCollider.colliderType](playerCollider, pickupCollider)) {
@@ -337,18 +342,18 @@ void CollisionSystem::checkPlayerBulletCollisions(std::unordered_set<uint32_t>& 
     auto& enemyColliders = collisionGroups[Collider::CollisionGroup::Enemy];
 
     for (auto playerBulletIT = playerBulletColliders.begin(); playerBulletIT != playerBulletColliders.end(); ++playerBulletIT) {
-        uint32_t id = *playerBulletIT;
-        Collider& playerBulletCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-        Position& playerBulletPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+        uint32_t pid = *playerBulletIT;
+        Collider& playerBulletCollider = (*colliderPool)[entities[entityIDXs[pid]].first->index].data;
+        Position& playerBulletPosition = (*positionPool)[entities[entityIDXs[pid]].second->index].data;
         playerBulletCollider.position.x = playerBulletPosition.posX;
         playerBulletCollider.position.y = playerBulletPosition.posY;
 
-        auto& spatialIndex = spatialIndices[idxToID[id]];
+        auto& spatialIndex = spatialIndices[entityIDXs[pid]];
 
         for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-            uint32_t id = *enemyIT;
-            Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-            Position& enemyPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+            uint32_t eid = *enemyIT;
+            Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
+            Position& enemyPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
             enemyCollider.position.x = enemyPosition.posX;
             enemyCollider.position.y = enemyPosition.posY;
             if (collisionTable[playerBulletCollider.colliderType][enemyCollider.colliderType](playerBulletCollider, enemyCollider)) {
@@ -360,9 +365,9 @@ void CollisionSystem::checkPlayerBulletCollisions(std::unordered_set<uint32_t>& 
             for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
                 auto& enemyColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Enemy];
                 for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-                    uint32_t id = *enemyIT;
-                    Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[id]].first->index].data;
-                    Position& enemyPosition = (*positionPool)[entities[entityIDXs[id]].second->index].data;
+                    uint32_t eid = *enemyIT;
+                    Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
+                    Position& enemyPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
                     enemyCollider.position.x = enemyPosition.posX;
                     enemyCollider.position.y = enemyPosition.posY;
                     if (collisionTable[playerBulletCollider.colliderType][enemyCollider.colliderType](playerBulletCollider, enemyCollider)) {
