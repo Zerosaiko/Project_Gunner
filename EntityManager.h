@@ -5,10 +5,12 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <deque>
+#include <functional>
 #include "component.h"
 #include "TagManager.h"
 #include "GroupManager.h"
 #include "EntitySystem.h"
+#include "Message.h"
 
 class EntitySystem;
 
@@ -82,6 +84,12 @@ public:
 
     void forceRefresh(uint32_t id);
 
+    void registerWithMessage(Message::Type, std::function<bool(Message&)>&, uint16_t priority);
+
+    void deregisterFromMessage(Message::Type, std::function<bool(Message&)>&, uint16_t priority);
+
+    void sendMessage(Message& message);
+
 protected:
 
 private:
@@ -104,7 +112,10 @@ private:
     std::vector<uint32_t> freeIDs;
     //  recycles component indexes from destroyed components
     std::map<std::string, std::deque<std::size_t>> freeComponents;
+
     std::deque<EntitySystem*> systems;
+
+    std::map<Message::Type, std::map<uint16_t, std::vector<std::function<bool(Message&)>* > > > messageMap;
 
 };
 

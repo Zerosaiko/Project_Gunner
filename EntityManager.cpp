@@ -29,7 +29,7 @@ void EntityManager::update(float dt) {
         system->process(dt);
     }
     auto ed = SDL_GetPerformanceCounter();
-    std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
+    //std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
     beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToRefresh) {
         if (toRefresh[entity] == true) {
@@ -273,6 +273,25 @@ void EntityManager::forceRefresh(uint32_t id) {
     entitiesToRefresh.insert(id);
 }
 
+void EntityManager::registerWithMessage(Message::Type type, std::function<bool(Message&)>& listener, uint16_t priority) {
+    messageMap[type][priority].emplace_back(&listener);
+}
+
+void EntityManager::deregisterFromMessage(Message::Type type, std::function<bool(Message&)>& listener, uint16_t priority) {
+    auto& mVec = messageMap[type][priority];
+    mVec.erase(std::remove(mVec.begin(), mVec.end(), &listener), mVec.end());
+}
+
+void EntityManager::sendMessage(Message& message) {
+    auto& listenerPriorities = messageMap[message.type];
+    for (auto& listeners : listenerPriorities) {
+        for (auto& listener : listeners.second) {
+            if (!listener->operator()(message)) return;
+        }
+    }
+
+}
+
 EntityManager::ComponentHandle::ComponentHandle() {
     active = false;
     dirty = false;
@@ -287,3 +306,4 @@ void EntityManager::ComponentHandle::setHandle(bool act, bool dir, std::size_t i
     index = idx;
 
 }
+
