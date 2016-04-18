@@ -2,9 +2,9 @@
 #include <iostream>
 using namespace std;
 
-Window::Window() : window(nullptr), renderer(nullptr), width(640), height(480) {
+Window::Window() : window(nullptr), renderer(nullptr), width(800), height(600) {
     window = SDL_CreateWindow("Unnamed",
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (window)
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 }
