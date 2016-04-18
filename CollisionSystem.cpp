@@ -228,8 +228,7 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
     auto& enemyBulletColliders = collisionGroups[Collider::CollisionGroup::EnemyBullet];
     auto& pickupColliders = collisionGroups[Collider::CollisionGroup::Pickup];
 
-    for (auto playerIT = playerColliders.begin(); playerIT != playerColliders.end(); ++playerIT) {
-        uint32_t pid = *playerIT;
+    for (auto pid : playerColliders) {
         Collider& playerCollider = (*colliderPool)[entities[entityIDXs[pid]].first->index].data;
         Position& playerPosition = (*positionPool)[entities[entityIDXs[pid]].second->index].data;
         playerCollider.position.x = playerPosition.posX;
@@ -237,8 +236,7 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
 
         auto& spatialIndex = spatialIndices[entityIDXs[pid]];
 
-        for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-            uint32_t eid = *enemyIT;
+        for (auto eid : enemyColliders) {
             Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
             Position& enemyPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
             enemyCollider.position.x = enemyPosition.posX;
@@ -252,8 +250,7 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
         for (size_t i = spatialIndex.minX; i <= spatialIndex.maxX; ++i) {
             for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
                 auto& enemyColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Enemy];
-                for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-                    uint32_t eid = *enemyIT;
+                for (auto eid : enemyColliders) {
                     Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
                     Position& enemyPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
                     enemyCollider.position.x = enemyPosition.posX;
@@ -266,8 +263,7 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
             }
         }
 
-        for (auto enemyBulletIT = enemyBulletColliders.begin(); enemyBulletIT != enemyBulletColliders.end(); ++enemyBulletIT) {
-            uint32_t eid = *enemyBulletIT;
+        for (auto eid : enemyBulletColliders) {
             Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
             Position& enemyBulletPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
             enemyBulletCollider.position.x = enemyBulletPosition.posX;
@@ -281,8 +277,8 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
         for (size_t i = spatialIndex.minX; i <= spatialIndex.maxX; ++i) {
             for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
                 auto& enemyBulletColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::EnemyBullet];
-                for (auto enemyIT = enemyBulletColliders.begin(); enemyIT != enemyBulletColliders.end(); ++enemyIT) {
-                    uint32_t eid = *enemyIT;
+
+                for (auto eid : enemyBulletColliders) {
                     Collider& enemyBulletCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
                     Position& enemyBulletPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
                     enemyBulletCollider.position.x = enemyBulletPosition.posX;
@@ -295,8 +291,7 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
             }
         }
 
-        for (auto pickupIT = pickupColliders.begin(); pickupIT != pickupColliders.end(); ++pickupIT) {
-            uint32_t pkid = *pickupIT;
+        for (auto pkid : pickupColliders) {
             Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[pkid]].first->index].data;
             Position& pickupPosition = (*positionPool)[entities[entityIDXs[pkid]].second->index].data;
             pickupCollider.position.x = pickupPosition.posX;
@@ -309,8 +304,7 @@ void CollisionSystem::checkPlayerCollisions(std::unordered_set<uint32_t>& player
         for (size_t i = spatialIndex.minX; i <= spatialIndex.maxX; ++i) {
             for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
                 auto& pickupColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Pickup];
-                for (auto pickupIT = pickupColliders.begin(); pickupIT != pickupColliders.end(); ++pickupIT) {
-                    uint32_t pkid = *pickupIT;
+                for (auto pkid : pickupColliders) {
                     Collider& pickupCollider = (*colliderPool)[entities[entityIDXs[pkid]].first->index].data;
                     Position& pickupPosition = (*positionPool)[entities[entityIDXs[pkid]].second->index].data;
                     pickupCollider.position.x = pickupPosition.posX;
@@ -341,8 +335,7 @@ void CollisionSystem::checkPlayerBulletCollisions(std::unordered_set<uint32_t>& 
 
     auto& enemyColliders = collisionGroups[Collider::CollisionGroup::Enemy];
 
-    for (auto playerBulletIT = playerBulletColliders.begin(); playerBulletIT != playerBulletColliders.end(); ++playerBulletIT) {
-        uint32_t pid = *playerBulletIT;
+    for (auto pid : playerBulletColliders) {
         Collider& playerBulletCollider = (*colliderPool)[entities[entityIDXs[pid]].first->index].data;
         Position& playerBulletPosition = (*positionPool)[entities[entityIDXs[pid]].second->index].data;
         playerBulletCollider.position.x = playerBulletPosition.posX;
@@ -350,8 +343,7 @@ void CollisionSystem::checkPlayerBulletCollisions(std::unordered_set<uint32_t>& 
 
         auto& spatialIndex = spatialIndices[entityIDXs[pid]];
 
-        for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-            uint32_t eid = *enemyIT;
+        for (auto eid : enemyColliders) {
             Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
             Position& enemyPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
             enemyCollider.position.x = enemyPosition.posX;
@@ -364,8 +356,7 @@ void CollisionSystem::checkPlayerBulletCollisions(std::unordered_set<uint32_t>& 
         for (size_t i = spatialIndex.minX; i <= spatialIndex.maxX; ++i) {
             for (size_t j = spatialIndex.minY; j <= spatialIndex.maxY; ++j) {
                 auto& enemyColliders = spatialCollisionGroups[i][j][Collider::CollisionGroup::Enemy];
-                for (auto enemyIT = enemyColliders.begin(); enemyIT != enemyColliders.end(); ++enemyIT) {
-                    uint32_t eid = *enemyIT;
+                for (auto eid : enemyColliders) {
                     Collider& enemyCollider = (*colliderPool)[entities[entityIDXs[eid]].first->index].data;
                     Position& enemyPosition = (*positionPool)[entities[entityIDXs[eid]].second->index].data;
                     enemyCollider.position.x = enemyPosition.posX;
