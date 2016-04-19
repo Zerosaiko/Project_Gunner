@@ -2,6 +2,7 @@
 #define WINDOW_H_INCLUDED
 
 #include "SDL.h"
+#include "SDL_gpu.h"
 
 #include <cstdint>
 
@@ -10,26 +11,28 @@ public:
     Window();
     ~Window();
 
-    SDL_Renderer* const getRenderer() const;
+    GPU_Target* const getTarget() const;
 
-    void setWidth(int32_t w);
+    void setWidth(uint16_t w);
 
-    void setHeight(int32_t h);
+    void setHeight(uint16_t h);
 
-    int32_t getWidth();
+    uint16_t getWidth();
 
-    int32_t getHeight();
+    uint16_t getHeight();
 
     explicit operator bool() const;
 
 private:
 
-    SDL_Window* window;
-    SDL_Renderer* renderer;
+    //SDL_Window* window;
+    //SDL_Renderer* renderer;
 
-    int32_t width;
+    GPU_Target* screen;
 
-    int32_t height;
+    uint16_t width;
+
+    uint16_t height;
 };
 
 

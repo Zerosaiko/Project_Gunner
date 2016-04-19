@@ -1,5 +1,4 @@
 #include "playState.h"
-#include "SDL_image.h"
 #include "SDL.h"
 #include "scriptcomponent.h"
 #include <iostream>

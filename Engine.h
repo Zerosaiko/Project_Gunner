@@ -29,7 +29,7 @@ public:
 
 private:
     std::vector<GameState*> stateStack;
-    Window* window;
+    Window window;
     bool running;
     decltype(SDL_GetPerformanceCounter()) beginTime;
     float currentTime;

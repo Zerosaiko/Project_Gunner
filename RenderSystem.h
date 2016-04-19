@@ -2,6 +2,7 @@
 #define RENDERSYSTEM_H_INCLUDED
 
 #include "EntitySystem.h"
+#include "SDL_gpu.h"
 #include <unordered_map>
 #include <set>
 #include <map>
@@ -61,6 +62,9 @@ private:
     Window* window;
 
     SDL_Texture* renderTarget;
+    //SDL_Texture* renderTarget;
+
+    GPU_Image* targetImage;
 
 };
 

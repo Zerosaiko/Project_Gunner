@@ -1,8 +1,8 @@
 #include "RenderSystem.h"
-#include "SDL_image.h"
 
 RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Window* window) : EntitySystem{manager, priority}, window(window) {
-    renderTarget = SDL_CreateTexture(this->window->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 360, 480);
+    targetImage = GPU_CreateImage(360, 480, GPU_FORMAT_RGBA);
+    GPU_LoadTarget(targetImage);
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     spritePool = manager->getComponentPool<Component<Sprite::name, Sprite>>();
     orientationPool = manager->getComponentPool<Component<Orientation::name, Orientation>>();
@@ -15,7 +15,8 @@ RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Windo
 
 RenderSystem::~RenderSystem() {
     for( auto sprite = sprites.begin(); sprite != sprites.end(); delete sprite->second, sprite = sprites.erase(sprite));
-    SDL_DestroyTexture(renderTarget);
+    GPU_FreeTarget(targetImage->target);
+    GPU_FreeImage(targetImage);
 }
 
 void RenderSystem::initialize() {}
@@ -100,14 +101,7 @@ void RenderSystem::render(float lerpT) {
 
     auto startT = SDL_GetPerformanceCounter();
 
-    SDL_SetRenderTarget(window->getRenderer(), renderTarget);
-
-    SDL_Rect targetSrc{0, 0, 360, 480};
-    SDL_Rect targetDst{window->getWidth() / 2 - window->getHeight() / 3, 0, window->getHeight() * 2 / 3, window->getHeight()};
-
-    SDL_SetRenderDrawColor(window->getRenderer(), 64,96, 64, 255);
-
-    SDL_RenderClear(window->getRenderer());
+    GPU_ClearRGB(targetImage->target, 64, 96, 64);
 
     for(const auto& layer : zOrderMap) {
         for (const auto& id : layer.second) {
@@ -116,44 +110,30 @@ void RenderSystem::render(float lerpT) {
             Sprite& render = (*spritePool)[entity.second->index].data;
             if (*render.sheet) {
                 const auto& entity = manager->getEntity(id);
-                const SDL_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
-                SDL_Rect dstRect = srcRect;
+                const GPU_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
+                GPU_Rect dstRect = srcRect;
 
-                dstRect.x = (int32_t)( position.pastPosX + (position.posX - position.pastPosX) * lerpT) - srcRect.w / 2;
-                dstRect.y = (int32_t)( position.pastPosY + (position.posY - position.pastPosY) * lerpT) - srcRect.h / 2;
+                dstRect.x = (int32_t)( position.pastPosX + (position.posX - position.pastPosX) * lerpT);
+                dstRect.y = (int32_t)( position.pastPosY + (position.posY - position.pastPosY) * lerpT);
 
-                /*
-                std::cout << (position.pastPosX - srcRect.w / 2) << '\t'
-                << (position.pastPosY - srcRect.h / 2) << '\n'
-                << (position.posX - srcRect.w / 2) << '\t' << (position.posY - srcRect.h / 2) << '\n';
-                std::cout << "Render pos: " << dstRect.x << '\t' << dstRect.y << '\n';
-                */
                 auto orientationComponent = entity->find("orientation");
                 if (orientationComponent == entity->end() || !orientationComponent->second.active) {
-                    SDL_RenderCopy(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect);
+                    GPU_Blit(render.sheet->getImage(), render.sheet->getSprite(render.spritePos), targetImage->target, dstRect.x, dstRect.y);
                 } else {
                     Orientation& orientation = orientationPool->operator[](orientationComponent->second.index).data;
-                    SDL_Rect origDst = dstRect;
-                    dstRect.w *= orientation.scaleX; dstRect.h *= orientation.scaleY;
-                    dstRect.x -= (dstRect.w - origDst.w) / 2; dstRect.y -= (dstRect.h - origDst.h) / 2;
-                    SDL_Point* origin = &orientation.origin;
-                    if (!orientation.hasOrigin) {
-                        origin = nullptr;
-                    }
-                    SDL_RendererFlip flip = SDL_FLIP_NONE;
-                    if (orientation.flipX) flip = SDL_RendererFlip(SDL_FLIP_HORIZONTAL);
-                    if (orientation.flipY) flip = SDL_RendererFlip(flip | SDL_FLIP_VERTICAL);
-                    SDL_RenderCopyEx(window->getRenderer(), render.sheet->getTexture(), &srcRect, &dstRect,
-                        orientation.angle, origin, SDL_RendererFlip(flip));
+                    GPU_PushMatrix();
+                    GPU_Translate(dstRect.x, dstRect.y, 0);
+                    GPU_Rotate(-orientation.angle, 0, 0, 1);
+                    GPU_Scale(orientation.scaleX* (1 - 2 * orientation.flipX), orientation.scaleY * ( 1 - 2 * orientation.flipY), 1);
+                    GPU_Blit(render.sheet->getImage(), render.sheet->getSprite(render.spritePos), targetImage->target, 0, 0);
+                    GPU_PopMatrix();
                 }
             }
         }
     }
 
-    SDL_SetRenderTarget(window->getRenderer(), nullptr);
-
-    SDL_RenderCopy(window->getRenderer(), renderTarget, &targetSrc, &targetDst);
-
+    GPU_Rect targetDst{window->getWidth() / 2 - window->getHeight() / 3, 0, window->getHeight() * 2 / 3, window->getHeight()};
+    GPU_BlitRectX(targetImage, nullptr, window->getTarget(), &targetDst, 0, 0, 0, GPU_FLIP_NONE);
     auto endT = SDL_GetPerformanceCounter();
 
     //std::cout << "R-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
@@ -182,9 +162,8 @@ SpriteSheet* const RenderSystem::loadSprite(std::string spriteName) {
         int32_t cellSepHeight = buildFromString<int32_t>(finalData, pos);
         metadata.close();
         std::string fileName = spriteName + ".png";
-        SDL_Surface* surf = IMG_Load(fileName.c_str());
-        SpriteSheet* sheet = new SpriteSheet(surf, cellWidth, cellHeight, cellSepWidth, cellSepHeight, window);
-        sprites[spriteName] = sheet;
+        GPU_Image* img = GPU_LoadImage(fileName.c_str());
+        sprites[spriteName] = new SpriteSheet(img, cellWidth, cellHeight, cellSepWidth, cellSepHeight);
     }
     return sprites[spriteName];
 }

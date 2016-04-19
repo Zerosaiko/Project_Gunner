@@ -1,18 +1,15 @@
 #include "engine.h"
 #include "window.h"
 #include "SDL.h"
-#include "SDL_image.h"
 #include "playState.h"
 #include "InputMap.h"
 #include "component.h"
 #include <iostream>
+#include "SDL_gpu.h"
 
-Engine::Engine() : running(true),
+Engine::Engine() : window(), running(true),
     beginTime(SDL_GetPerformanceCounter()), currentTime(0.0f), currentFPS(60.0f) {
 
-    SDL_Init(SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_VIDEO);
-    IMG_Init(IMG_INIT_PNG);
-    window = new Window();
     registerAllComponents();
 }
 
@@ -22,9 +19,6 @@ Engine::~Engine() {
     while(!stateStack.empty()) {
         popState();
     }
-    delete window;
-    SDL_Quit();
-    IMG_Quit();
 }
 
 void Engine::run() {
@@ -43,9 +37,7 @@ void Engine::run() {
         running = false;
     }
 
-    SDL_SetRenderDrawBlendMode(window->getRenderer(), SDL_BLENDMODE_BLEND);
-
-    pushState(new PlayState(window));
+    pushState(new PlayState(&window));
 
     beginTime = SDL_GetPerformanceCounter();
     currentTime = 1.0f / currentFPS;
@@ -57,8 +49,9 @@ void Engine::run() {
             }
             if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED) {
                 if (currentState) {
-                    window->setWidth(e.window.data1);
-                    window->setHeight(e.window.data2);
+                    window.setWidth(e.window.data1);
+                    window.setHeight(e.window.data2);
+                    GPU_SetWindowResolution(window.getWidth(), window.getHeight());
                 }
 
             }
@@ -73,15 +66,14 @@ void Engine::run() {
 
             currentState->handleInput();
             // capped at 5 updates maximum before rendering
-            if (currentTime > 4.0f / 60.0f) {currentTime = 4.0f / 60.0f;}
+            if (currentTime > 4.0f / currentFPS) {currentTime = 4.0f / currentFPS;}
             for(; currentTime >= 1.0f / currentFPS; currentTime -= 1.0f / currentFPS) {
                 currentState->update(1.0f / currentFPS);
             }
 
-            SDL_SetRenderDrawColor(window->getRenderer(), 0, 0, 0, 255);
-            SDL_RenderClear(window->getRenderer());
+            GPU_Clear(window.getTarget());
             currentState->render(currentTime * currentFPS);
-            SDL_RenderPresent(window->getRenderer());
+            GPU_Flip(window.getTarget());
         } else {
             currentTime = 0;
         }
