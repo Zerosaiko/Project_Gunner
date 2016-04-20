@@ -2,7 +2,7 @@
 #include "displace.h"
 #include "Spawner.h"
 #include "collider.h"
-#include "Orientation.h"
+#include "Transform.h"
 #include "renderable.h"
 #include "delayComponent.h"
 #include <ctime>
@@ -104,10 +104,10 @@ bool PlayerSystem::playerHit(Message& message) {//
                 explSprite.zOrder = 35;
                 explSprite.spritePos = 0;
 
-                Orientation orient;
+                Transform orient;
 
                 std::uniform_real_distribution<float> angleDist{0.0f, 359.999f};
-                std::uniform_real_distribution<float> scaleDist{0.7f, 0.8f};
+                std::uniform_real_distribution<float> scaleDist{0.6f, 0.8f};
                 std::uniform_int_distribution<int32_t> coordDist{-6, 6};
                 std::uniform_int_distribution<int16_t> zOrderDist{30, 40};
                 orient.angle = angleDist(randEngine);
@@ -123,7 +123,7 @@ bool PlayerSystem::playerHit(Message& message) {//
                     manager->addComponent(explosionAnim, explId);
                     manager->addComponent<Component<Sprite::name, Sprite>>(explSprite, explId);
                     manager->addComponent<Component<Position::name, Position>>(positionPool->operator[](posCmp->second.index), explId);
-                    manager->addComponent<Component<Orientation::name, Orientation>>(orient, explId);
+                    manager->addComponent<Component<Transform::name, Transform>>(orient, explId);
                     manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
                 }
 
@@ -141,11 +141,11 @@ bool PlayerSystem::playerHit(Message& message) {//
                     cpyPos.pastPosX = cpyPos.posX;
                     cpyPos.pastPosY = cpyPos.posY;
                     manager->addComponent<Component<Position::name, Position>>(cpyPos, explId);
-                    Orientation orient;
+                    Transform orient;
                     orient.angle = angleDist(randEngine);
                     orient.scaleX = scaleDist(randEngine);
                     orient.scaleY = scaleDist(randEngine);
-                    manager->addComponent<Component<Orientation::name, Orientation>>(orient, explId);
+                    manager->addComponent<Component<Transform::name, Transform>>(orient, explId);
                     manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
 
                 }

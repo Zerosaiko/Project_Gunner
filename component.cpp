@@ -8,7 +8,7 @@
 #include "collider.h"
 #include "Spawner.h"
 #include "delayComponent.h"
-#include "Orientation.h"
+#include "Transform.h"
 #include "health.h"
 #include "shieldComponent.h"
 #include <cstdlib>
@@ -32,7 +32,7 @@ void registerAllComponents() {
     Component<Spawner::name, Spawner>::registerComponent();
     Component<delayComponent::fullDelay, float>::registerComponent();
     Component<delayComponent::pauseDelay, float>::registerComponent();
-    Component<Orientation::name, Orientation>::registerComponent();
+    Component<Transform::name, Transform>::registerComponent();
     Component<Animation::name, Animation>::registerComponent();
     Component<Health::name, Health>::registerComponent();
     Component<HealthRegen::name, HealthRegen>::registerComponent();

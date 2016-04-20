@@ -9,7 +9,7 @@
 #include "displace.h"
 #include "renderable.h"
 #include "window.h"
-#include "Orientation.h"
+#include "Transform.h"
 #include <fstream>
 
 //  sort of hacky and incomplete system, should sort by z-order (texture doesn't matter because SDL has no concept of sprite batching sadly) if entities are added or removed
@@ -51,7 +51,7 @@ private:
 
     std::deque<Component<Sprite::name, Sprite>>* spritePool;
 
-    std::deque<Component<Orientation::name, Orientation>>* orientationPool;
+    std::deque<Component<Transform::name, Transform>>* transformPool;
 
     std::vector<int32_t> oldZOrderings;
 
@@ -61,7 +61,6 @@ private:
 
     Window* window;
 
-    SDL_Texture* renderTarget;
     //SDL_Texture* renderTarget;
 
     GPU_Image* targetImage;

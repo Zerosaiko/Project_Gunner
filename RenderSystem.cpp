@@ -5,7 +5,7 @@ RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Windo
     GPU_LoadTarget(targetImage);
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     spritePool = manager->getComponentPool<Component<Sprite::name, Sprite>>();
-    orientationPool = manager->getComponentPool<Component<Orientation::name, Orientation>>();
+    transformPool = manager->getComponentPool<Component<Transform::name, Transform>>();
     entityIDXs.reserve(1 << 16);
     hasEntity.reserve(1 << 16);
     idxToID.reserve(1 << 16);
@@ -116,15 +116,15 @@ void RenderSystem::render(float lerpT) {
                 dstRect.x = (int32_t)( position.pastPosX + (position.posX - position.pastPosX) * lerpT);
                 dstRect.y = (int32_t)( position.pastPosY + (position.posY - position.pastPosY) * lerpT);
 
-                auto orientationComponent = entity->find("orientation");
-                if (orientationComponent == entity->end() || !orientationComponent->second.active) {
+                auto transformComponent = entity->find("transform");
+                if (transformComponent == entity->end() || !transformComponent->second.active) {
                     GPU_Blit(render.sheet->getImage(), render.sheet->getSprite(render.spritePos), targetImage->target, dstRect.x, dstRect.y);
                 } else {
-                    Orientation& orientation = orientationPool->operator[](orientationComponent->second.index).data;
+                    Transform& transform = transformPool->operator[](transformComponent->second.index).data;
                     GPU_PushMatrix();
                     GPU_Translate(dstRect.x, dstRect.y, 0);
-                    GPU_Rotate(-orientation.angle, 0, 0, 1);
-                    GPU_Scale(orientation.scaleX* (1 - 2 * orientation.flipX), orientation.scaleY * ( 1 - 2 * orientation.flipY), 1);
+                    GPU_Rotate(-transform.angle, 0, 0, 1);
+                    GPU_Scale(transform.scaleX* (1 - 2 * transform.flipX), transform.scaleY * ( 1 - 2 * transform.flipY), 1);
                     GPU_Blit(render.sheet->getImage(), render.sheet->getSprite(render.spritePos), targetImage->target, 0, 0);
                     GPU_PopMatrix();
                 }
