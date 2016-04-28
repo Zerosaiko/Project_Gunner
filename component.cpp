@@ -32,7 +32,8 @@ void registerAllComponents() {
     Component<Spawner::name, Spawner>::registerComponent();
     Component<delayComponent::fullDelay, float>::registerComponent();
     Component<delayComponent::pauseDelay, float>::registerComponent();
-    Component<Transform::name, Transform>::registerComponent();
+    Component<cmpName::worldTF, WorldTransform>::registerComponent();
+    Component<cmpName::localTF, LocalTransform>::registerComponent();
     Component<Animation::name, Animation>::registerComponent();
     Component<Health::name, Health>::registerComponent();
     Component<HealthRegen::name, HealthRegen>::registerComponent();

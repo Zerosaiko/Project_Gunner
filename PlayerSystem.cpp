@@ -5,6 +5,7 @@
 #include "Transform.h"
 #include "renderable.h"
 #include "delayComponent.h"
+#include "lifeTimer.h"
 #include <ctime>
 
 PlayerSystem::PlayerSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority},
@@ -92,9 +93,9 @@ bool PlayerSystem::playerHit(Message& message) {//
             std::cout << "Player hit\tHitter: " << data.col1ID << "\tPlayer: " << data.col2ID << '\n';
             manager->destroyEntity(data.col1ID);
 
-            std::string explosionAnim{"component:animation 7 \
-            2 275 3 250 4 250\
-            5 250 6 250 7 250 8 1"};
+            std::string explosionAnim{"component:animation 8 1 160 \
+            2 180 3 180 4 200\
+            5 280 6 400 7 550 8 1"};
             auto positionPool = manager->getComponentPool<Component<Position::name, Position>>();
             const auto& fullEntity = manager->getEntity(data.col2ID);
             auto posCmp = fullEntity->find("position");
@@ -104,33 +105,33 @@ bool PlayerSystem::playerHit(Message& message) {//
                 explSprite.zOrder = 35;
                 explSprite.spritePos = 0;
 
-                Transform orient;
+                WorldTransform orient;
 
                 std::uniform_real_distribution<float> angleDist{0.0f, 359.999f};
                 std::uniform_real_distribution<float> scaleDist{0.6f, 0.8f};
                 std::uniform_int_distribution<int32_t> coordDist{-6, 6};
                 std::uniform_int_distribution<int16_t> zOrderDist{30, 40};
-                orient.angle = angleDist(randEngine);
-                explSprite.zOrder = zOrderDist(randEngine);
 
                 for (uint8_t i = 0; i < 4; ++i) {
                     std::uniform_int_distribution<int32_t> coordDist{-3, 3};
-                    std::uniform_real_distribution<float> delayDist{0.0f, 50.0f};
+                    std::uniform_real_distribution<float> delayDist{0.0f, 60.0f};
                     auto explId = manager->createEntity();
-                    orient.angle += 90.0f;
-                    orient.scaleX = scaleDist(randEngine);
-                    orient.scaleY = scaleDist(randEngine);
+                    WorldTransform orient;
+                    orient.present.rotate(angleDist(randEngine));
+                    orient.present.setScale(scaleDist(randEngine), scaleDist(randEngine));
+                    orient.past = orient.present;
+                    explSprite.zOrder = zOrderDist(randEngine);
                     manager->addComponent(explosionAnim, explId);
                     manager->addComponent<Component<Sprite::name, Sprite>>(explSprite, explId);
                     manager->addComponent<Component<Position::name, Position>>(positionPool->operator[](posCmp->second.index), explId);
-                    manager->addComponent<Component<Transform::name, Transform>>(orient, explId);
+                    manager->addComponent<Component<cmpName::worldTF, WorldTransform>>(orient, explId);
                     manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
                 }
 
-                for (uint8_t i = 0; i < 6; ++i) {
+                for (uint8_t i = 0; i < 8; ++i) {
                     auto explId = manager->createEntity();
-                    std::uniform_real_distribution<float> scaleDist{0.15f, 0.66f};
-                    std::uniform_real_distribution<float> delayDist{100.0f, 350.0f};
+                    std::uniform_real_distribution<float> scaleDist{0.35f, 0.70f};
+                    std::uniform_real_distribution<float> delayDist{50.0f, 450.0f};
 
                     explSprite.zOrder = zOrderDist(randEngine);
                     manager->addComponent(explosionAnim, explId);
@@ -141,11 +142,11 @@ bool PlayerSystem::playerHit(Message& message) {//
                     cpyPos.pastPosX = cpyPos.posX;
                     cpyPos.pastPosY = cpyPos.posY;
                     manager->addComponent<Component<Position::name, Position>>(cpyPos, explId);
-                    Transform orient;
-                    orient.angle = angleDist(randEngine);
-                    orient.scaleX = scaleDist(randEngine);
-                    orient.scaleY = scaleDist(randEngine);
-                    manager->addComponent<Component<Transform::name, Transform>>(orient, explId);
+                    WorldTransform orient;
+                    orient.present.setAngle(angleDist(randEngine));
+                    orient.present.setScale(scaleDist(randEngine), scaleDist(randEngine));
+                    orient.past = orient.present;
+                    manager->addComponent<Component<cmpName::worldTF, WorldTransform>>(orient, explId);
                     manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
 
                 }

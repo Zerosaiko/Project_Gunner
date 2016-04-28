@@ -5,7 +5,7 @@ RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Windo
     GPU_LoadTarget(targetImage);
     positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     spritePool = manager->getComponentPool<Component<Sprite::name, Sprite>>();
-    transformPool = manager->getComponentPool<Component<Transform::name, Transform>>();
+    transformPool = manager->getComponentPool<Component<cmpName::worldTF, WorldTransform>>();
     entityIDXs.reserve(1 << 16);
     hasEntity.reserve(1 << 16);
     idxToID.reserve(1 << 16);
@@ -108,25 +108,61 @@ void RenderSystem::render(float lerpT) {
             const auto& entity = entities[entityIDXs[id]];
             Position& position = (*positionPool)[entity.first->index].data;
             Sprite& render = (*spritePool)[entity.second->index].data;
-            if (*render.sheet) {
+            {
+
                 const auto& entity = manager->getEntity(id);
-                const GPU_Rect& srcRect = *render.sheet->getSprite(render.spritePos);
+                SpriteInfo& sprInfo = render.sheet->getSprite(render.spritePos);
+                GPU_Rect& srcRect = sprInfo.getRect();
+                const std::array<float, 4> texCoords = sprInfo.getTexCoords();
                 GPU_Rect dstRect = srcRect;
 
                 dstRect.x = (int32_t)( position.pastPosX + (position.posX - position.pastPosX) * lerpT);
                 dstRect.y = (int32_t)( position.pastPosY + (position.posY - position.pastPosY) * lerpT);
 
-                auto transformComponent = entity->find("transform");
-                if (transformComponent == entity->end() || !transformComponent->second.active) {
-                    GPU_Blit(render.sheet->getImage(), render.sheet->getSprite(render.spritePos), targetImage->target, dstRect.x, dstRect.y);
+                auto transformComponent = entity->find("worldTransform");
+                if (transformComponent != entity->end() && transformComponent->second.active) {
+                    WorldTransform& transform = transformPool->operator[](transformComponent->second.index).data;
+                    TransformState interp;
+                    interp.setOrigin(transform.past.originX + lerpT * (transform.present.originX - transform.past.originX),
+                                    transform.past.originY + lerpT * (transform.present.originY - transform.past.originY));
+
+                    interp.setScale(transform.past.scaleX + lerpT * (transform.present.scaleX - transform.past.scaleX),
+                                    transform.past.scaleY + lerpT * (transform.present.scaleY - transform.past.scaleY));
+                    interp.setAngle(transform.past.angle + lerpT * (transform.present.angle - transform.past.angle));
+                    interp.setFlipX(transform.present.flipX);
+                    interp.setFlipY(transform.present.flipY);
+
+                    float halfWidth = srcRect.w / 2.0f;
+                    float halfHeight = srcRect.h / 2.0f;
+                    float  tl[] = {-halfWidth, -halfHeight, 1},
+                    tr[] = {halfWidth, -halfHeight, 1},
+                    bl[] = {-halfWidth, halfHeight, 1},
+                    br[] = {halfWidth, halfHeight, 1};
+                    float translate[16];
+                    GPU_MatrixIdentity(translate);
+                    GPU_MatrixTranslate(translate, dstRect.x, dstRect.y, 0);
+
+                    GPU_VectorApplyMatrix(tl, interp.matrix.data());
+                    GPU_VectorApplyMatrix(tr, interp.matrix.data());
+                    GPU_VectorApplyMatrix(bl, interp.matrix.data());
+                    GPU_VectorApplyMatrix(br, interp.matrix.data());
+
+                    GPU_VectorApplyMatrix(tl, translate);
+                    GPU_VectorApplyMatrix(tr, translate);
+                    GPU_VectorApplyMatrix(bl, translate);
+                    GPU_VectorApplyMatrix(br, translate);
+
+                    float verts[] = {
+                                    tl[0], tl[1], texCoords[0], texCoords[3], 1, 1, 1, 1,
+                                    tr[0], tr[1], texCoords[2], texCoords[3], 1, 1, 1, 1,
+                                    br[0], br[1], texCoords[2], texCoords[1], 1, 1, 1, 1,
+                                    bl[0], bl[1], texCoords[0], texCoords[1], 1, 1, 1, 1,
+                                    };
+                    unsigned short ind[] = {0, 1, 2, 2, 3, 0};
+
+                    GPU_TriangleBatch(render.sheet->getImage(), targetImage->target, 4, verts, 6, ind, GPU_BATCH_XY_ST_RGBA);
                 } else {
-                    Transform& transform = transformPool->operator[](transformComponent->second.index).data;
-                    GPU_PushMatrix();
-                    GPU_Translate(dstRect.x, dstRect.y, 0);
-                    GPU_Rotate(-transform.angle, 0, 0, 1);
-                    GPU_Scale(transform.scaleX* (1 - 2 * transform.flipX), transform.scaleY * ( 1 - 2 * transform.flipY), 1);
-                    GPU_Blit(render.sheet->getImage(), render.sheet->getSprite(render.spritePos), targetImage->target, 0, 0);
-                    GPU_PopMatrix();
+                    GPU_Blit(render.sheet->getImage(), &srcRect, targetImage->target, dstRect.x, dstRect.y);
                 }
             }
         }

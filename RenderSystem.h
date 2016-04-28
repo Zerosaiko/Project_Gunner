@@ -51,7 +51,7 @@ private:
 
     std::deque<Component<Sprite::name, Sprite>>* spritePool;
 
-    std::deque<Component<Transform::name, Transform>>* transformPool;
+    std::deque<Component<cmpName::worldTF, WorldTransform>>* transformPool;
 
     std::vector<int32_t> oldZOrderings;
 
