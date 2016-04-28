@@ -126,6 +126,7 @@ bool PlayerSystem::playerHit(Message& message) {//
                     manager->addComponent<Component<Position::name, Position>>(positionPool->operator[](posCmp->second.index), explId);
                     manager->addComponent<Component<cmpName::worldTF, WorldTransform>>(orient, explId);
                     manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
+                    manager->addComponent<Component<lifeTimerName, float>>(2500, explId);
                 }
 
                 for (uint8_t i = 0; i < 8; ++i) {
@@ -148,6 +149,7 @@ bool PlayerSystem::playerHit(Message& message) {//
                     orient.past = orient.present;
                     manager->addComponent<Component<cmpName::worldTF, WorldTransform>>(orient, explId);
                     manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
+                    manager->addComponent<Component<lifeTimerName, float>>(2000, explId);
 
                 }
 
