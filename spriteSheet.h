@@ -4,10 +4,26 @@
 #include "SDL.h"
 #include "window.h"
 #include <vector>
+#include <array>
 #include <cstdint>
 #include "SDL_gpu.h"
 
 //  cannot atlas textures, but does allow usage of simple rectangle bound sprite sheets
+
+class SpriteInfo {
+private:
+    GPU_Rect rect;
+    std::array<float, 4> uvCoords;
+
+public:
+    SpriteInfo(float x, float y, float w, float h, float texW, float texH);
+
+    GPU_Rect& getRect();
+
+    std::array<float, 4>& getTexCoords();
+
+};
+
 class SpriteSheet {
 public:
 
@@ -16,18 +32,16 @@ public:
 
     ~SpriteSheet();
 
-    GPU_Rect* getSprite(uint32_t cellPos);
+    SpriteInfo& getSprite(uint32_t cellPos);
 
-    GPU_Rect* getSprite(uint32_t cellX, uint32_t cellY);
+    SpriteInfo& getSprite(uint32_t cellX, uint32_t cellY);
 
     GPU_Image* const getImage() const;
-
-    explicit operator bool() const;
 
 private:
 
     GPU_Image* texture;
-    std::vector<GPU_Rect> spriteBounds;
+    std::vector<SpriteInfo> spriteBounds;
     bool ownedTexture;
     uint32_t width;
     uint32_t height;
