@@ -11,6 +11,7 @@
 #include "Transform.h"
 #include "health.h"
 #include "shieldComponent.h"
+#include "lifeTimer.h"
 #include <cstdlib>
 #include <string>
 
@@ -38,6 +39,7 @@ void registerAllComponents() {
     Component<Health::name, Health>::registerComponent();
     Component<HealthRegen::name, HealthRegen>::registerComponent();
     Component<Shield::name, Shield>::registerComponent();
+    Component<lifeTimerName, float>::registerComponent();
 
 }
 
