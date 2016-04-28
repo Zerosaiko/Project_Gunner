@@ -13,6 +13,10 @@
 #include "CollisionSystem.h"
 #include "SpawnSystem.h"
 #include "DelaySystem.h"
+#include "PlayerSystem.h"
+#include "AnimationSystem.h"
+#include "ShieldSystem.h"
+#include "LifeTimerSystem.h"
 
 class PlayState : public GameState{
 public:
@@ -32,7 +36,6 @@ private:
     Window* window;
     MovementSystem moveSys;
     RenderSystem renderSys;
-    ScriptSystem scriptSys;
     MovementInputSystem mInpSys;
     BoundsSystem boundsSys;
     CollisionSystem colSys;
@@ -40,6 +43,11 @@ private:
     PositionSyncSystem posSyncSys;
     DelaySystem delaySys;
     PauseSystem pauseSys;
+    PlayerSystem playSys;
+    AnimationSystem animSys;
+    ShieldSystem shieldSys;
+    LifeTimerSystem lifeTimerSys;
+
 };
 
 #endif // PLAYSTATE_H_INCLUDED
