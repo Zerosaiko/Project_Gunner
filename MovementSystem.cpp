@@ -1,8 +1,9 @@
 #include "MovementSystem.h"
 #include "SDL.h"
+#include "SDL_gpu.h"
 
 MovementSystem::MovementSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
-    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
+    tfPool = manager->getComponentPool<Component<Transform::name, Transform>>();
     velocityPool = manager->getComponentPool<Component<Velocity::name, Velocity>>();
     entityIDXs.reserve(1 << 16);
     hasEntity.reserve(1 << 16);
@@ -20,7 +21,7 @@ void MovementSystem::addEntity(uint32_t id) {
     if (hasEntity[id]) return;
     const auto& entity = manager->getEntity(id);
     if (entity) {
-        auto position = entity->find("position");
+        auto position = entity->find("transform");
         auto velocity = entity->find("velocity");
         auto delay = entity->find("fullDelay");
         auto pause = entity->find("pauseDelay");
@@ -71,86 +72,16 @@ void MovementSystem::process(float dt) {
     auto startT = SDL_GetPerformanceCounter();
 
     for(auto& entity : entities) {
-        Position& position = (*positionPool)[entity.first->index].data;
+        Transform& position = (*tfPool)[entity.first->index].data;
         Velocity& velocity = (*velocityPool)[entity.second->index].data;
-        position.pastPosX = position.posX;
-        position.pastPosY = position.posY;
-        position.posX += dt * velocity.velX;
-        position.posY += dt * velocity.velY;
-    }
-
-    auto endT = SDL_GetPerformanceCounter();
-
-    //std::cout << "M-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
-
-}
-
-PositionSyncSystem::PositionSyncSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
-    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
-    entityIDXs.reserve(1 << 16);
-    hasEntity.reserve(1 << 16);
-    idxToID.reserve(1 << 16);
-    entities.reserve(1 << 16);
-};
-
-void PositionSyncSystem::initialize() {}
-
-void PositionSyncSystem::addEntity(uint32_t id) {
-    if (id >= hasEntity.size()) {
-        hasEntity.resize(id + 1, false);
-        entityIDXs.resize(id + 1, 0);
-    }
-    if (hasEntity[id]) return;
-    const auto& entity = manager->getEntity(id);
-    if (entity) {
-        auto position = entity->find("position");
-        if ( position != entity->end()
-            && position->second.active ) {
-
-            entityIDXs[id] = entities.size();
-            hasEntity[id] = true;
-            idxToID.emplace_back(id);
-            entities.emplace_back(&position->second);
+        if (velocity.velX || velocity.velY) {
+            position.local.translate(velocity.velX, velocity.velY);
+            position.dirty = true;
         }
     }
-}
-
-void PositionSyncSystem::removeEntity(uint32_t id) {
-    if (id >= hasEntity.size() || !hasEntity[id]) return;
-    entities[entityIDXs[id]] = entities.back();
-    entities.pop_back();
-    entityIDXs[idxToID.back()] = entityIDXs[id];
-    idxToID[entityIDXs[id]] = idxToID.back();
-    idxToID.pop_back();
-    hasEntity[id] = false;
-}
-
-void PositionSyncSystem::refreshEntity(uint32_t id) {
-    if (id >= hasEntity.size() || !hasEntity[id]) {
-        addEntity(id);
-        return;
-    }
-    const auto& entity = entities[entityIDXs[id]];
-    if (!(entity->active)) {
-        removeEntity(id);
-    }
-
-}
-
-void PositionSyncSystem::process(float dt) {
-
-    auto startT = SDL_GetPerformanceCounter();
-
-    for(size_t i = 0; i < entities.size(); ++i) {
-        auto& entity = entities[i];
-        Position& position = positionPool->at(entity->index).data;
-        position.pastPosX = position.posX;
-        position.pastPosY = position.posY;
-    }
 
     auto endT = SDL_GetPerformanceCounter();
 
     //std::cout << "M-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
 
 }
-
