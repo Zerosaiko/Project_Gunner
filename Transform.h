@@ -86,10 +86,26 @@ struct Transform {
 
 };
 
+struct TransformTree {
 
+    struct Node {
+        bool dirty;
+        uint32_t parent;
+        std::vector<uint32_t> children;
 
+        Node();
 
+        Node(bool dirty, uint32_t parent);
 
+    };
+
+    std::unordered_map< uint32_t, Node > transforms;
+
+    std::unordered_set<uint32_t> dirtyList;
+
+    void setDirty(uint32_t id);
+
+    void clearDirty(uint32_t id);
 
 };
 

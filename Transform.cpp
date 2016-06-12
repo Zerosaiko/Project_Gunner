@@ -159,7 +159,29 @@ Transform buildFromString<Transform>(std::vector<std::string>& str, std::vector<
     return transform;
 }
 
+void TransformTree::setDirty(uint32_t id) {
+    auto it = transforms.find(id);
+    if (it != transforms.end() && !it->second.dirty) {
+        it->second.dirty = true;
+        dirtyList.insert(id);
+        for (auto childID : it->second.children) {
+            setDirty(childID);
         }
     }
-
 }
+
+void TransformTree::clearDirty(uint32_t id) {
+    auto it = transforms.find(id);
+    if (it != transforms.end() && it->second.dirty) {
+        it->second.dirty = false;
+        dirtyList.erase(id);
+        for (auto childID : it->second.children) {
+            setDirty(childID);
+        }
+    }
+}
+
+TransformTree::Node::Node() : dirty(true), parent(0) {}
+
+TransformTree::Node::Node(bool dirty, uint32_t parent) : dirty(dirty), parent(parent){}
+
