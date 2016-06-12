@@ -4,23 +4,25 @@
 #include "SDL.h"
 #include <string>
 #include <array>
-
-namespace cmpName {
-    extern const std::string worldTF;
-    extern const std::string localTF;
-}
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 struct TransformState {
 
     TransformState();
 
-    TransformState(float originX, float originY, float angle, float scaleX, float scaleY, bool flipX, bool flipY);
+    TransformState(float originX, float originY, float translateX, float translateY,  float angle, float scaleX, float scaleY, bool flipX, bool flipY);
 
     std::array<float, 16> matrix;
 
     float originX;
 
     float originY;
+
+    float translateX;
+
+    float translateY;
 
     float angle;
 
@@ -31,6 +33,10 @@ struct TransformState {
     bool flipX, flipY;
 
     void setOrigin(float x, float y);
+
+    void setTranslate(float translateX, float translateY);
+
+    void translate(float translateX, float translateY);
 
     void setAngle(float angle);
 
@@ -48,32 +54,42 @@ struct TransformState {
 
     void flipYAxis();
 
-};
+    const TransformState operator*(const TransformState& other) const;
 
-struct WorldTransform{
-
-    WorldTransform();
-
-    WorldTransform(float originX, float originY, float angle, float scaleX, float scaleY, bool flipX, bool flipY);
-
-    bool dirty;
-
-    TransformState present;
-
-    TransformState past;
+    TransformState& operator*=(const TransformState& other);
 
 };
 
-struct LocalTransform {
-    LocalTransform();
+struct Transform {
 
-    LocalTransform(float originX, float originY, float angle, float scaleX, float scaleY, bool flipX, bool flipY, uint32_t parent);
+    static const std::string name;
+
+    Transform();
+
+    Transform(uint32_t parentID);
+
+    Transform(float originX, float originY, float translateX, float translateY, float angle, float scaleX, float scaleY, bool flipX, bool flipY);
+
+    Transform(float originX, float originY, float translateX, float translateY, float angle, float scaleX, float scaleY, bool flipX, bool flipY, uint32_t parentID);
 
     bool dirty;
+
+    bool hasParent;
 
     uint32_t parentTFEntity;
 
-    TransformState state;
+    TransformState local;
+
+    TransformState worldPresent;
+
+    TransformState worldPast;
+
+};
+
+
+
+
+
 
 };
 
