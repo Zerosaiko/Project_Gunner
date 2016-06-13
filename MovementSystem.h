@@ -10,7 +10,7 @@
 class MovementSystem : public EntitySystem {
 
 public:
-    MovementSystem(EntityManager* const manager, int32_t priority);
+    MovementSystem(EntityManager* const manager, int32_t priority, TransformTree& tfGraph);
 
     void initialize();
 
@@ -37,6 +37,8 @@ private:
     std::deque<Component<Transform::name, Transform>>* tfPool;
 
     std::deque<Component<Velocity::name, Velocity>>* velocityPool;
+
+    TransformTree& tfGraph;
 
 };
 

@@ -2,7 +2,7 @@
 #include "SDL.h"
 #include "SDL_gpu.h"
 
-MovementSystem::MovementSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
+MovementSystem::MovementSystem(EntityManager* const manager, int32_t priority, TransformTree& tfGraph) : EntitySystem{manager, priority}, tfGraph(tfGraph) {
     tfPool = manager->getComponentPool<Component<Transform::name, Transform>>();
     velocityPool = manager->getComponentPool<Component<Velocity::name, Velocity>>();
     entityIDXs.reserve(1 << 16);
@@ -71,12 +71,13 @@ void MovementSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
 
-    for(auto& entity : entities) {
+    for(decltype(entities.size()) i = 0; i < entities.size(); ++i) {
+        auto& entity = entities[i];
         Transform& position = (*tfPool)[entity.first->index].data;
         Velocity& velocity = (*velocityPool)[entity.second->index].data;
         if (velocity.velX || velocity.velY) {
-            position.local.translate(velocity.velX, velocity.velY);
-            position.dirty = true;
+            position.local.translate(velocity.velX * dt, velocity.velY * dt);
+            tfGraph.setDirty(idxToID[i]);
         }
     }
 
