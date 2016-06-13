@@ -105,7 +105,7 @@ bool PlayerSystem::playerHit(Message& message) {//
                 explSprite.zOrder = 35;
                 explSprite.spritePos = 0;
 
-                WorldTransform orient;
+                Transform orient;
 
                 std::uniform_real_distribution<float> angleDist{0.0f, 359.999f};
                 std::uniform_real_distribution<float> scaleDist{0.6f, 0.8f};
@@ -116,15 +116,14 @@ bool PlayerSystem::playerHit(Message& message) {//
                     std::uniform_int_distribution<int32_t> coordDist{-3, 3};
                     std::uniform_real_distribution<float> delayDist{0.0f, 60.0f};
                     auto explId = manager->createEntity();
-                    WorldTransform orient;
-                    orient.present.rotate(angleDist(randEngine));
-                    orient.present.setScale(scaleDist(randEngine), scaleDist(randEngine));
-                    orient.past = orient.present;
+                    Transform orient;
+                    orient.local.rotate(angleDist(randEngine));
+                    orient.local.setScale(scaleDist(randEngine), scaleDist(randEngine));
                     explSprite.zOrder = zOrderDist(randEngine);
                     manager->addComponent(explosionAnim, explId);
                     manager->addComponent<Component<Sprite::name, Sprite>>(explSprite, explId);
                     manager->addComponent<Component<Position::name, Position>>(positionPool->operator[](posCmp->second.index), explId);
-                    manager->addComponent<Component<cmpName::worldTF, WorldTransform>>(orient, explId);
+                    manager->addComponent<Component<Transform::name, Transform>>(orient, explId);
                     manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
                     manager->addComponent<Component<lifeTimerName, float>>(2500, explId);
                 }
@@ -143,11 +142,10 @@ bool PlayerSystem::playerHit(Message& message) {//
                     cpyPos.pastPosX = cpyPos.posX;
                     cpyPos.pastPosY = cpyPos.posY;
                     manager->addComponent<Component<Position::name, Position>>(cpyPos, explId);
-                    WorldTransform orient;
-                    orient.present.setAngle(angleDist(randEngine));
-                    orient.present.setScale(scaleDist(randEngine), scaleDist(randEngine));
-                    orient.past = orient.present;
-                    manager->addComponent<Component<cmpName::worldTF, WorldTransform>>(orient, explId);
+                    Transform orient;
+                    orient.local.setAngle(angleDist(randEngine));
+                    orient.local.setScale(scaleDist(randEngine), scaleDist(randEngine));
+                    manager->addComponent<Component<Transform::name, Transform>>(orient, explId);
                     manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
                     manager->addComponent<Component<lifeTimerName, float>>(2000, explId);
 
