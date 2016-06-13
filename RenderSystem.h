@@ -47,11 +47,9 @@ private:
 
     std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
-    std::deque<Component<Position::name, Position>>* positionPool;
-
     std::deque<Component<Sprite::name, Sprite>>* spritePool;
 
-    std::deque<Component<cmpName::worldTF, WorldTransform>>* transformPool;
+    std::deque<Component<Transform::name, Transform>>* transformPool;
 
     std::vector<int32_t> oldZOrderings;
 

@@ -3,9 +3,8 @@
 RenderSystem::RenderSystem(EntityManager* const manager, int32_t priority, Window* window) : EntitySystem{manager, priority}, window(window) {
     targetImage = GPU_CreateImage(360, 480, GPU_FORMAT_RGBA);
     GPU_LoadTarget(targetImage);
-    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
     spritePool = manager->getComponentPool<Component<Sprite::name, Sprite>>();
-    transformPool = manager->getComponentPool<Component<cmpName::worldTF, WorldTransform>>();
+    transformPool = manager->getComponentPool<Component<Transform::name, Transform>>();
     entityIDXs.reserve(1 << 16);
     hasEntity.reserve(1 << 16);
     idxToID.reserve(1 << 16);
@@ -29,16 +28,16 @@ void RenderSystem::addEntity(uint32_t id) {
     if (hasEntity[id]) return;
     const auto& entity = manager->getEntity(id);
     if (entity) {
-        auto position = entity->find("position");
+        auto transform = entity->find("transform");
         auto render = entity->find("sprite");
         auto delay = entity->find("fullDelay");
         if ( (delay == entity->end() || !delay->second.active)
-        && position != entity->end() && render != entity->end() && position->second.active && render->second.active) {
+        && transform != entity->end() && render != entity->end() && transform->second.active && render->second.active) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
             idxToID.emplace_back(id);
-            entities.emplace_back(&position->second, &render->second);
+            entities.emplace_back(&transform->second, &render->second);
 
             Sprite& ren = (*spritePool)[render->second.index].data;
 
@@ -77,7 +76,7 @@ void RenderSystem::refreshEntity(uint32_t id) {
         auto delay = fullEntity->find("fullDelay");
         if ( (delay != fullEntity->end() && delay->second.active)) {
             removeEntity(id);
-        } else if (entity.first->dirty) {
+        } else if (entity.second->dirty) {
 
             Sprite& ren = (*spritePool)[entity.second->index].data;
 
@@ -106,65 +105,47 @@ void RenderSystem::render(float lerpT) {
     for(const auto& layer : zOrderMap) {
         for (const auto& id : layer.second) {
             const auto& entity = entities[entityIDXs[id]];
-            Position& position = (*positionPool)[entity.first->index].data;
+            Transform& transform = (*transformPool)[entity.first->index].data;
             Sprite& render = (*spritePool)[entity.second->index].data;
-            {
 
-                const auto& entity = manager->getEntity(id);
-                SpriteInfo& sprInfo = render.sheet->getSprite(render.spritePos);
-                GPU_Rect& srcRect = sprInfo.getRect();
-                const std::array<float, 4> texCoords = sprInfo.getTexCoords();
-                GPU_Rect dstRect = srcRect;
+            SpriteInfo& sprInfo = render.sheet->getSprite(render.spritePos);
+            GPU_Rect& srcRect = sprInfo.getRect();
+            const std::array<float, 4> texCoords = sprInfo.getTexCoords();
+            TransformState interp;
+            TransformState& past = transform.worldPast;
+            TransformState& present = transform.worldPresent;
 
-                dstRect.x = (int32_t)( position.pastPosX + (position.posX - position.pastPosX) * lerpT);
-                dstRect.y = (int32_t)( position.pastPosY + (position.posY - position.pastPosY) * lerpT);
+            interp.setOrigin(past.originX + lerpT * (present.originX - past.originX),
+                            past.originY + lerpT * (present.originY - past.originY));
+            interp.translate(past.translateX + lerpT * (present.translateX - past.translateX),
+                                past.translateY + lerpT * (present.translateY - past.translateY));
+            interp.rotate(past.angle + lerpT * (present.angle - past.angle));
+            interp.scale(past.scaleX + lerpT * (present.scaleX - past.scaleX),
+                            past.scaleY + lerpT * (present.scaleY - past.scaleY));
+            interp.setFlipX(present.flipX);
+            interp.setFlipY(present.flipY);
 
-                auto transformComponent = entity->find("worldTransform");
-                if (transformComponent != entity->end() && transformComponent->second.active) {
-                    WorldTransform& transform = transformPool->operator[](transformComponent->second.index).data;
-                    TransformState interp;
-                    interp.setOrigin(transform.past.originX + lerpT * (transform.present.originX - transform.past.originX),
-                                    transform.past.originY + lerpT * (transform.present.originY - transform.past.originY));
+            float halfWidth = srcRect.w / 2.0f;
+            float halfHeight = srcRect.h / 2.0f;
+            float  tl[] = {-halfWidth, -halfHeight, 1},
+            tr[] = {halfWidth, -halfHeight, 1},
+            bl[] = {-halfWidth, halfHeight, 1},
+            br[] = {halfWidth, halfHeight, 1};
 
-                    interp.setScale(transform.past.scaleX + lerpT * (transform.present.scaleX - transform.past.scaleX),
-                                    transform.past.scaleY + lerpT * (transform.present.scaleY - transform.past.scaleY));
-                    interp.setAngle(transform.past.angle + lerpT * (transform.present.angle - transform.past.angle));
-                    interp.setFlipX(transform.present.flipX);
-                    interp.setFlipY(transform.present.flipY);
+            GPU_VectorApplyMatrix(tl, interp.matrix.data());
+            GPU_VectorApplyMatrix(tr, interp.matrix.data());
+            GPU_VectorApplyMatrix(bl, interp.matrix.data());
+            GPU_VectorApplyMatrix(br, interp.matrix.data());
 
-                    float halfWidth = srcRect.w / 2.0f;
-                    float halfHeight = srcRect.h / 2.0f;
-                    float  tl[] = {-halfWidth, -halfHeight, 1},
-                    tr[] = {halfWidth, -halfHeight, 1},
-                    bl[] = {-halfWidth, halfHeight, 1},
-                    br[] = {halfWidth, halfHeight, 1};
-                    float translate[16];
-                    GPU_MatrixIdentity(translate);
-                    GPU_MatrixTranslate(translate, dstRect.x, dstRect.y, 0);
+            float verts[] = {
+                            tl[0], tl[1], texCoords[0], texCoords[3], 1, 1, 1, 1,
+                            tr[0], tr[1], texCoords[2], texCoords[3], 1, 1, 1, 1,
+                            br[0], br[1], texCoords[2], texCoords[1], 1, 1, 1, 1,
+                            bl[0], bl[1], texCoords[0], texCoords[1], 1, 1, 1, 1,
+                            };
+            unsigned short ind[] = {0, 1, 2, 2, 3, 0};
 
-                    GPU_VectorApplyMatrix(tl, interp.matrix.data());
-                    GPU_VectorApplyMatrix(tr, interp.matrix.data());
-                    GPU_VectorApplyMatrix(bl, interp.matrix.data());
-                    GPU_VectorApplyMatrix(br, interp.matrix.data());
-
-                    GPU_VectorApplyMatrix(tl, translate);
-                    GPU_VectorApplyMatrix(tr, translate);
-                    GPU_VectorApplyMatrix(bl, translate);
-                    GPU_VectorApplyMatrix(br, translate);
-
-                    float verts[] = {
-                                    tl[0], tl[1], texCoords[0], texCoords[3], 1, 1, 1, 1,
-                                    tr[0], tr[1], texCoords[2], texCoords[3], 1, 1, 1, 1,
-                                    br[0], br[1], texCoords[2], texCoords[1], 1, 1, 1, 1,
-                                    bl[0], bl[1], texCoords[0], texCoords[1], 1, 1, 1, 1,
-                                    };
-                    unsigned short ind[] = {0, 1, 2, 2, 3, 0};
-
-                    GPU_TriangleBatch(render.sheet->getImage(), targetImage->target, 4, verts, 6, ind, GPU_BATCH_XY_ST_RGBA);
-                } else {
-                    GPU_Blit(render.sheet->getImage(), &srcRect, targetImage->target, dstRect.x, dstRect.y);
-                }
-            }
+            GPU_TriangleBatch(render.sheet->getImage(), targetImage->target, 4, verts, 6, ind, GPU_BATCH_XY_ST_RGBA);
         }
     }
 
@@ -173,7 +154,6 @@ void RenderSystem::render(float lerpT) {
     auto endT = SDL_GetPerformanceCounter();
 
     //std::cout << "R-" << (1000.f / SDL_GetPerformanceFrequency() * (endT - startT) ) << '\n';
-
 }
 
 SpriteSheet* const RenderSystem::loadSprite(std::string spriteName) {
