@@ -4,13 +4,13 @@
 
 const std::string Transform::name{"transform"};
 
-Transform::Transform() : dirty(true), hasParent(false), local(), worldPresent(), worldPast() {}
+Transform::Transform() : hasParent(false), local(), worldPresent(), worldPast() {}
 
-Transform::Transform(uint32_t parentID) : dirty(true), hasParent(true), parentTFEntity(parentID), local(), worldPresent(), worldPast() {}
+Transform::Transform(uint32_t parentID) : hasParent(true), parentTFEntity(parentID), local(), worldPresent(), worldPast() {}
 
 Transform::Transform(float originX, float originY, float translateX, float translateY,
                     float angle, float scaleX, float scaleY, bool flipX, bool flipY) :
-    dirty(true), hasParent(false), worldPresent(originX, originY, translateX, translateY, angle, scaleX, scaleY, flipX, flipY), worldPast(worldPresent) {}
+    hasParent(false), worldPresent(originX, originY, translateX, translateY, angle, scaleX, scaleY, flipX, flipY), worldPast(worldPresent) {}
 
 TransformState::TransformState() : originX(0.0f), originY(0.0f), translateX(0.0f), translateY(0.0f), angle(0.0f), scaleX(1.0f), scaleY(1.0f), flipX(false), flipY(false) {
     GPU_MatrixIdentity(matrix.data());

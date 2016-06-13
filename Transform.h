@@ -72,8 +72,6 @@ struct Transform {
 
     Transform(float originX, float originY, float translateX, float translateY, float angle, float scaleX, float scaleY, bool flipX, bool flipY, uint32_t parentID);
 
-    bool dirty;
-
     bool hasParent;
 
     uint32_t parentTFEntity;
