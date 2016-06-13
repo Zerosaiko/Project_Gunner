@@ -78,13 +78,13 @@ void AnimationSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
 
-    float adjDT = dt * 1000;
+    dt *= 1000.0f;
 
     for(auto& entity : entities) {
         Animation& animation = (*animationPool)[entity.first->index].data;
         Sprite& sprite = (*spritePool)[entity.second->index].data;
 
-        animation.currentTime += adjDT;
+        animation.currentTime += dt;
         while (animation.currentTime >= animation.frameLengths[animation.currentIdx] && animation.frameLengths[animation.currentIdx] >= 0) {
             animation.currentTime -= animation.frameLengths[animation.currentIdx];
             ++animation.currentIdx;
