@@ -17,6 +17,9 @@
 #include "AnimationSystem.h"
 #include "ShieldSystem.h"
 #include "LifeTimerSystem.h"
+#include "TransformSystems.h"
+#include "Transform.h"
+
 
 class PlayState : public GameState{
 public:
@@ -40,13 +43,15 @@ private:
     BoundsSystem boundsSys;
     CollisionSystem colSys;
     SpawnSystem spawnSys;
-    PositionSyncSystem posSyncSys;
+    TransformSyncSystem tfSyncSys;
+    TransformCalcSystem tfCalcSys;
     DelaySystem delaySys;
     PauseSystem pauseSys;
     PlayerSystem playSys;
     AnimationSystem animSys;
     ShieldSystem shieldSys;
     LifeTimerSystem lifeTimerSys;
+    TransformTree tfGraph;
 
 };
 
