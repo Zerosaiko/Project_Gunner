@@ -1,62 +1,478 @@
 # depslib dependency file v1.0
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\boundscomponent.cpp
-	"boundsComponent.h"
+1482997853 source:c:\users\aceforce\documents\github\project_gunner\animation.cpp
+	"animation.h"
 	"component.h"
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\boundscomponent.h
+1460346381 c:\users\aceforce\documents\github\project_gunner\animation.h
 	<string>
+	<vector>
+	<cstdint>
 
-1456858129 c:\users\aceforce\documents\github\project_gunner\component.h
+1482995680 c:\users\aceforce\documents\github\project_gunner\component.h
 	<cstdint>
 	<vector>
 	<deque>
 	<string>
 	<map>
+	<unordered_map>
 	<iostream>
+	<memory>
 	"componentName.h"
+	"sol.hpp"
 
 1455826052 c:\users\aceforce\documents\github\project_gunner\componentname.h
 	<string>
 
-1456786017 source:c:\users\aceforce\documents\github\project_gunner\boundscorrection.cpp
-	"BoundsCorrection.h"
-	"SDL.h"
+1473418125 c:\folder\sol2_develop\sol.hpp
+	"sol/state.hpp"
+	"sol/object.hpp"
+	"sol/function.hpp"
+	"sol/protected_function.hpp"
+	"sol/state.hpp"
+	"sol/coroutine.hpp"
+	"sol/variadic_args.hpp"
 
-1456855214 c:\users\aceforce\documents\github\project_gunner\boundscorrection.h
-	"EntitySystem.h"
-	<unordered_map>
+1473418125 c:\folder\sol2_develop\sol\state.hpp
+	"state_view.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\state_view.hpp
+	"error.hpp"
+	"table.hpp"
+	"load_result.hpp"
+	<memory>
+
+1473418125 c:\folder\sol2_develop\sol\error.hpp
+	<stdexcept>
+	<string>
+
+1473418125 c:\folder\sol2_develop\sol\table.hpp
+	"table_core.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\table_core.hpp
+	"proxy.hpp"
+	"stack.hpp"
+	"function_types.hpp"
+	"usertype.hpp"
+	"table_iterator.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\proxy.hpp
+	"traits.hpp"
+	"object.hpp"
+	"function.hpp"
+	"protected_function.hpp"
+	"proxy_base.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\traits.hpp
+	"tuple.hpp"
+	"bind_traits.hpp"
+	<type_traits>
+	<memory>
+	<functional>
+
+1473418125 c:\folder\sol2_develop\sol\tuple.hpp
+	<tuple>
+	<cstddef>
+
+1473418125 c:\folder\sol2_develop\sol\bind_traits.hpp
+	"tuple.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\object.hpp
+	"optional.hpp"
+	"reference.hpp"
+	"stack.hpp"
+	"userdata.hpp"
+	"variadic_args.hpp"
+
+1473473510 c:\folder\sol2_develop\sol\optional.hpp
+	"in_place.hpp"
+	<boost/optional.hpp>
+	"../Optional/optional.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\in_place.hpp
+
+1471651648 c:\folder\sol2_develop\optional\optional.hpp
+	<utility>
+	<type_traits>
+	<initializer_list>
+	<cassert>
+	<functional>
+	<string>
+	<stdexcept>
+
+1473418125 c:\folder\sol2_develop\sol\reference.hpp
+	"types.hpp"
+	"stack_reference.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\types.hpp
+	"optional.hpp"
+	"compatibility.hpp"
+	"traits.hpp"
+	"string_shim.hpp"
+	<array>
+	<string>
+
+1473418125 c:\folder\sol2_develop\sol\compatibility.hpp
+	"compatibility/version.hpp"
+	"compatibility/5.1.0.h"
+	"compatibility/5.0.0.h"
+	"compatibility/5.x.x.h"
+	"compatibility/5.x.x.inl"
+
+1473418125 c:\folder\sol2_develop\sol\compatibility\version.hpp
+	<lua.hpp>
+
+1103763184 c:\folder\luabinaries\lua5_3_3\win64\include\lua.hpp
+	"lua.h"
+	"lualib.h"
+	"lauxlib.h"
+
+1464620008 c:\folder\luabinaries\lua5_3_3\win64\include\lua.h
+	<stdarg.h>
+	<stddef.h>
+	"luaconf.h"
+
+1465581911 c:\folder\luabinaries\lua5_3_3\win64\include\luaconf.h
+	<limits.h>
+	<stddef.h>
+	<stdint.h>
+	<assert.h>
+
+1391707952 c:\folder\luabinaries\lua5_3_3\win64\include\lualib.h
+	"lua.h"
+
+1448278182 c:\folder\luabinaries\lua5_3_3\win64\include\lauxlib.h
+	<stddef.h>
+	<stdio.h>
+	"lua.h"
+
+1473418125 c:\folder\sol2_develop\sol\compatibility\5.1.0.h
+	"version.hpp"
+	<lua.hpp>
+	<stddef.h>
+	<string.h>
+	<stdio.h>
+	<limits.h>
+
+1473418125 c:\folder\sol2_develop\sol\compatibility\5.0.0.h
+	"version.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\compatibility\5.x.x.h
+	"version.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\compatibility\5.x.x.inl
+	"version.hpp"
+	"5.1.0.h"
+	"5.0.0.h"
+	"5.x.x.h"
+	<errno.h>
+	<string.h>
+	<limits.h>
+	<math.h>
+
+1473418125 c:\folder\sol2_develop\sol\string_shim.hpp
+	<cstddef>
+	<string>
+
+1473418125 c:\folder\sol2_develop\sol\stack_reference.hpp
+
+1473418125 c:\folder\sol2_develop\sol\stack.hpp
+	"stack_core.hpp"
+	"stack_reference.hpp"
+	"stack_check.hpp"
+	"stack_get.hpp"
+	"stack_check_get.hpp"
+	"stack_push.hpp"
+	"stack_pop.hpp"
+	"stack_field.hpp"
+	"stack_probe.hpp"
+	<cstring>
+	<array>
+
+1473418125 c:\folder\sol2_develop\sol\stack_core.hpp
+	"types.hpp"
+	"reference.hpp"
+	"stack_reference.hpp"
+	"userdata.hpp"
+	"tuple.hpp"
+	"traits.hpp"
+	"tie.hpp"
+	<vector>
+	<string>
+
+1473418125 c:\folder\sol2_develop\sol\userdata.hpp
+	"reference.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\tie.hpp
+	"traits.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\stack_check.hpp
+	"stack_core.hpp"
+	"usertype_traits.hpp"
+	"inheritance.hpp"
+	<memory>
+	<functional>
+	<utility>
+
+1473418125 c:\folder\sol2_develop\sol\usertype_traits.hpp
+	"demangle.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\demangle.hpp
+	<string>
+	<array>
+	<cctype>
+
+1473418125 c:\folder\sol2_develop\sol\inheritance.hpp
+	"types.hpp"
+	<atomic>
+
+1473418125 c:\folder\sol2_develop\sol\stack_get.hpp
+	"stack_core.hpp"
+	"usertype_traits.hpp"
+	"inheritance.hpp"
+	"overload.hpp"
+	"error.hpp"
+	<memory>
+	<functional>
+	<utility>
+	<codecvt>
+	<locale>
+
+1473418125 c:\folder\sol2_develop\sol\overload.hpp
+	<utility>
+
+1473418125 c:\folder\sol2_develop\sol\stack_check_get.hpp
+	"stack_core.hpp"
+	"stack_get.hpp"
+	"stack_check.hpp"
+	"optional.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\stack_push.hpp
+	"stack_core.hpp"
+	"raii.hpp"
+	"optional.hpp"
+	<memory>
+	<codecvt>
+	<locale>
+
+1473418125 c:\folder\sol2_develop\sol\raii.hpp
+	<memory>
+	"traits.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\stack_pop.hpp
+	"stack_core.hpp"
+	"stack_get.hpp"
+	<utility>
+	<tuple>
+
+1473418125 c:\folder\sol2_develop\sol\stack_field.hpp
+	"stack_core.hpp"
+	"stack_push.hpp"
+	"stack_get.hpp"
+	"stack_check_get.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\stack_probe.hpp
+	"stack_core.hpp"
+	"stack_field.hpp"
+	"stack_check.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\variadic_args.hpp
+	"stack.hpp"
+	"stack_proxy.hpp"
+	<limits>
+	<iterator>
+
+1473418125 c:\folder\sol2_develop\sol\stack_proxy.hpp
+	"stack.hpp"
+	"function.hpp"
+	"protected_function.hpp"
+	"proxy_base.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\function.hpp
+	"reference.hpp"
+	"stack.hpp"
+	"function_result.hpp"
+	"function_types.hpp"
+	<cstdint>
+	<functional>
+	<memory>
+
+1473418125 c:\folder\sol2_develop\sol\function_result.hpp
+	"reference.hpp"
+	"tuple.hpp"
+	"stack.hpp"
+	"proxy_base.hpp"
+	<cstdint>
+
+1473418125 c:\folder\sol2_develop\sol\proxy_base.hpp
+	"reference.hpp"
+	"tuple.hpp"
+	"stack.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\function_types.hpp
+	"function_types_core.hpp"
+	"function_types_templated.hpp"
+	"function_types_stateless.hpp"
+	"function_types_stateful.hpp"
+	"function_types_overloaded.hpp"
+	"resolve.hpp"
+	"call.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\function_types_core.hpp
+	"stack.hpp"
+	"wrapper.hpp"
+	<memory>
+
+1473418125 c:\folder\sol2_develop\sol\wrapper.hpp
+	"types.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\function_types_templated.hpp
+	"call.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\call.hpp
+	"protect.hpp"
+	"wrapper.hpp"
+	"property.hpp"
+	"stack.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\protect.hpp
+	"traits.hpp"
+	<utility>
+
+1473418125 c:\folder\sol2_develop\sol\property.hpp
+
+1473418125 c:\folder\sol2_develop\sol\function_types_stateless.hpp
+	"stack.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\function_types_stateful.hpp
+	"function_types_core.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\function_types_overloaded.hpp
+	"overload.hpp"
+	"call.hpp"
+	"function_types_core.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\resolve.hpp
+	"traits.hpp"
+	"tuple.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\protected_function.hpp
+	"reference.hpp"
+	"stack.hpp"
+	"protected_function_result.hpp"
+	<cstdint>
+	<algorithm>
+
+1473418125 c:\folder\sol2_develop\sol\protected_function_result.hpp
+	"reference.hpp"
+	"tuple.hpp"
+	"stack.hpp"
+	"proxy_base.hpp"
+	<cstdint>
+
+1473418125 c:\folder\sol2_develop\sol\usertype.hpp
+	"stack.hpp"
+	"usertype_metatable.hpp"
+	"simple_usertype_metatable.hpp"
+	"container_usertype_metatable.hpp"
+	<memory>
+
+1473418125 c:\folder\sol2_develop\sol\usertype_metatable.hpp
+	"wrapper.hpp"
+	"call.hpp"
+	"stack.hpp"
+	"types.hpp"
+	"stack_reference.hpp"
+	"usertype_traits.hpp"
+	"inheritance.hpp"
+	"raii.hpp"
+	"deprecate.hpp"
+	<cstdio>
+
+1473418125 c:\folder\sol2_develop\sol\deprecate.hpp
+
+1473418125 c:\folder\sol2_develop\sol\simple_usertype_metatable.hpp
+	"usertype_metatable.hpp"
+	"object.hpp"
+	<vector>
+	<utility>
+
+1473418125 c:\folder\sol2_develop\sol\container_usertype_metatable.hpp
+	"stack.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\table_iterator.hpp
+	"object.hpp"
+	<iterator>
+
+1473418125 c:\folder\sol2_develop\sol\load_result.hpp
+	"stack.hpp"
+	"function.hpp"
+	"proxy_base.hpp"
+	<cstdint>
+
+1473418125 c:\folder\sol2_develop\sol\coroutine.hpp
+	"reference.hpp"
+	"stack.hpp"
+	"function_result.hpp"
+	"thread.hpp"
+
+1473418125 c:\folder\sol2_develop\sol\thread.hpp
+	"reference.hpp"
+	"stack.hpp"
+
+1482455979 source:c:\users\aceforce\documents\github\project_gunner\animationsystem.cpp
+	"AnimationSystem.h"
 	"displace.h"
-	"boundsComponent.h"
 
-1456028325 c:\users\aceforce\documents\github\project_gunner\entitysystem.h
+1482550575 c:\users\aceforce\documents\github\project_gunner\animationsystem.h
+	"EntitySystem.h"
+	"renderable.h"
+	"animation.h"
+
+1473980441 c:\users\aceforce\documents\github\project_gunner\entitysystem.h
 	"EntityManager.h"
 	<cstdint>
 
-1456855197 c:\users\aceforce\documents\github\project_gunner\entitymanager.h
+1482615403 c:\users\aceforce\documents\github\project_gunner\entitymanager.h
 	<cstdint>
 	<unordered_map>
 	<unordered_set>
 	<deque>
+	<functional>
 	"component.h"
 	"TagManager.h"
 	"GroupManager.h"
 	"EntitySystem.h"
+	"Message.h"
+	"sol.hpp"
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\tagmanager.h
+1459622397 c:\users\aceforce\documents\github\project_gunner\tagmanager.h
 	<unordered_map>
 	<string>
 	<cstdint>
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\groupmanager.h
+1459622326 c:\users\aceforce\documents\github\project_gunner\groupmanager.h
 	<unordered_map>
 	<string>
 	<cstdint>
 	<vector>
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\displace.h
+1459666477 c:\users\aceforce\documents\github\project_gunner\message.h
+	<cstdint>
+
+1477804398 c:\users\aceforce\documents\github\project_gunner\renderable.h
+	<string>
+	"spriteSheet.h"
 	"component.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl.h
+1461298783 c:\users\aceforce\documents\github\project_gunner\spritesheet.h
+	"SDL.h"
+	"window.h"
+	<vector>
+	<array>
+	<cstdint>
+	"SDL_gpu.h"
+
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl.h
 	"SDL_main.h"
 	"SDL_stdinc.h"
 	"SDL_assert.h"
@@ -87,12 +503,12 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_main.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_main.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_stdinc.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_stdinc.h
 	"SDL_config.h"
 	<sys/types.h>
 	<stdio.h>
@@ -121,34 +537,34 @@
 	<stdlib.h>
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_config.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_config.h
 	"SDL_platform.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_platform.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_platform.h
 	"AvailabilityMacros.h"
 	"TargetConditionals.h"
 	<winapifamily.h>
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\begin_code.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\begin_code.h
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\close_code.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\close_code.h
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_assert.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_assert.h
 	"SDL_config.h"
 	"begin_code.h"
 	<signal.h>
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_atomic.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_atomic.h
 	"SDL_stdinc.h"
 	"SDL_platform.h"
 	"begin_code.h"
 	<mbarrier.h>
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_audio.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_audio.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_endian.h"
@@ -158,24 +574,24 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_error.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_error.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_endian.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_endian.h
 	"SDL_stdinc.h"
 	<endian.h>
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_mutex.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_mutex.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_thread.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_thread.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_atomic.h"
@@ -184,18 +600,18 @@
 	<process.h>
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_rwops.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_rwops.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_clipboard.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_clipboard.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_cpuinfo.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_cpuinfo.h
 	"SDL_stdinc.h"
 	<intrin.h>
 	<intrin.h>
@@ -207,7 +623,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_events.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_events.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_video.h"
@@ -221,7 +637,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_video.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_video.h
 	"SDL_stdinc.h"
 	"SDL_pixels.h"
 	"SDL_rect.h"
@@ -229,12 +645,12 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_pixels.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_pixels.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_rect.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_rect.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_pixels.h"
@@ -242,7 +658,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_surface.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_surface.h
 	"SDL_stdinc.h"
 	"SDL_pixels.h"
 	"SDL_rect.h"
@@ -251,11 +667,11 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_blendmode.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_blendmode.h
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_keyboard.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_keyboard.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_keycode.h"
@@ -263,27 +679,27 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_keycode.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_keycode.h
 	"SDL_stdinc.h"
 	"SDL_scancode.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_scancode.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_scancode.h
 	"SDL_stdinc.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_mouse.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_mouse.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_video.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_joystick.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_joystick.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_gamecontroller.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_gamecontroller.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_rwops.h"
@@ -291,11 +707,11 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_quit.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_quit.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_gesture.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_gesture.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_video.h"
@@ -303,60 +719,60 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_touch.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_touch.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_video.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_filesystem.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_filesystem.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_haptic.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_haptic.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_joystick.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_hints.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_hints.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_loadso.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_loadso.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_log.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_log.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_messagebox.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_messagebox.h
 	"SDL_stdinc.h"
 	"SDL_video.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_power.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_power.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_render.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_render.h
 	"SDL_stdinc.h"
 	"SDL_rect.h"
 	"SDL_video.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_system.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_system.h
 	"SDL_stdinc.h"
 	"SDL_keyboard.h"
 	"SDL_render.h"
@@ -364,108 +780,165 @@
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_timer.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_timer.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1451764693 c:\folder\sdl 2\sdl2-2.0.4\i686-w64-mingw32\include\sdl2\sdl_version.h
+1451764783 c:\folder\sdl 2\sdl2-2.0.4\x86_64-w64-mingw32\include\sdl2\sdl_version.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\collider.cpp
-	"collider.h"
+1461029437 c:\users\aceforce\documents\github\project_gunner\window.h
+	"SDL.h"
+	"SDL_gpu.h"
+	<cstdint>
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\collider.h
+1473001105 c:\folder\sdl-gpu-master\include\sdl_gpu.h
+	"SDL.h"
+	<stdio.h>
+	<stdarg.h>
+	"begin_code.h"
+	<stdbool.h>
+	"close_code.h"
+
+1455826052 c:\users\aceforce\documents\github\project_gunner\displace.h
 	"component.h"
 
-1456786503 source:c:\users\aceforce\documents\github\project_gunner\collisionsystem.cpp
+1482997860 source:c:\users\aceforce\documents\github\project_gunner\boundscomponent.cpp
+	"boundsComponent.h"
+	"component.h"
+
+1474073067 c:\users\aceforce\documents\github\project_gunner\boundscomponent.h
+	<string>
+	<vector>
+	"sol.hpp"
+
+1482456024 source:c:\users\aceforce\documents\github\project_gunner\boundscorrection.cpp
+	"BoundsCorrection.h"
+	"SDL.h"
+	"displace.h"
+	"SDL_gpu.h"
+	<cmath>
+
+1482550575 c:\users\aceforce\documents\github\project_gunner\boundscorrection.h
+	"EntitySystem.h"
+	<map>
+	"Transform.h"
+	"boundsComponent.h"
+
+1477868934 c:\users\aceforce\documents\github\project_gunner\transform.h
+	"SDL.h"
+	<string>
+	<array>
+	<unordered_map>
+	<map>
+	<unordered_set>
+	<set>
+	<vector>
+	<tuple>
+
+1482997867 source:c:\users\aceforce\documents\github\project_gunner\collider.cpp
+	"collider.h"
+	<cmath>
+
+1482174054 c:\users\aceforce\documents\github\project_gunner\collider.h
+	"component.h"
+	<unordered_map>
+
+1483048011 source:c:\users\aceforce\documents\github\project_gunner\collisionsystem.cpp
 	"CollisionSystem.h"
 	"EntityManager.h"
 	"SDL.h"
+	"Message.h"
 
-1456857733 c:\users\aceforce\documents\github\project_gunner\collisionsystem.h
+1483048030 c:\users\aceforce\documents\github\project_gunner\collisionsystem.h
 	"EntitySystem.h"
 	"collider.h"
 	"displace.h"
+	"Transform.h"
+	"sol.hpp"
 	<functional>
 
-1456259134 source:c:\users\aceforce\documents\github\project_gunner\component.cpp
+1482995577 source:c:\users\aceforce\documents\github\project_gunner\component.cpp
 	"component.h"
 	"renderable.h"
 	"displace.h"
 	"scriptcomponent.h"
 	"playerComponents.h"
 	"boundsComponent.h"
+	"animation.h"
 	"collider.h"
 	"Spawner.h"
 	"delayComponent.h"
+	"Transform.h"
+	"health.h"
+	"shieldComponent.h"
+	"lifeTimer.h"
 	<cstdlib>
 	<string>
-
-1455826052 c:\users\aceforce\documents\github\project_gunner\renderable.h
-	<string>
-	"spriteSheet.h"
-	"component.h"
-
-1455826052 c:\users\aceforce\documents\github\project_gunner\spritesheet.h
-	"SDL.h"
-	"window.h"
-	<vector>
-	<cstdint>
-
-1455826052 c:\users\aceforce\documents\github\project_gunner\window.h
-	"SDL.h"
-	<cstdint>
 
 1455826052 c:\users\aceforce\documents\github\project_gunner\scriptcomponent.h
 	<string>
 	<vector>
 	"component.h"
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\playercomponents.h
+1482612095 c:\users\aceforce\documents\github\project_gunner\playercomponents.h
 	<string>
+	"sol.hpp"
 
-1456474462 c:\users\aceforce\documents\github\project_gunner\spawner.h
+1482517161 c:\users\aceforce\documents\github\project_gunner\spawner.h
 	"component.h"
 	<vector>
+	"sol.hpp"
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\delaycomponent.h
+1458265069 c:\users\aceforce\documents\github\project_gunner\delaycomponent.h
+	<string>
+
+1481230143 c:\users\aceforce\documents\github\project_gunner\health.h
+	<string>
+	<cstdint>
+
+1460423731 c:\users\aceforce\documents\github\project_gunner\shieldcomponent.h
+	<string>
+
+1461368768 c:\users\aceforce\documents\github\project_gunner\lifetimer.h
 	<string>
 
 1455826052 source:c:\users\aceforce\documents\github\project_gunner\componentname.cpp
 	"componentName.h"
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\delaycomponent.cpp
+1458265071 source:c:\users\aceforce\documents\github\project_gunner\delaycomponent.cpp
 	"delayComponent.h"
 
-1456786747 source:c:\users\aceforce\documents\github\project_gunner\delaysystem.cpp
+1482615554 source:c:\users\aceforce\documents\github\project_gunner\delaysystem.cpp
 	"DelaySystem.h"
 	"SDL.h"
 	<iostream>
 
-1456857748 c:\users\aceforce\documents\github\project_gunner\delaysystem.h
+1482550575 c:\users\aceforce\documents\github\project_gunner\delaysystem.h
 	"delayComponent.h"
 	"EntitySystem.h"
+	<memory>
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\displace.cpp
+1482998061 source:c:\users\aceforce\documents\github\project_gunner\displace.cpp
 	"displace.h"
 	<iostream>
 	<locale>
 
-1456034444 source:c:\users\aceforce\documents\github\project_gunner\engine.cpp
+1483423642 source:c:\users\aceforce\documents\github\project_gunner\engine.cpp
 	"engine.h"
 	"window.h"
 	"SDL.h"
-	"SDL_image.h"
 	"playState.h"
 	"InputMap.h"
 	"component.h"
 	<iostream>
+	"SDL_gpu.h"
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\engine.h
+1481144563 c:\users\aceforce\documents\github\project_gunner\engine.h
 	<cstdint>
 	<vector>
 	"window.h"
@@ -474,13 +947,7 @@
 
 1455826052 c:\users\aceforce\documents\github\project_gunner\gamestate.h
 
-1451800373 c:\folder\sdl 2\sdl2_image-2.0.1\i686-w64-mingw32\include\sdl2\sdl_image.h
-	"SDL.h"
-	"SDL_version.h"
-	"begin_code.h"
-	"close_code.h"
-
-1456474462 c:\users\aceforce\documents\github\project_gunner\playstate.h
+1482459643 c:\users\aceforce\documents\github\project_gunner\playstate.h
 	"gameState.h"
 	"EntityManager.h"
 	"EntitySystem.h"
@@ -493,122 +960,243 @@
 	"CollisionSystem.h"
 	"SpawnSystem.h"
 	"DelaySystem.h"
+	"PlayerSystem.h"
+	"AnimationSystem.h"
+	"ShieldSystem.h"
+	"LifeTimerSystem.h"
+	"TransformSystems.h"
+	"Transform.h"
+	"sol.hpp"
 
-1456857808 c:\users\aceforce\documents\github\project_gunner\movementsystem.h
+1482550575 c:\users\aceforce\documents\github\project_gunner\movementsystem.h
 	"EntitySystem.h"
-	<unordered_map>
+	<unordered_set>
 	"displace.h"
+	"Transform.h"
 
-1456857824 c:\users\aceforce\documents\github\project_gunner\rendersystem.h
+1483502565 c:\users\aceforce\documents\github\project_gunner\rendersystem.h
 	"EntitySystem.h"
+	"SDL_gpu.h"
 	<unordered_map>
+	<set>
+	<map>
 	"displace.h"
 	"renderable.h"
 	"window.h"
+	"Transform.h"
 	<fstream>
+	"ShaderWrapper.h"
+	"Shader.h"
 
-1456857851 c:\users\aceforce\documents\github\project_gunner\scriptsystem.h
+1482550575 c:\users\aceforce\documents\github\project_gunner\scriptsystem.h
 	"EntitySystem.h"
 	<unordered_map>
 	"scriptcomponent.h"
 
-1456857765 c:\users\aceforce\documents\github\project_gunner\movementinput.h
+1482550575 c:\users\aceforce\documents\github\project_gunner\movementinput.h
 	"EntitySystem.h"
 	"displace.h"
 	"playerComponents.h"
 	"InputMap.h"
 
-1455826052 c:\users\aceforce\documents\github\project_gunner\inputmap.h
+1482391741 c:\users\aceforce\documents\github\project_gunner\inputmap.h
 	<unordered_map>
+	<vector>
 	<string>
 	<SDL.h>
+	<iostream>
 
-1456857969 c:\users\aceforce\documents\github\project_gunner\spawnsystem.h
+1482550575 c:\users\aceforce\documents\github\project_gunner\spawnsystem.h
 	"EntitySystem.h"
 	<unordered_map>
 	"Spawner.h"
 	"displace.h"
+	"Transform.h"
+	"sol.hpp"
 
-1456788282 source:c:\users\aceforce\documents\github\project_gunner\entitymanager.cpp
+1482550575 c:\users\aceforce\documents\github\project_gunner\playersystem.h
+	"EntitySystem.h"
+	"playerComponents.h"
+	"Message.h"
+	<random>
+	"sol.hpp"
+
+1482550575 c:\users\aceforce\documents\github\project_gunner\shieldsystem.h
+	"EntitySystem.h"
+	"shieldComponent.h"
+	"Message.h"
+
+1482550575 c:\users\aceforce\documents\github\project_gunner\lifetimersystem.h
+	"EntitySystem.h"
+	"lifeTimer.h"
+	<vector>
+	<deque>
+
+1482686267 c:\users\aceforce\documents\github\project_gunner\transformsystems.h
+	"EntitySystem.h"
+	"Transform.h"
+	<deque>
+	<vector>
+	<unordered_set>
+
+1482619436 source:c:\users\aceforce\documents\github\project_gunner\entitymanager.cpp
 	"EntityManager.h"
 	"SDL.h"
 	<iostream>
 	<algorithm>
+	<sstream>
 
-1456028506 source:c:\users\aceforce\documents\github\project_gunner\entitysystem.cpp
+1459622306 source:c:\users\aceforce\documents\github\project_gunner\entitysystem.cpp
 	"EntitySystem.h"
 
 1455826052 source:c:\users\aceforce\documents\github\project_gunner\gamestate.cpp
 	"gameState.h"
 
-1456213799 source:c:\users\aceforce\documents\github\project_gunner\groupmanager.cpp
+1459622322 source:c:\users\aceforce\documents\github\project_gunner\groupmanager.cpp
 	"GroupManager.h"
 	"EntityManager.h"
 	<algorithm>
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\inputmap.cpp
-	"InputMap.h"
+1482998030 source:c:\users\aceforce\documents\github\project_gunner\health.cpp
+	"health.h"
+	"component.h"
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\main.cpp
+1482391763 source:c:\users\aceforce\documents\github\project_gunner\inputmap.cpp
+	"InputMap.h"
+	<iostream>
+
+1461358123 source:c:\users\aceforce\documents\github\project_gunner\lifetimer.cpp
+	"lifeTimer.h"
+
+1482456815 source:c:\users\aceforce\documents\github\project_gunner\lifetimersystem.cpp
+	"LifeTimerSystem.h"
+
+1477943475 source:c:\users\aceforce\documents\github\project_gunner\main.cpp
 	<iostream>
 	"SDL.h"
 	"playState.h"
 	"Engine.h"
 
-1456787207 source:c:\users\aceforce\documents\github\project_gunner\movementinput.cpp
+1459655871 source:c:\users\aceforce\documents\github\project_gunner\message.cpp
+	"Message.h"
+
+1482458505 source:c:\users\aceforce\documents\github\project_gunner\movementinput.cpp
 	"MovementInput.h"
 	"SDL.h"
 	<iostream>
 
-1456787444 source:c:\users\aceforce\documents\github\project_gunner\movementsystem.cpp
+1482456957 source:c:\users\aceforce\documents\github\project_gunner\movementsystem.cpp
 	"MovementSystem.h"
 	"SDL.h"
+	"SDL_gpu.h"
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\playercomponents.cpp
+1482997901 source:c:\users\aceforce\documents\github\project_gunner\playercomponents.cpp
 	"playerComponents.h"
+	"component.h"
 
-1456802503 source:c:\users\aceforce\documents\github\project_gunner\playstate.cpp
-	"playState.h"
-	"SDL_image.h"
-	"SDL.h"
-	"scriptcomponent.h"
-	<iostream>
+1482622521 source:c:\users\aceforce\documents\github\project_gunner\playersystem.cpp
+	"PlayerSystem.h"
+	"displace.h"
+	"Spawner.h"
+	"collider.h"
+	"Transform.h"
+	"renderable.h"
+	"delayComponent.h"
+	"lifeTimer.h"
+	"shieldComponent.h"
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\renderable.cpp
+1482997910 source:c:\users\aceforce\documents\github\project_gunner\renderable.cpp
 	"renderable.h"
 	<cstdlib>
 	<vector>
 
-1456787572 source:c:\users\aceforce\documents\github\project_gunner\rendersystem.cpp
+1483636887 source:c:\users\aceforce\documents\github\project_gunner\rendersystem.cpp
 	"RenderSystem.h"
-	"SDL_image.h"
+	<string>
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\scriptcomponent.cpp
+1482997941 source:c:\users\aceforce\documents\github\project_gunner\scriptcomponent.cpp
 	"scriptcomponent.h"
 	<iostream>
 
-1456787614 source:c:\users\aceforce\documents\github\project_gunner\scriptsystem.cpp
+1477804340 source:c:\users\aceforce\documents\github\project_gunner\scriptsystem.cpp
 	"ScriptSystem.h"
 	"SDL.h"
 
-1456474462 source:c:\users\aceforce\documents\github\project_gunner\spawner.cpp
+1482997951 source:c:\users\aceforce\documents\github\project_gunner\shieldcomponent.cpp
+	"shieldComponent.h"
+	"component.h"
+
+1482615692 source:c:\users\aceforce\documents\github\project_gunner\shieldsystem.cpp
+	"ShieldSystem.h"
+
+1482997972 source:c:\users\aceforce\documents\github\project_gunner\spawner.cpp
 	"Spawner.h"
 	<cmath>
 
-1456787658 source:c:\users\aceforce\documents\github\project_gunner\spawnsystem.cpp
+1482615782 source:c:\users\aceforce\documents\github\project_gunner\spawnsystem.cpp
 	"SpawnSystem.h"
 	"SDL.h"
+	"playerComponents.h"
 	<cmath>
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\spritesheet.cpp
+1461808904 source:c:\users\aceforce\documents\github\project_gunner\spritesheet.cpp
 	"spriteSheet.h"
 	<iostream>
 
-1456245424 source:c:\users\aceforce\documents\github\project_gunner\tagmanager.cpp
+1459622395 source:c:\users\aceforce\documents\github\project_gunner\tagmanager.cpp
 	"TagManager.h"
 	"EntityManager.h"
 
-1455826052 source:c:\users\aceforce\documents\github\project_gunner\window.cpp
+1482997994 source:c:\users\aceforce\documents\github\project_gunner\transform.cpp
+	"Transform.h"
+	"component.h"
+	"SDL_gpu.h"
+
+1482738602 source:c:\users\aceforce\documents\github\project_gunner\transformsystems.cpp
+	"TransformSystems.h"
+	"SDL_gpu.h"
+
+1461087964 source:c:\users\aceforce\documents\github\project_gunner\window.cpp
 	"window.h"
 	<iostream>
+
+1483684983 source:c:\users\aceforce\documents\github\project_gunner\playstate.cpp
+	"playState.h"
+	"SDL.h"
+	"scriptcomponent.h"
+	<iostream>
+	"sol.hpp"
+	<experimental/optional>
+
+1482550956 source:c:\users\aceforce\documents\github\project_gunner\healthsystem.cpp
+	"HealthSystem.h"
+
+1482550610 c:\users\aceforce\documents\github\project_gunner\healthsystem.h
+	"EntitySystem.h"
+	"sol.hpp"
+	"health.h"
+
+1483164532 c:\users\aceforce\documents\github\project_gunner\shaderwrapper.h
+	"SDL_gpu.h"
+	<string>
+	<vector>
+	<unordered_map>
+
+1483164672 source:c:\users\aceforce\documents\github\project_gunner\shaderwrapper.cpp
+	"ShaderWrapper.h"
+	<iostream>
+	<algorithm>
+
+1483499707 source:c:\users\aceforce\documents\github\project_gunner\shader.cpp
+	"Shader.h"
+	<new>
+
+1483485986 c:\users\aceforce\documents\github\project_gunner\shader.h
+	"SDL_gpu.h"
+	<string>
+	<vector>
+	<iostream>
+	<bitset>
+	<algorithm>
+	<type_traits>
 

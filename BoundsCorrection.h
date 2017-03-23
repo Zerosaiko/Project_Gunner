@@ -2,14 +2,14 @@
 #define BOUNDSCORRECTION_H_INCLUDED
 
 #include "EntitySystem.h"
-#include <unordered_map>
-#include "displace.h"
+#include <map>
+#include "Transform.h"
 #include "boundsComponent.h"
 
 class BoundsSystem : public EntitySystem {
 
 public:
-    BoundsSystem(EntityManager* const manager, int32_t priority);
+    BoundsSystem(EntityManager* const manager, int32_t priority, TransformTree& tfGraph);
 
     void initialize();
 
@@ -27,13 +27,21 @@ private:
 
     std::vector<uint8_t> hasEntity;
 
-    std::vector<uint32_t> idxToID;
+    std::map<uint32_t, std::vector<uint32_t>> idxToID;
 
-    std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
+    std::map<uint32_t, std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> > entities;
 
-    std::deque<Component<Position::name, Position>>* positionPool;
+    std::vector<uint32_t> nodeHeights;
 
-    std::deque<Component<Bounds::name, Bounds>>* boundsPool;
+    std::weak_ptr<std::deque<Component<Transform::name, Transform>>> tfPool;
+
+    std::weak_ptr<std::deque<Component<Bounds::name, Bounds>>> boundsPool;
+
+    TransformTree& tfGraph;
+
+    void updateTransforms(Transform& tf, Bounds& bounds, uint32_t id, float xPres, float yPres, float xPast, float yPast);
+
+    void precheckTransforms();
 
 };
 

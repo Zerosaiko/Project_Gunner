@@ -2,6 +2,7 @@
 #define PLAYERCOMPONENTS_H_INCLUDED
 
 #include <string>
+#include "sol.hpp"
 
 struct PlayerCmp {
 
@@ -14,10 +15,15 @@ struct PlayerCmp {
 
     uint8_t playerNumber;
 
+    float cooldown;
+    float currentTime;
+
     bool alive;
     float deathTimer;
 
     uint8_t lives;
+
+    sol::table blackboard;
 
     PlayerCmp();
 

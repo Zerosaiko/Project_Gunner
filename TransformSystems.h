@@ -24,6 +24,8 @@ public:
 
 private:
 
+    void setHeight(uint32_t id);
+
     std::vector<size_t> entityIDXs;
 
     std::vector<uint8_t> hasEntity;
@@ -34,9 +36,11 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::deque<Component<Transform::name, Transform>>* tfPool;
+    std::weak_ptr<std::deque<Component<Transform::name, Transform>>> tfPool;
 
-    std::unordered_set<uint32_t> unsetTFs;
+    std::map<uint32_t, std::unordered_set<uint32_t>> unsetTFs;
+
+    std::vector<uint32_t> oldHeights;
 
     std::vector<TransformState> oldLocals;
 
@@ -69,7 +73,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::deque<Component<Transform::name, Transform>>* tfPool;
+    std::weak_ptr<std::deque<Component<Transform::name, Transform>>> tfPool;
 
     TransformTree& tfGraph;
 

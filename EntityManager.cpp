@@ -2,12 +2,14 @@
 #include "SDL.h"
 #include <iostream>
 #include <algorithm>
+#include <sstream>
 
 EntityManager::EntityManager() : tagManager{this}, groupManager{this} {
 
     for ( auto& factoryPair : componentUtils::factoryMap ) {
         factoryPair.second->registerManager(this);
     }
+    using componentUtils::factoryMap;
 
     entities.reserve(1 << 16);
     isAlive.reserve(1 << 16);
@@ -18,29 +20,25 @@ EntityManager::EntityManager() : tagManager{this}, groupManager{this} {
 }
 
 EntityManager::~EntityManager() {
-    for ( auto& factoryPair : componentUtils::factoryMap ) {
+    using componentUtils::factoryMap;
+    for ( auto& factoryPair : factoryMap ) {
         factoryPair.second->deregisterManager(this);
     }
 }
 
 void EntityManager::update(float dt) {
     auto beg = SDL_GetPerformanceCounter();
-    for (auto system : systems) {
-        system->process(dt);
-    }
-    auto ed = SDL_GetPerformanceCounter();
-    //std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
-    beg = SDL_GetPerformanceCounter();
     for (uint32_t entity : entitiesToRefresh) {
         if (toRefresh[entity] == true) {
             refreshEntity(entity);
             toRefresh[entity] = false;
         }
-        for (auto& component: entities[entity]) {
+        for (auto& component: entities[entity].components) {
             component.second.dirty = false;
         }
     }
-    ed = SDL_GetPerformanceCounter();
+    auto ed = SDL_GetPerformanceCounter();
+
     //std::cout << "REFRESH - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entitiesToRefresh.size() << " entities" << std::endl;
     entitiesToRefresh.clear();
     beg = SDL_GetPerformanceCounter();
@@ -54,8 +52,15 @@ void EntityManager::update(float dt) {
         }
     }
     ed = SDL_GetPerformanceCounter();
+
     //std::cout << "DESTROY - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entitiesToDestroy.size() << " entities" << std::endl;
     entitiesToDestroy.clear();
+    beg = SDL_GetPerformanceCounter();
+    for (auto system : systems) {
+        system->process(dt);
+    }
+    ed = SDL_GetPerformanceCounter();
+    //std::cout << "PROCESSING - " << ((ed - beg) * 1000.f / SDL_GetPerformanceFrequency()) << '\t' << entities.size() << ',' << aliveCount << " entities" << std::endl;
 }
 
 void EntityManager::addSystem(EntitySystem* system) {
@@ -88,7 +93,7 @@ void EntityManager::eraseEntity(uint32_t id) {
     for (auto& system : systems) {
         system->removeEntity(id);
     }
-    entity_map& components = entities[id];
+    entity_map& components = entities[id].components;
     for(auto& compPair : components) {
         freeComponents[compPair.first].push_back(compPair.second.index);
     }
@@ -115,61 +120,26 @@ void EntityManager::destroyEntity(uint32_t id) {
     toRefresh[id] = false;
 }
 
-std::vector<std::string> EntityManager::tokenize(std::string& instructions) {
+void EntityManager::addComponent(std::string cmpName, sol::object comp, uint32_t id) {
 
-    std::string::size_type colon = instructions.find_first_of(':');
-    std::string::size_type endName = instructions.find_first_of(" \n\r\f\t\v", colon);
-    std::string cmpName = instructions.substr(colon + 1, endName - colon - 1);
-
+    auto& entity = entities.at(id);
+    auto componentID = entity.components.find(cmpName);
     auto& factory = componentUtils::factoryMap.at(cmpName);
-
-    return factory->tokenize(instructions);
-
-}
-
-std::vector<std::string> EntityManager::tokenize(std::string&& instructions) {
-
-    std::string::size_type colon = instructions.find_first_of(':');
-    std::string::size_type endName = instructions.find_first_of(" \n\r\f\t\v", colon);
-    std::string cmpName = instructions.substr(colon + 1, endName - colon - 1);
-
-    auto& factory = componentUtils::factoryMap.at(cmpName);
-
-    return factory->tokenize(instructions);
-
-}
-
-void EntityManager::addComponent(std::string& instructions, uint32_t id) {
-    addComponent(tokenize(instructions), id);
-}
-
-void EntityManager::addComponent(std::string&& instructions, uint32_t id) {
-
-    addComponent(tokenize(instructions), id);
-}
-
-void EntityManager::addComponent(std::vector<std::string>& instructions, uint32_t id) {
-
-    auto& cmpName = instructions.at(1);
-
-    auto& entity = entities[id];
-    auto componentID = entity.find(cmpName);
-    auto& factory = componentUtils::factoryMap.at(cmpName);
-    if (componentID == entity.end() ) {
+    if (componentID == entity.components.end() ) {
         if (freeComponents[cmpName].empty()) {
-            entities[id][cmpName].setHandle( true, true, factory->build(this, instructions));
+            entities[id].components[cmpName].setHandle( true, true, factory->build(this, comp));
         }
         else {
             auto front = freeComponents[cmpName].front();
             freeComponents[cmpName].pop_front();
-            factory->build(this, front, instructions);
-            entities[id][cmpName].setHandle( true, true, front);
+            factory->build(this, front, comp);
+            entities[id].components[cmpName].setHandle( true, true, front);
         }
     }
     else {
         componentID->second.active = true;
         componentID->second.dirty = true;
-        factory->build(this, componentID->second.index, instructions);
+        factory->build(this, componentID->second.index, comp);
     }
     if (!toRefresh[id]) {
         entitiesToRefresh.emplace(id);
@@ -177,46 +147,17 @@ void EntityManager::addComponent(std::vector<std::string>& instructions, uint32_
         toDestroy[id] = false;
     }
 }
-void EntityManager::addComponent(std::vector<std::string>&& instructions, uint32_t id) {
-
-    auto& cmpName = instructions.at(1);
-
-    auto& entity = entities[id];
-    auto componentID = entity.find(cmpName);
-    auto& factory = componentUtils::factoryMap.at(cmpName);
-    if (componentID == entity.end() ) {
-        if (freeComponents[cmpName].empty()) {
-            entities[id][cmpName].setHandle( true, true, factory->build(this, instructions));
-        }
-        else {
-            auto front = freeComponents[cmpName].front();
-            freeComponents[cmpName].pop_front();
-            factory->build(this, front, instructions);
-            entities[id][cmpName].setHandle( true, true, front);
-        }
-    }
-    else {
-        componentID->second.active = true;
-        componentID->second.dirty = true;
-        factory->build(this, componentID->second.index, instructions);
-    }
-    if (!toRefresh[id]) {
-        entitiesToRefresh.insert(id);
-        toRefresh[id] = true;
-        toDestroy[id] = false;
-    }
-}
 
 void EntityManager::removeComponent(std::string& cmpName, uint32_t id) {
     auto& entity = entities[id];
-    auto componentID = entity.find(cmpName);
-    if (componentID != entity.end()) {
+    auto componentID = entity.components.find(cmpName);
+    if (componentID != entity.components.end()) {
         componentID->second.active = false;
         componentID->second.dirty = true;
     }
 
     bool alive = false;
-    for (auto it = entity.begin(); !alive && it != entity.end(); ++it) {
+    for (auto it = entity.components.begin(); !alive && it != entity.components.end(); ++it) {
         alive = it->second.active;
     }
     if (!alive) {
@@ -231,14 +172,14 @@ void EntityManager::removeComponent(std::string& cmpName, uint32_t id) {
 
 void EntityManager::removeComponent(std::string&& cmpName, uint32_t id) {
     auto& entity = entities[id];
-    auto componentID = entity.find(cmpName);
-    if (componentID != entity.end()) {
+    auto componentID = entity.components.find(cmpName);
+    if (componentID != entity.components.end()) {
         componentID->second.active = false;
         componentID->second.dirty = true;
     }
 
     bool alive = false;
-    for (auto it = entity.begin(); !alive && it != entity.end(); ++it) {
+    for (auto it = entity.components.begin(); !alive && it != entity.components.end(); ++it) {
         alive = it->second.active;
     }
     if (!alive) {
@@ -251,11 +192,8 @@ void EntityManager::removeComponent(std::string&& cmpName, uint32_t id) {
     }
 }
 
-EntityManager::entity_map const * EntityManager::getEntity(uint32_t id) {
-    EntityManager::entity_map const * entitySet = nullptr;
-    if (isAlive[id])
-        entitySet = &entities[id];
-    return entitySet;
+EntityManager::EntityInfo const * EntityManager::getEntity(uint32_t id) {
+    return (id < entities.size() && isAlive[id]) ? &entities[id] : nullptr;
 }
 
 void EntityManager::refreshEntity(uint32_t id) {
@@ -307,3 +245,11 @@ void EntityManager::ComponentHandle::setHandle(bool act, bool dir, std::size_t i
 
 }
 
+void EntityManager::EntityInfo::getComponent(std::string cmpName, sol::table cmp, EntityManager &manager) {
+    auto it = components.find(cmpName);
+    if (it == components.end() || !it->second.active)
+        return;
+    auto &factory = componentUtils::factoryMap.at(cmpName);
+    factory->getComponent(manager, cmp, it->second.index);
+
+}

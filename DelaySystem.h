@@ -3,6 +3,7 @@
 
 #include "delayComponent.h"
 #include "EntitySystem.h"
+#include <memory>
 
 class DelaySystem : public EntitySystem {
 
@@ -29,7 +30,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::deque<Component<delayComponent::fullDelay, float>>* delayPool;
+    std::weak_ptr<std::deque<Component<delayComponent::fullDelay, float>>> delayPool;
 
 };
 
@@ -58,7 +59,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::deque<Component<delayComponent::pauseDelay, float>>* pausePool;
+    std::weak_ptr<std::deque<Component<delayComponent::pauseDelay, float>>> pausePool;
 
 };
 

@@ -29,9 +29,9 @@ private:
 
     std::vector<std::pair<EntityManager::ComponentHandle const *, EntityManager::ComponentHandle const *>> entities;
 
-    std::deque<Component<Velocity::name, Velocity>>* velocityPool;
+    std::weak_ptr<std::deque<Component<Velocity::name, Velocity>>> velocityPool;
 
-    std::deque<Component<PlayerCmp::name, PlayerCmp>>* playerPool;
+    std::weak_ptr<std::deque<Component<PlayerCmp::name, PlayerCmp>>> playerPool;
 
 };
 

@@ -31,7 +31,7 @@ private:
 
     std::vector<EntityManager::ComponentHandle const *> entities;
 
-    std::deque<Component<lifeTimerName, float>>* lifeTimerPool;
+    std::weak_ptr<std::deque<Component<lifeTimerName, float>>> lifeTimerPool;
 
 };
 

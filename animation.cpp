@@ -6,19 +6,21 @@ const std::string Animation::name{"animation"};
 Animation::Animation() : currentIdx(0), currentTime(0), loopIdx(0), endBehavior(Animation::EndBehavior::None) {
 
 }
-
 template<>
-Animation buildFromString<Animation>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+Animation buildFromLua<Animation>(sol::object& obj) {
     Animation a;
-    if (str[pos] == "Loop") {
+    sol::table tbl = obj;
+    if (tbl["endBehavior"] == "Loop") {
         a.endBehavior = Animation::EndBehavior::Loop;
-        a.loopIdx = buildFromString<uint32_t>(str, ++pos);
+        a.loopIdx = (uint32_t)tbl["endBehavior"]["loopIndex"];
     }
-    uint32_t frameCount = 0;
-    frameCount = buildFromString<uint32_t>(str, pos);
-    for (uint32_t i = 0; i < frameCount && pos < str.size(); ++i) {
-        a.frames.emplace_back(buildFromString<uint32_t>(str, pos));
-        a.frameLengths.emplace_back(buildFromString<float>(str, pos));
+    sol::table frames = tbl["frames"];
+    sol::table frameLengths = tbl["frameLengths"];
+    for (auto it = frames.begin(); it != frames.end(); ++it) {
+        a.frames.emplace_back((*it).second.as<uint32_t>());
+    }
+    for (auto it = frameLengths.begin(); it != frames.end(); ++it) {
+        a.frameLengths.emplace_back((*it).second.as<float>());
     }
 
     return a;

@@ -12,11 +12,8 @@ Shield::Shield(float timeLimit) : timeLimit(timeLimit){
 
 }
 
-template<>
-Shield buildFromString<Shield>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
-    Shield s;
-    if (pos < str.size())
-        s.timeLimit = buildFromString<float>(str, pos);
 
-    return s;
+template<>
+Shield buildFromLua<Shield>(sol::object& obj) {
+    return Shield{obj.as<float>()};
 }

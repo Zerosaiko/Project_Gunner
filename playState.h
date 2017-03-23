@@ -20,6 +20,8 @@
 #include "TransformSystems.h"
 #include "Transform.h"
 
+#include "sol.hpp"
+
 
 class PlayState : public GameState{
 public:
@@ -35,8 +37,11 @@ public:
     virtual ~PlayState();
 
 private:
+    sol::state luaState;
     EntityManager manager;
     Window* window;
+
+    TransformTree tfGraph;
     MovementSystem moveSys;
     RenderSystem renderSys;
     MovementInputSystem mInpSys;
@@ -51,7 +56,6 @@ private:
     AnimationSystem animSys;
     ShieldSystem shieldSys;
     LifeTimerSystem lifeTimerSys;
-    TransformTree tfGraph;
 
 };
 

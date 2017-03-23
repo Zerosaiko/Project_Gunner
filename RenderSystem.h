@@ -11,6 +11,8 @@
 #include "window.h"
 #include "Transform.h"
 #include <fstream>
+#include "ShaderWrapper.h"
+#include "Shader.h"
 
 //  sort of hacky and incomplete system, should sort by z-order (texture doesn't matter because SDL has no concept of sprite batching sadly) if entities are added or removed
 //  renders images from sprite sheets. No support for shapes currently
@@ -37,7 +39,7 @@ public:
 
 private:
 
-    SpriteSheet* const loadSprite(std::string spriteName);
+    std::weak_ptr<SpriteSheet> const loadSprite(std::string spriteName);
 
     std::vector<size_t> entityIDXs;
 
@@ -47,21 +49,25 @@ private:
 
     std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
-    std::deque<Component<Sprite::name, Sprite>>* spritePool;
+    std::weak_ptr<std::deque<Component<Sprite::name, Sprite>>> spritePool;
 
-    std::deque<Component<Transform::name, Transform>>* transformPool;
+    std::weak_ptr<std::deque<Component<Transform::name, Transform>>> transformPool;
 
     std::vector<int32_t> oldZOrderings;
 
     std::map<int32_t, std::set<uint32_t> > zOrderMap;
 
-    std::unordered_map<std::string, SpriteSheet*> sprites;
+    std::unordered_map<std::string, std::shared_ptr<SpriteSheet>> sprites;
 
     Window* window;
 
-    //SDL_Texture* renderTarget;
-
     GPU_Image* targetImage;
+
+    GPU_FilterEnum imageFilterMode;
+
+    shader::ShaderProgram defaultShaderProg;
+    shader::ShaderProgram* currentShaderProg;
+    GPU_ShaderBlock block;
 
 };
 

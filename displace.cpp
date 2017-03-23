@@ -5,23 +5,21 @@
 const std::string Position::name{"position"};
 
 template<>
-Position buildFromString<Position>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+Position buildFromLua<Position>(sol::object& obj) {
     Position p;
-    if (pos < str.size() && str.size() >= 3) {
-        p.pastPosX = p.posX = buildFromString<float>(str, pos);
-        p.pastPosY = p.posY = buildFromString<float>(str, pos);
-    }
+    sol::table tbl = obj;
+    p.pastPosX = p.posX = tbl["x"].get_or(0.0f);
+    p.pastPosY = p.posY = tbl["y"].get_or(0.0f);
     return p;
 }
 
 const std::string Velocity::name{"velocity"};
 
 template<>
-Velocity buildFromString<Velocity>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+Velocity buildFromLua<Velocity>(sol::object& obj) {
     Velocity v;
-    if (pos < str.size() && str.size() >= 3) {
-        v.velX = buildFromString<float>(str, pos);
-        v.velY = buildFromString<float>(str, pos);
-    }
+    sol::table tbl = obj;
+    v.velX = tbl["x"].get_or(0.0f);
+    v.velY = tbl["y"].get_or(0.0f);
     return v;
 }

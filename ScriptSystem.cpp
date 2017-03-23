@@ -1,7 +1,7 @@
 #include "ScriptSystem.h"
 #include "SDL.h"
 
-ScriptSystem::ScriptSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
+/*ScriptSystem::ScriptSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     scriptPool = manager->getComponentPool<Component<Script::name, Script>>();
     entityIDXs.reserve(1 << 16);
     hasEntity.reserve(1 << 16);
@@ -250,5 +250,6 @@ void ScriptSystem::execute(Script& script, uint32_t id, std::vector<std::string>
             }
         } else ++i;
     }
-    */
+
 }
+*/

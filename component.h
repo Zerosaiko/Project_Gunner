@@ -6,20 +6,26 @@
 #include <deque>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <iostream>
+#include <memory>
 #include "componentName.h"
+#include "sol.hpp"
 
 class EntityManager;
 
 class ComponentFactory;
 
 namespace componentUtils {
-    extern std::map<std::string, ComponentFactory*> factoryMap;
+    extern std::map<std::string, std::unique_ptr<ComponentFactory> > factoryMap;
 }
 
 // utility functions to turn parsed strings into objects
 template <typename DataType>
 DataType buildFromString(std::vector<std::string>& str, std::vector<std::string>::size_type& pos);
+
+template <typename DataType>
+DataType buildFromLua(sol::object& obj);
 
 struct ComponentBase {
 protected:
@@ -36,12 +42,12 @@ struct Component;
 class ComponentFactory {
 public:
 
-    virtual std::size_t build(EntityManager* manager, size_t idx, std::vector<std::string> instructions) = 0;
     virtual std::size_t build(EntityManager* manager, size_t idx, ComponentBase* cmp) = 0;
-    virtual std::size_t build(EntityManager* manager, std::vector<std::string> instructions) = 0;
+    virtual std::size_t build(EntityManager* manager, size_t idx, sol::object& cmp) = 0;
     virtual std::size_t build(EntityManager* manager, ComponentBase* cmp) = 0;
+    virtual std::size_t build(EntityManager* manager, sol::object& cmp) = 0;
 
-    virtual std::vector<std::string> tokenize(std::string instructions) = 0;
+    virtual void getComponent(EntityManager& manager, sol::table cmp, std::size_t index) = 0;
 
     virtual void registerManager(EntityManager*) = 0;
 
@@ -67,171 +73,117 @@ private:
 
     public:
 
-        std::size_t build(EntityManager* manager, size_t idx, std::vector<std::string> instructions);
-
         std::size_t build(EntityManager* manager, size_t idx, ComponentBase* cmp);
 
-        std::size_t build(EntityManager* manager, std::vector<std::string> instructions);
+        std::size_t build(EntityManager* manager, size_t idx, sol::object& cmp);
 
         std::size_t build(EntityManager* manager, ComponentBase* cmp);
+
+        std::size_t build(EntityManager* manager, sol::object& cmp);
+
+        virtual void getComponent(EntityManager& manager, sol::table cmp, std::size_t index);
 
         void registerManager(EntityManager*);
 
         void deregisterManager(EntityManager*);
-
-        std::vector<std::string> tokenize(std::string instructions);
     };
 
     typedef std::deque<Component<cmpName, DataType>> cmpPool;
 public:
-    static std::map<EntityManager*, cmpPool> componentPools;
+    static std::map<EntityManager*, std::shared_ptr<cmpPool>> componentPools;
     static const std::string getName();
-    static ComponentFactoryInternal* factory;
+    static std::unique_ptr<ComponentFactory> factory;
 
     //creates a ComponentFactory for the component type
     static void registerComponent();
 
     void build(std::vector<std::string> instructions);
 
+    void build(sol::object& obj);
+
     Component() : data{} {}
     Component(const Component& other) : data(other.data) {}
     Component(const DataType& newData) : data(newData) {}
-    Component(Component&& other) : data(other.data) {}
+    Component(Component&& other) = default;
     Component(DataType&& newData) : data(newData) {}
-    Component(std::vector<std::string> instructions) : data{} {
-        build(instructions);
+    Component(sol::object& obj) : data{} {
+        build(obj);
     }
 
-    Component& operator=(Component other) { data = other.data; return *this; }
+    Component& operator=(const Component& other) { data = other.data; return *this; }
 
     DataType data;
 
 };
 
 template <const std::string& cmpName, typename DataType>
-std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, size_t idx, std::vector<std::string> instructions) {
-    auto& pool = Component<cmpName, DataType>::componentPools[manager];
-    pool[idx].build(instructions);
-    return idx;
-
-}
-
-template <const std::string& cmpName, typename DataType>
 std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, size_t idx, ComponentBase* cmp) {
-    auto& pool = Component<cmpName, DataType>::componentPools[manager];
+    auto& pool = *Component<cmpName, DataType>::componentPools[manager];
     pool[idx] = *static_cast<Component<cmpName, DataType>*>(cmp);
     return idx;
 }
 
 template <const std::string& cmpName, typename DataType>
-std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, std::vector<std::string> instructions) {
-    auto& pool = Component<cmpName, DataType>::componentPools[manager];
-    pool.emplace_back(instructions);
-    return pool.size() - 1;
+std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, size_t idx, sol::object& cmp) {
+    auto& pool = *Component<cmpName, DataType>::componentPools[manager];
+    pool[idx].build(cmp);
+    return idx;
 }
 
 template <const std::string& cmpName, typename DataType>
 std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, ComponentBase* cmp) {
-    auto& pool = Component<cmpName, DataType>::componentPools[manager];
+    auto& pool = *Component<cmpName, DataType>::componentPools[manager];
     pool.emplace_back(*static_cast<Component<cmpName, DataType>*>(cmp));
     return pool.size() - 1;
 }
 
 template <const std::string& cmpName, typename DataType>
+std::size_t Component<cmpName, DataType>::ComponentFactoryInternal::build(EntityManager* manager, sol::object& cmp) {
+    auto& pool = *Component<cmpName, DataType>::componentPools[manager];
+    pool.emplace_back(cmp);
+    return pool.size() - 1;
+}
+
+
+template <const std::string& cmpName, typename DataType>
+void Component<cmpName, DataType>::ComponentFactoryInternal::getComponent(EntityManager& manager, sol::table cmp, std::size_t index) {
+    auto& pool = *Component<cmpName, DataType>::componentPools[&manager];
+    cmp["data"] = &pool[index].data;
+}
+
+template <const std::string& cmpName, typename DataType>
 void Component<cmpName, DataType>::ComponentFactoryInternal::registerManager(EntityManager* manager) {
 
-    Component<cmpName, DataType>::componentPools[manager];
+    componentPools.emplace(manager, std::make_shared<cmpPool>(cmpPool()));
 
 }
 
 template <const std::string& cmpName, typename DataType>
 void Component<cmpName, DataType>::ComponentFactoryInternal::deregisterManager(EntityManager* manager) {
 
-    Component<cmpName, DataType>::componentPools.erase(manager);
-
-}
-
-//splits component definition into a vector that consists of
-/*
-    component
-    {Name of Component}
-    data that makes up component
-*/
-template <const std::string& cmpName, typename DataType>
-std::vector<std::string> Component<cmpName, DataType>::ComponentFactoryInternal::tokenize(std::string instructions) {
-    auto beginCmp = instructions.find_first_of(" \n\f\r\t\v", instructions.find("component:" + cmpName));
-    std::vector<std::string> tokenizedString;
-    tokenizedString.reserve(5);
-    std::string::size_type tokenStart = std::string::npos;
-    std::locale loc;
-    uint32_t nesting = 0;
-    std::string::size_type nestStart = std::string::npos;
-    if (beginCmp != std::string::npos) {
-        tokenizedString.push_back("component");
-        tokenizedString.push_back(cmpName);
-        for(auto start = beginCmp; start != std::string::npos &&
-                start < instructions.size(); ++start) {
-            auto ch = instructions[start];
-            if (ch == '<') {
-                if (nesting == 0) {
-                    nestStart = start + 1;
-                    if (tokenStart != std::string::npos)
-                        tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart));
-                }
-                ++nesting;
-            }
-            else if (ch == '>' && nesting != 0) {
-                --nesting;
-                if (nesting == 0) {
-                    tokenizedString.emplace_back(instructions.substr(nestStart, start - nestStart));
-                    nestStart = std::string::npos;
-                    continue;
-                }
-            }
-
-            if (nesting == 0) {
-                if (!std::isspace(ch, loc) && ch != ',' && ch != '\n' && tokenStart == std::string::npos) {
-                    tokenStart = start;
-                } else if ( (std::isspace(ch, loc) || ch == ',' || ch== '\n') && tokenStart != std::string::npos) {
-                    tokenizedString.emplace_back(instructions.substr(tokenStart, start - tokenStart));
-                    tokenStart = std::string::npos;
-                }
-            }
-
-        }
-
-        if (tokenStart != std::string::npos)
-            tokenizedString.emplace_back(instructions.substr(tokenStart));
-
-    }
-
-    return tokenizedString;
+    componentPools.erase(manager);
 
 }
 
 template <const std::string& cmpName, typename DataType>
-typename Component<cmpName, DataType>::ComponentFactoryInternal* Component<cmpName, DataType>::factory{nullptr};
+std::unique_ptr<ComponentFactory> Component<cmpName, DataType>::factory;
 
 template <const std::string& cmpName, typename DataType>
 void Component<cmpName, DataType>::registerComponent() {
     if (!factory)
-        factory = new ComponentFactoryInternal();
-    componentUtils::factoryMap[cmpName] = factory;
+        componentUtils::factoryMap.emplace(cmpName, std::unique_ptr<ComponentFactory>(new ComponentFactoryInternal()));
 }
 
 template <const std::string& cmpName, typename DataType>
-std::map<EntityManager*, std::deque<Component<cmpName, DataType>>> Component<cmpName, DataType>::componentPools{};
+std::map<EntityManager*, std::shared_ptr<std::deque<Component<cmpName, DataType>>>> Component<cmpName, DataType>::componentPools{};
 
 template <const std::string& cmpName, typename DataType>
 const std::string Component<cmpName, DataType>::getName(){ return cmpName; };
 
 template <const std::string& cmpName, typename DataType>
-void Component<cmpName, DataType>::build(std::vector<std::string> instructions) {
+void Component<cmpName, DataType>::build(sol::object& obj) {
 
-    if (instructions.size() >= 3) {
-        std::vector<std::string>::size_type pos = 2;
-        data = buildFromString<DataType>(instructions, pos);
-    }
+        data = buildFromLua<DataType>(obj);
 
 }
 

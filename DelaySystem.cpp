@@ -18,10 +18,11 @@ void DelaySystem::addEntity(uint32_t id) {
         entityIDXs.resize(id + 1, 0);
     }
     if (hasEntity[id]) return;
-    const auto& entity = manager->getEntity(id);
+    auto entity = manager->getEntity(id);
     if (entity) {
-        auto delay = entity->find("fullDelay");
-        if (delay != entity->end() && delay->second.active) {
+        const auto& components = entity->components;
+        auto delay = components.find("fullDelay");
+        if (delay != components.end() && delay->second.active) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
@@ -57,6 +58,8 @@ void DelaySystem::refreshEntity(uint32_t id) {
 void DelaySystem::process(float dt) {
     dt *= 1000.0f;
 
+    auto delayPool = this->delayPool.lock();
+
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];
         float& delay = (*delayPool)[entity->index].data;
@@ -84,11 +87,12 @@ void PauseSystem::addEntity(uint32_t id) {
         entityIDXs.resize(id + 1, 0);
     }
     if (hasEntity[id]) return;
-    const auto& entity = manager->getEntity(id);
+    auto entity = manager->getEntity(id);
     if (entity) {
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ((delay == entity->end() || !delay->second.active) && (pause != entity->end() && pause->second.active)) {
+        const auto& components = entity->components;
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ((delay == components.end() || !delay->second.active) && (pause != components.end() && pause->second.active)) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
@@ -119,8 +123,8 @@ void PauseSystem::refreshEntity(uint32_t id) {
         removeEntity(id);
     } else {
         const auto& fullEntity = manager->getEntity(id);
-        auto delay = fullEntity->find("fullDelay");
-        if (delay != fullEntity->end() && delay->second.active ) {
+        auto delay = fullEntity->components.find("fullDelay");
+        if (delay != fullEntity->components.end() && delay->second.active ) {
             removeEntity(id);
         }
     }
@@ -129,6 +133,8 @@ void PauseSystem::refreshEntity(uint32_t id) {
 
 void PauseSystem::process(float dt) {
     dt *= 1000.0f;
+
+    auto pausePool = this->pausePool.lock();
 
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];

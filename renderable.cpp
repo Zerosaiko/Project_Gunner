@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <vector>
 
-Sprite::Sprite() : spriteName("defaultsprite"), spritePos(0), zOrder(0), sheet(nullptr) {}
+Sprite::Sprite() : spriteName("defaultsprite"), spritePos(0), zOrder(0) {}
 
 const std::string Sprite::name{"sprite"};
 
@@ -37,10 +37,11 @@ bool operator>=(const Sprite& a, const Sprite& b) {
 }
 
 template<>
-Sprite buildFromString<Sprite>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+Sprite buildFromLua<Sprite>(sol::object& obj) {
+    sol::table tbl = obj;
     Sprite r;
-    r.spriteName = str[pos++];
-    r.spritePos = std::atoi(str[pos++].c_str());
-    r.zOrder = std::atoi(str[pos++].c_str());
+    r.spriteName = tbl["fileName"];
+    r.spritePos = tbl["spritePos"];
+    r.zOrder = tbl["zOrder"];
     return r;
 }

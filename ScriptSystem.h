@@ -4,7 +4,7 @@
 #include "EntitySystem.h"
 #include <unordered_map>
 #include "scriptcomponent.h"
-
+/*
 class ScriptSystem : public EntitySystem {
 
 public:
@@ -34,6 +34,6 @@ private:
 
     std::deque<Component<Script::name, Script>>* scriptPool;
 
-};
+};*/
 
 #endif // SCRIPTSYSTEM_H_INCLUDED

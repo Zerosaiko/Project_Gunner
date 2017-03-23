@@ -3,7 +3,7 @@
 #include "playState.h"
 #include "Engine.h"
 
-int main(int argv, char** argc) {
+int main(int argc, char** argv) {
 
     Engine e;
 

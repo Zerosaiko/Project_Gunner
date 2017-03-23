@@ -34,9 +34,9 @@ private:
 
     std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
-    std::deque<Component<Transform::name, Transform>>* tfPool;
+    std::weak_ptr<std::deque<Component<Transform::name, Transform>>> tfPool;
 
-    std::deque<Component<Velocity::name, Velocity>>* velocityPool;
+    std::weak_ptr<std::deque<Component<Velocity::name, Velocity>>> velocityPool;
 
     TransformTree& tfGraph;
 

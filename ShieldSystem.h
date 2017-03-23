@@ -25,7 +25,7 @@ public:
 private:
     std::unordered_map<uint32_t, EntityManager::ComponentHandle const *> entities;
 
-    std::deque<Component<Shield::name, Shield>>* shieldPool;
+    std::weak_ptr<std::deque<Component<Shield::name, Shield>>> shieldPool;
 
     std::function<bool(Message& message)> onShieldHit;
 

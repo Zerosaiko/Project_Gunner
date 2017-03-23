@@ -9,7 +9,7 @@ struct Sprite {
     std::string spriteName;
     uint32_t spritePos;
     int16_t zOrder;
-    SpriteSheet* sheet;
+    std::shared_ptr<SpriteSheet> sheet;
     static const std::string name;
     static const std::string getName();
 

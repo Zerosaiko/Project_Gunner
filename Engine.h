@@ -21,14 +21,14 @@ public:
 
     void popState();
 
-    GameState* peekState();
+    std::shared_ptr<GameState> peekState() const;
 
     bool isRunning() const;
 
     void setRunning(bool run);
 
 private:
-    std::vector<GameState*> stateStack;
+    std::vector<std::shared_ptr<GameState> > stateStack;
     Window window;
     bool running;
     decltype(SDL_GetPerformanceCounter()) beginTime;

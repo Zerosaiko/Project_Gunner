@@ -3,14 +3,15 @@
 
 #include "component.h"
 #include <vector>
+#include "sol.hpp"
 
 struct Spawner {
-
-    Spawner();
 
     static const std::string name;
 
     static const std::string getName();
+
+    Spawner();
 
     struct DeltaPoint {
         float x, y, dx, dy, persistDx, persistDy;
@@ -45,70 +46,83 @@ struct Spawner {
     };
 
     enum class SpawnVel : size_t {
-        None = 0,
-        Default = 1,
-        Aimed = 2,
-        AwayFromPlayer = 3,
-        AimedBySource = 4,
-        AimedAwayBySource = 5,
-        TowardOrigin = 6,
-        AwayFromOrigin = 7,
-        UseList = 8,
+        Default = 0,
+        Aimed = 1,
+        AwayFromPlayer = 2,
+        AimedBySource = 3,
+        AimedAwayBySource = 4,
+        TowardOrigin = 5,
+        AwayFromOrigin = 6,
+        UseList = 7,
     };
 
     enum class SpawnAccel : size_t {
-        None = 0,
-        Default = 1,
-        Forward = 2,
-        Backward = 3,
-        Decel = 4
+        Default = 0,
+        Forward = 1,
+        Backward = 2,
+        Decel = 3
 
     };
 
-    int32_t runCount;
-    uint32_t spawnsPerRun;
-    float repeatRate;
+    struct Burst {
+
+        ~Burst();
+
+        //int32_t totalRunCount;
+        int32_t runCount;
+        int32_t runs;
+        uint32_t spawnsPerRun;
+        float repeatRate;
+        float initialDelay;
+        bool rotate;
+
+        Relative relative;
+
+        PointStyle posDirection;
+
+        PointStyle velDirection;
+
+        PointStyle accelDirection;
+
+        union Position {
+            DeltaPoint xyVec;
+            DirVector dirSpd;
+        } position;
+
+        union Velocity {
+            DeltaPoint xyVec;
+            DirVector dirSpd;
+            DeltaSpeed speed;
+        } velocity;
+
+        union Acceleration {
+            DeltaPoint xyVec;
+            DirVector dirSpd;
+            DeltaSpeed speed;
+        } acceleration;
+
+        std::vector<float> spawnPoints;
+
+        std::vector<float> velocityList;
+
+        SpawnPos spawnPosition;
+
+        SpawnVel spawnVelocity;
+
+        SpawnAccel spawnAcceleration;
+
+        std::vector< std::vector<sol::object> > addComponents;
+    };
+
+    int32_t totalRunCount;
+
     float initialDelay;
+
     float currentTime;
 
-    Relative relative;
+    size_t currentBurst;
 
-    PointStyle posDirection;
-
-    PointStyle velDirection;
-
-    PointStyle accelDirection;
-
-    union Position {
-        DeltaPoint xyVec;
-        DirVector dirSpd;
-    } position;
-
-    union Velocity {
-        DeltaPoint xyVec;
-        DirVector dirSpd;
-        DeltaSpeed speed;
-    } velocity;
-
-    union Acceleration {
-        DeltaPoint xyVec;
-        DirVector dirSpd;
-        DeltaSpeed speed;
-    } acceleration;
-
-    std::vector<float> spawnPoints;
-
-    std::vector<float> velocityList;
-
-    SpawnPos spawnPosition;
-
-    SpawnVel spawnVelocity;
-
-    SpawnAccel spawnAcceleration;
-
-    uint32_t cmpTypeCount;
-    std::vector<std::vector<std::string>> addComponents;
-
+    std::vector<Burst> bursts;
 };
 
 #endif // SPAWNER_H_INCLUDED

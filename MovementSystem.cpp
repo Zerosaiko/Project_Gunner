@@ -19,15 +19,16 @@ void MovementSystem::addEntity(uint32_t id) {
         entityIDXs.resize(id + 1, 0);
     }
     if (hasEntity[id]) return;
-    const auto& entity = manager->getEntity(id);
+    auto entity = manager->getEntity(id);
     if (entity) {
-        auto position = entity->find("transform");
-        auto velocity = entity->find("velocity");
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay == entity->end() || !delay->second.active)
-            && (pause == entity->end() || !pause->second.active)
-            && position != entity->end() && velocity != entity->end()
+        const auto &components = entity->components;
+        auto position = components.find("transform");
+        auto velocity = components.find("velocity");
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay == components.end() || !delay->second.active)
+            && (pause == components.end() || !pause->second.active)
+            && position != components.end() && velocity != components.end()
             && position->second.active && velocity->second.active) {
 
             entityIDXs[id] = entities.size();
@@ -58,9 +59,10 @@ void MovementSystem::refreshEntity(uint32_t id) {
         removeEntity(id);
     } else {
         const auto& fullEntity = manager->getEntity(id);
-        auto delay = fullEntity->find("fullDelay");
-        auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
+        const auto &components = fullEntity->components;
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay != components.end() && delay->second.active) || (pause != components.end() && pause->second.active) ) {
             removeEntity(id);
         }
     }
@@ -70,6 +72,9 @@ void MovementSystem::refreshEntity(uint32_t id) {
 void MovementSystem::process(float dt) {
 
     auto startT = SDL_GetPerformanceCounter();
+
+    auto tfPool = this->tfPool.lock();
+    auto velocityPool = this->velocityPool.lock();
 
     for(decltype(entities.size()) i = 0; i < entities.size(); ++i) {
         auto& entity = entities[i];

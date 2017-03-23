@@ -11,6 +11,7 @@
 #include "GroupManager.h"
 #include "EntitySystem.h"
 #include "Message.h"
+#include "sol.hpp"
 
 class EntitySystem;
 
@@ -20,6 +21,14 @@ class EntityManager {
     friend TagManager;
     friend GroupManager;
 
+    template<typename CMPType>
+    friend void addComponent(EntityManager& manager, CMPType& comp, uint32_t id);
+
+    template<typename CMPType>
+    friend void addComponent(EntityManager& manager, CMPType&& comp, uint32_t id);
+
+    template<typename CMPType>
+    friend void removeComponent(EntityManager& manager, uint32_t id);
 public:
 
     struct ComponentHandle {
@@ -34,7 +43,16 @@ public:
         void setHandle(bool act, bool dir, std::size_t idx);
     };
 
+
     typedef std::map<std::string, ComponentHandle> entity_map;
+
+    struct EntityInfo {
+
+        entity_map components;
+
+        void getComponent(std::string cmpName, sol::table cmp, EntityManager &manager);
+
+    };
 
     EntityManager();
     ~EntityManager();
@@ -47,31 +65,21 @@ public:
 
     void destroyEntity(uint32_t id);
 
-    std::vector<std::string> tokenize(std::string& instructions);
-
-    std::vector<std::string> tokenize(std::string&& instructions);
-
-    void addComponent(std::string& instructions, uint32_t id);
-
-    void addComponent(std::string&& instructions, uint32_t id);
-
-    void addComponent(std::vector<std::string>& instructions, uint32_t id);
-
-    void addComponent(std::vector<std::string>&& instructions, uint32_t id);
-
     template<typename CMPType> void addComponent(CMPType& comp, uint32_t id);
 
     template<typename CMPType> void addComponent(CMPType&& comp, uint32_t id);
 
-    template<typename CMPType> void removeComponent(uint32_t id);
+    void addComponent(std::string cmpName, sol::object comp, uint32_t id);
 
     void removeComponent(std::string& cmpName, uint32_t id);
 
     void removeComponent(std::string&& cmpName, uint32_t id);
 
-    entity_map const * getEntity(uint32_t id);
+    template<typename CMPType> void removeComponent(uint32_t id);
 
-    template<typename CMPType> std::deque<CMPType>* getComponentPool();
+    EntityInfo const * getEntity(uint32_t id);
+
+    template<typename CMPType> std::weak_ptr<std::deque<CMPType>> getComponentPool();
 
     TagManager tagManager;
     GroupManager groupManager;
@@ -98,7 +106,7 @@ private:
 
     void refreshEntity(uint32_t id);
     //  mapping from entity id to an entity, basically a map of components
-    std::vector<entity_map> entities;
+    std::vector<EntityInfo> entities;
 
     std::vector<uint8_t> isAlive;
 
@@ -117,6 +125,7 @@ private:
 
     std::map<Message::Type, std::map<uint16_t, std::vector<std::function<bool(Message&)>* > > > messageMap;
 
+
 };
 
 template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint32_t id) {
@@ -124,17 +133,17 @@ template<typename CMPType> void EntityManager::addComponent(CMPType& comp, uint3
     const std::string& cmpName = CMPType::getName();
 
     auto& entity = entities[id];
-    auto componentID = entity.find(cmpName);
+    auto componentID = entity.components.find(cmpName);
     auto& factory = componentUtils::factoryMap.at(cmpName);
-    if (componentID == entity.end() ) {
+    if (componentID == entity.components.end() ) {
         if (freeComponents[cmpName].empty()) {
-            entities[id][cmpName].setHandle( true, true, factory->build(this, &comp));
+            entities[id].components[cmpName].setHandle( true, true, factory->build(this, &comp));
         }
         else {
             auto front = freeComponents[cmpName].front();
             freeComponents[cmpName].pop_front();
             factory->build(this, front, &comp);
-            entities[id][cmpName].setHandle( true, true, front);
+            entities[id].components[cmpName].setHandle( true, true, front);
         }
     }
     else {
@@ -155,17 +164,17 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
     const std::string& cmpName = CMPType::getName();
 
     auto& entity = entities[id];
-    auto componentID = entity.find(cmpName);
+    auto componentID = entity.components.find(cmpName);
     auto& factory = componentUtils::factoryMap.at(cmpName);
-    if (componentID == entity.end() ) {
+    if (componentID == entity.components.end() ) {
         if (freeComponents[cmpName].empty()) {
-            entities[id][cmpName].setHandle( true, true, factory->build(this, &comp));
+            entities[id].components[cmpName].setHandle( true, true, factory->build(this, &comp));
         }
         else {
             auto front = freeComponents[cmpName].front();
             freeComponents[cmpName].pop_front();
             factory->build(this, front, &comp);
-            entities[id][cmpName].setHandle( true, true, front);
+            entities[id].components[cmpName].setHandle( true, true, front);
         }
     }
     else {
@@ -183,14 +192,16 @@ template<typename CMPType> void EntityManager::addComponent(CMPType&& comp, uint
 
 template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
     const std::string& cmpName = CMPType::getName();
+
     auto& entity = entities[id];
-    auto componentID = entity.find(cmpName);
-    if (componentID != entity.end()) {
+
+    auto componentID = entity.components.find(cmpName);
+    if (componentID != entity.components.end()) {
         componentID->second.active = false;
         componentID->second.dirty = true;
     }
     bool alive = false;
-    for (auto it = entity.begin(); !alive && it != entity.end(); ++it) {
+    for (auto it = entity.components.begin(); !alive && it != entity.components.end(); ++it) {
         alive = it->second.active;
     }
     if (!alive) {
@@ -205,8 +216,8 @@ template<typename CMPType> void EntityManager::removeComponent(uint32_t id) {
 
 }
 
-template<typename CMPType> std::deque<CMPType>* EntityManager::getComponentPool() {
-    return &CMPType::componentPools[this];
+template<typename CMPType> std::weak_ptr<std::deque<CMPType>> EntityManager::getComponentPool() {
+    return CMPType::componentPools[this];
 
 }
 

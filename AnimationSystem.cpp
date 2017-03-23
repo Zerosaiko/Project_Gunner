@@ -18,15 +18,16 @@ void AnimationSystem::addEntity(uint32_t id) {
         entityIDXs.resize(id + 1, 0);
     }
     if (hasEntity[id]) return;
-    const auto& entity = manager->getEntity(id);
+    auto entity = manager->getEntity(id);
     if (entity) {
-        auto animation = entity->find("animation");
-        auto sprite = entity->find("sprite");
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay == entity->end() || !delay->second.active)
-            && (pause == entity->end() || !pause->second.active)
-            && animation != entity->end() && sprite != entity->end()
+        auto &components = entity->components;
+        auto animation = components.find("animation");
+        auto sprite = components.find("sprite");
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay == components.end() || !delay->second.active)
+            && (pause == components.end() || !pause->second.active)
+            && animation != components.end() && sprite != components.end()
             && animation->second.active && sprite->second.active) {
 
             entityIDXs[id] = entities.size();
@@ -34,8 +35,8 @@ void AnimationSystem::addEntity(uint32_t id) {
             idxToID.emplace_back(id);
             entities.emplace_back(&animation->second, &sprite->second);
 
-            Animation& anim = (*animationPool)[animation->second.index].data;
-            Sprite& spr = (*spritePool)[sprite->second.index].data;
+            Animation& anim = (*animationPool.lock())[animation->second.index].data;
+            Sprite& spr = (*spritePool.lock())[sprite->second.index].data;
             spr.spritePos = anim.frames[anim.currentIdx];
         }
     }
@@ -60,14 +61,15 @@ void AnimationSystem::refreshEntity(uint32_t id) {
     if (!(entity.first->active && entity.second->active)) {
         removeEntity(id);
     } else {
-        const auto& fullEntity = manager->getEntity(id);
-        auto delay = fullEntity->find("fullDelay");
-        auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
+        auto fullEntity = manager->getEntity(id);
+        const auto& components = fullEntity->components;
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay != components.end() && delay->second.active) || (pause != components.end() && pause->second.active) ) {
             removeEntity(id);
         } else  if (entity.first->dirty || entity.second->dirty){
-            Animation& animation = (*animationPool)[entity.first->index].data;
-            Sprite& sprite = (*spritePool)[entity.second->index].data;
+            Animation& animation = (*animationPool.lock())[entity.first->index].data;
+            Sprite& sprite = (*spritePool.lock())[entity.second->index].data;
             sprite.spritePos = animation.frames[animation.currentIdx];
         }
     }
@@ -79,6 +81,8 @@ void AnimationSystem::process(float dt) {
     auto startT = SDL_GetPerformanceCounter();
 
     dt *= 1000.0f;
+    auto animationPool = this->animationPool.lock();
+    auto spritePool = this->spritePool.lock();
 
     for(auto& entity : entities) {
         Animation& animation = (*animationPool)[entity.first->index].data;

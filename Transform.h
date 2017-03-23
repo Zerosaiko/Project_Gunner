@@ -5,8 +5,11 @@
 #include <string>
 #include <array>
 #include <unordered_map>
+#include <map>
 #include <unordered_set>
+#include <set>
 #include <vector>
+#include <tuple>
 
 struct TransformState {
 
@@ -54,10 +57,15 @@ struct TransformState {
 
     void flipYAxis();
 
+    float xPos();
+
+    float yPos();
+
+    std::tuple<float, float> getPos() const;
+
     const TransformState operator*(const TransformState& other) const;
 
     TransformState& operator*=(const TransformState& other);
-
 };
 
 struct Transform {
@@ -89,11 +97,12 @@ struct TransformTree {
     struct Node {
         bool dirty;
         uint32_t parent;
+        uint32_t height;
         std::vector<uint32_t> children;
 
         Node();
 
-        Node(bool dirty, uint32_t parent);
+        Node(uint32_t parent);
 
     };
 

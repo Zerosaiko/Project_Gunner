@@ -3,9 +3,11 @@
 #include "playerComponents.h"
 #include <cmath>
 
+static const float pi = acos(-1.0f);
+
 SpawnSystem::SpawnSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority} {
     spawnPool = manager->getComponentPool<Component<Spawner::name, Spawner>>();
-    positionPool = manager->getComponentPool<Component<Position::name, Position>>();
+    transformPool = manager->getComponentPool<Component<Transform::name, Transform>>();
     entityIDXs.reserve(1 << 16);
     hasEntity.reserve(1 << 16);
     idxToID.reserve(1 << 16);
@@ -22,50 +24,47 @@ void SpawnSystem::addEntity(uint32_t id) {
         entityIDXs.resize(id + 1, 0);
     }
     if (hasEntity[id]) return;
-    const auto& entity = manager->getEntity(id);
+    auto entity = manager->getEntity(id);
     if (entity) {
-        auto spawner = entity->find("spawner");
-        auto position = entity->find("position");
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay == entity->end() || !delay->second.active) && (pause == entity->end() || !pause->second.active)
-            && spawner != entity->end() && position != entity->end() && spawner->second.active && position->second.active) {
+        const auto &components = entity->components;
+        auto spawner = components.find("spawner");
+        auto transform = components.find("transform");
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay == components.end() || !delay->second.active) && (pause == components.end() || !pause->second.active)
+            && spawner != components.end() && spawner->second.active && transform->second.active && transform->second.active) {
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
             idxToID.emplace_back(id);
-            entities.emplace_back(&spawner->second, &position->second);
+            entities.emplace_back(&spawner->second, &transform->second);
+            Spawner spawnCmp = (*spawnPool.lock())[spawner->second.index].data;
+            std::vector<EntityPreallocationInfo> preAllocDat;
+            for (uint32_t i = 0; i < spawnCmp.bursts.size(); ++i) {
+                preAllocDat.emplace_back(spawnCmp.bursts[i].spawnsPerRun);
+                preAllocDat.back().data = spawnCmp.bursts[i].addComponents;
 
-            Spawner& spawnCmp = (*spawnPool)[spawner->second.index].data;
-            preAllocationData.emplace_back(spawnCmp.spawnsPerRun);
-            preAllocationData.back().data.resize(spawnCmp.addComponents.size());
-
-            for (size_t i = 0; i < spawnCmp.addComponents.size(); ++i) {
-                for (size_t j = 0; j < spawnCmp.addComponents[i].size(); ++j) {
-                    preAllocationData.back().data[i].emplace_back(manager->tokenize(spawnCmp.addComponents[i][j]));
-                }
+                preAllocDat.back().idList.resize(spawnCmp.bursts[i].spawnsPerRun, 0u);
+                totalSpawnCount += spawnCmp.bursts[i].spawnsPerRun;
             }
-            for(size_t k = 0; k < spawnCmp.spawnsPerRun; ++k) {
-                preAllocationData.back().idList.emplace_back(0);
-            }
-            totalSpawnCount += spawnCmp.spawnsPerRun;
+            preAllocationData.emplace_back(std::move(preAllocDat));
         }
     }
 }
 
 void SpawnSystem::removeEntity(uint32_t id) {
     if (id >= hasEntity.size() || !hasEntity[id]) return;
-    for (size_t i = 0; i < preAllocationData[entityIDXs[id]].dataIdx; ++i) {
-        manager->destroyEntity(preAllocationData[entityIDXs[id]].idList[i]);
-    }
-    for (size_t i = 0; i < preAllocationData[entityIDXs[id]].idList.size(); ++i) {
+    for (auto &preAlloc : preAllocationData[entityIDXs[id]]) {
+        for (std::size_t i = 0; i < preAlloc.dataIdx; i++) {
+            manager->destroyEntity(preAlloc.idList[i]);
+        }
+        totalSpawnCount -= preAlloc.currentSpawnCount;
     }
     entities[entityIDXs[id]] = entities.back();
     entities.pop_back();
     entityIDXs[idxToID.back()] = entityIDXs[id];
     idxToID[entityIDXs[id]] = idxToID.back();
     idxToID.pop_back();
-    totalSpawnCount -= preAllocationData[entityIDXs[id]].currentSpawnCount;
-    preAllocationData[entityIDXs[id]] = preAllocationData.back();
+    preAllocationData[entityIDXs[id]] = std::move(preAllocationData.back());
     preAllocationData.pop_back();
     hasEntity[id] = false;
 }
@@ -80,32 +79,35 @@ void SpawnSystem::refreshEntity(uint32_t id) {
         removeEntity(id);
     } else {
         const auto& fullEntity = manager->getEntity(id);
-        auto delay = fullEntity->find("fullDelay");
-        auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
+        const auto &components = fullEntity->components;
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay != components.end() && delay->second.active) || (pause != components.end() && pause->second.active) ) {
             removeEntity(id);
         } else if (entity.first->dirty) {
-            Spawner& spawnCmp = (*spawnPool)[entity.first->index].data;
-            for (size_t i = 0; i < preAllocationData[entityIDXs[id]].dataIdx; ++i) {
-                manager->destroyEntity(preAllocationData[entityIDXs[id]].idList[i]);
-            }
-            totalSpawnCount -= preAllocationData[entityIDXs[id]].currentSpawnCount;
-            totalSpawnCount += spawnCmp.spawnsPerRun;
-            preAllocationData[entityIDXs[id]].idList.clear();
-            preAllocationData[entityIDXs[id]].idList.resize(spawnCmp.spawnsPerRun, 0);
-            preAllocationData[entityIDXs[id]].data.clear();
-            preAllocationData[entityIDXs[id]].data.resize(spawnCmp.addComponents.size());
-
-            for (size_t i = 0; i < spawnCmp.addComponents.size(); ++i) {
-                for (size_t j = 0; j < spawnCmp.addComponents[i].size(); ++j) {
-                    preAllocationData[entityIDXs[id]].data[i].emplace_back(manager->tokenize(spawnCmp.addComponents[i][j]));
+            Spawner& spawnCmp = (*spawnPool.lock())[entity.first->index].data;
+            spawnCmp.currentBurst = 0;
+            for (auto &preAlloc : preAllocationData[entityIDXs[id]]) {
+                for (std::size_t i = 0; i < preAlloc.dataIdx; i++) {
+                    manager->destroyEntity(preAlloc.idList[i]);
                 }
+                totalSpawnCount -= preAlloc.currentSpawnCount;
+            }
+            preAllocationData[entityIDXs[id]].resize(spawnCmp.bursts.size(), EntityPreallocationInfo(0));
+            for (size_t i = 0; i < spawnCmp.bursts.size(); ++i) {
+                auto& preAllocDat = preAllocationData[entityIDXs[id]];
+                preAllocDat[i].data = spawnCmp.bursts[i].addComponents;
+                preAllocDat[i].idList.resize(spawnCmp.bursts[i].spawnsPerRun, 0u);
+                preAllocDat[i].dataIdx = 0u;
+                preAllocDat[i].currentSpawnCount = spawnCmp.bursts[i].spawnsPerRun;
+                totalSpawnCount += spawnCmp.bursts[i].spawnsPerRun;
             }
         }
     }
 }
 
 void SpawnSystem::process(float dt) {
+
     dt *= 1000.0f;
 
     bool spawned = false;
@@ -113,22 +115,27 @@ void SpawnSystem::process(float dt) {
     auto startT = SDL_GetPerformanceCounter();
     const auto playerGroupPtr = manager->groupManager.getIDGroup("player");
 
-    Position aggroPlayerPos;
-    aggroPlayerPos.pastPosX = aggroPlayerPos.pastPosY = aggroPlayerPos.posX = aggroPlayerPos.posY = 0.0f;
+    auto transformPool = this->transformPool.lock();
+    auto spawnPool = this->spawnPool.lock();
+
+    float aggroPlayerX = 0, aggroPlayerY = 0;
     if (playerGroupPtr) {
+        Transform aggroPlayerPos;
         const auto& playerGroup = *playerGroupPtr;
-        const auto playerPool = manager->getComponentPool<Component<PlayerCmp::name, PlayerCmp>>();
+        const auto playerPool = manager->getComponentPool<Component<PlayerCmp::name, PlayerCmp>>().lock();
         float highestAggro = -1.0f;
         for (const auto& id : playerGroup) {
-            const auto& entity = manager->getEntity(id);
-            const auto& playerCmp = entity->find("player");
-            if (playerCmp != entity->end()) {
+            auto entity = manager->getEntity(id);
+            const auto &components = entity->components;
+            const auto& playerCmp = components.find("player");
+            if (playerCmp != components.end()) {
                 PlayerCmp& player = playerPool->operator[](playerCmp->second.index).data;
                 if (player.aggro > highestAggro) {
                     highestAggro = player.aggro;
-                    const auto& posCmp = entity->find("position");
-                    if (posCmp != entity->end()) {
-                        aggroPlayerPos = positionPool->operator[](posCmp->second.index).data;
+                    const auto& posCmp = components.find("transform");
+                    if (posCmp != components.end()) {
+                        aggroPlayerPos = transformPool->operator[](posCmp->second.index).data;
+                        std::tie(aggroPlayerX, aggroPlayerY) = aggroPlayerPos.worldPresent.getPos();
                     }
                 }
 
@@ -139,52 +146,21 @@ void SpawnSystem::process(float dt) {
 
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];
-        const Position& position = (*positionPool)[entity.second->index].data;
+        const Transform& position = (*transformPool)[entity.second->index].data;
+
+        float positionX = 0, positionY = 0;
+        std::tie(positionX, positionY) = position.worldPresent.getPos();
         Spawner& spawner = (*spawnPool)[entity.first->index].data;
-        EntityPreallocationInfo& preAlloc = preAllocationData[i];
+        Spawner::Burst* burst = &spawner.bursts[spawner.currentBurst];
 
         spawner.currentTime += dt;
-        while (spawner.currentTime >= spawner.repeatRate) {
+        while (spawner.currentTime >= burst->repeatRate) {
+            EntityPreallocationInfo& preAlloc = preAllocationData[i][spawner.currentBurst];
             spawned = true;
-            Spawner::Position spawnPositions = spawner.position;
+            auto spawnPositions = burst->position;
 
-            Spawner::Velocity spawnVelocities = spawner.velocity;
-
-            switch (spawner.posDirection) {
-
-            case Spawner::PointStyle::XY :
-                spawner.position.xyVec.x += spawner.position.xyVec.persistDx;
-                spawner.position.xyVec.y += spawner.position.xyVec.persistDy;
-                break;
-
-            case Spawner::PointStyle::Rad :
-                spawner.position.dirSpd.direction += spawner.position.dirSpd.persistDeltaDirection;
-                spawner.position.dirSpd.speed += spawner.position.dirSpd.persistDSpeed;
-                break;
-
-            default : break;
-
-            }
-
-            switch (spawner.velDirection) {
-
-            case Spawner::PointStyle::XY :
-                spawner.velocity.xyVec.x += spawner.velocity.xyVec.persistDx;
-                spawner.velocity.xyVec.y += spawner.velocity.xyVec.persistDy;
-                break;
-
-            case Spawner::PointStyle::Rad :
-                spawner.velocity.dirSpd.direction += spawner.velocity.dirSpd.persistDeltaDirection;
-                spawner.velocity.dirSpd.speed += spawner.velocity.dirSpd.persistDSpeed;
-                break;
-
-            case Spawner::PointStyle::Speed :
-                spawner.velocity.speed.current += spawner.velocity.speed.persistDelta;
-                break;
-            }
-
-            for (uint32_t j = 0; j < spawner.spawnsPerRun; ++j) {
-
+            auto spawnVelocities = burst->velocity;
+            for (uint32_t j = 0; j < burst->spawnsPerRun; ++j) {
                 Position newPos, adjPos;
                 Velocity newVel;
 
@@ -194,49 +170,50 @@ void SpawnSystem::process(float dt) {
                 newVel.velX = 0.0f;
                 newVel.velY = 0.0f;
 
-                switch (spawner.spawnPosition) {
+                switch (burst->spawnPosition) {
                 default: break;
 
                 case Spawner::SpawnPos::AlongList :
-                    newPos.posX = spawner.spawnPoints.at((j % spawner.spawnsPerRun) * 2);
-                    newPos.posY = spawner.spawnPoints.at((j % spawner.spawnsPerRun) * 2 + 1);
+                    newPos.posX = burst->spawnPoints.at((j % burst->spawnsPerRun) * 2);
+                    newPos.posY = burst->spawnPoints.at((j % burst->spawnsPerRun) * 2 + 1);
 
                     break;
                 }
 
-                switch (spawner.posDirection) {
+                switch (burst->posDirection) {
 
                 case Spawner::PointStyle::XY :
                     newPos.posX += spawnPositions.xyVec.x;
                     newPos.posY += spawnPositions.xyVec.y;
                     adjPos = newPos;
-                    if (spawner.relative == Spawner::Relative::Source) {
-                        newPos.posX += position.posX;
-                        newPos.posY += position.posY;
-                    } else if (spawner.relative == Spawner::Relative::Player) {
+                    if (burst->relative == Spawner::Relative::Source) {
+                        newPos.posX += positionX;
+                        newPos.posY += positionY;
+                    } else if (burst->relative == Spawner::Relative::Player) {
                         // needs to be handled
                     }
                     newPos.pastPosX = newPos.posX;
                     newPos.pastPosY = newPos.posY;
-                    spawnPositions.xyVec.x += spawner.position.xyVec.dx;
-                    spawnPositions.xyVec.y += spawner.position.xyVec.dy;
+                    spawnPositions.xyVec.x += burst->position.xyVec.dx;
+                    spawnPositions.xyVec.y += burst->position.xyVec.dy;
                     break;
 
                 case Spawner::PointStyle::Rad :
                     newPos.posX += cosf(spawnPositions.dirSpd.direction) * fabsf(spawnPositions.dirSpd.speed);
                     newPos.posY -= sinf(spawnPositions.dirSpd.direction) * fabsf(spawnPositions.dirSpd.speed);
                     adjPos = newPos;
-                    if (spawner.relative == Spawner::Relative::Source) {
-                        newPos.posX += position.posX;
+                    if (burst->relative == Spawner::Relative::Source) {
+                        newPos.posX += positionX;
 
-                        newPos.posY += position.posY;
-                    } else if (spawner.relative == Spawner::Relative::Player) {
-                        // needs to be handled
+                        newPos.posY += positionY;
+                    } else if (burst->relative == Spawner::Relative::Player) {
+                        newPos.posX += aggroPlayerX;
+                        newPos.posY += aggroPlayerY;
                     }
                     newPos.pastPosX = newPos.posX;
                     newPos.pastPosY = newPos.posY;
-                    spawnPositions.dirSpd.direction += spawner.position.dirSpd.deltaDirection;
-                    spawnPositions.dirSpd.speed += spawner.position.dirSpd.dSpeed;
+                    spawnPositions.dirSpd.direction += burst->position.dirSpd.deltaDirection;
+                    spawnPositions.dirSpd.speed += burst->position.dirSpd.dSpeed;
                     break;
 
                 default :
@@ -245,15 +222,15 @@ void SpawnSystem::process(float dt) {
 
                 }
 
-                switch (spawner.spawnVelocity) {
+                switch (burst->spawnVelocity) {
 
                 case Spawner::SpawnVel::Default :
 
                     break;
 
                 case Spawner::SpawnVel::Aimed :
-                    newVel.velX = aggroPlayerPos.posX - newPos.posX;
-                    newVel.velY = aggroPlayerPos.posY - newPos.posY;
+                    newVel.velX = aggroPlayerX - newPos.posX;
+                    newVel.velY = aggroPlayerY - newPos.posY;
                     {
                         float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
                         if (length != 0.0f)
@@ -263,19 +240,20 @@ void SpawnSystem::process(float dt) {
                     break;
 
                 case Spawner::SpawnVel::AwayFromPlayer :
-                    newVel.velX = newPos.posX - aggroPlayerPos.posX;
-                    newVel.velY = newPos.posY - aggroPlayerPos.posY;
+                    newVel.velX = newPos.posX - aggroPlayerX;
+                    newVel.velY = newPos.posY - aggroPlayerY;
                     {
                         float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
                         if (length != 0.0f)
                             newVel.velX /= length; newVel.velY /= length;
                     }
+
                     // needs code to aim at player now that position is known
                     break;
 
                 case Spawner::SpawnVel::AimedBySource :
-                    newVel.velX = aggroPlayerPos.posX - position.posX;
-                    newVel.velY = aggroPlayerPos.posY - position.posY;
+                    newVel.velX = aggroPlayerX - positionX;
+                    newVel.velY = aggroPlayerY - positionY;
                     {
                         float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
                         if (length != 0.0f)
@@ -285,8 +263,8 @@ void SpawnSystem::process(float dt) {
                     break;
 
                 case Spawner::SpawnVel::AimedAwayBySource :
-                    newVel.velX = position.posX - aggroPlayerPos.posX;
-                    newVel.velY = position.posY - aggroPlayerPos.posY;
+                    newVel.velX = positionX - aggroPlayerX;
+                    newVel.velY = positionY - aggroPlayerY;
                     {
                         float length = sqrtf( (newVel.velX * newVel.velX + newVel.velY * newVel.velY) );
                         if (length != 0.0f)
@@ -317,8 +295,8 @@ void SpawnSystem::process(float dt) {
                     break;
 
                 case Spawner::SpawnVel::UseList :
-                    newVel.velX = spawner.velocityList.at((j % spawner.spawnsPerRun) * 2);
-                    newVel.velY = spawner.velocityList.at((j % spawner.spawnsPerRun) * 2 + 1);
+                    newVel.velX = burst->velocityList.at((j % burst->spawnsPerRun) * 2);
+                    newVel.velY = burst->velocityList.at((j % burst->spawnsPerRun) * 2 + 1);
 
                     break;
 
@@ -327,20 +305,20 @@ void SpawnSystem::process(float dt) {
 
                 }
 
-                switch (spawner.velDirection) {
+                switch (burst->velDirection) {
 
                 case Spawner::PointStyle::XY :
                     newVel.velX = spawnVelocities.xyVec.x;
                     newVel.velY = spawnVelocities.xyVec.y;
-                    spawnVelocities.xyVec.x += spawner.velocity.xyVec.dx;
-                    spawnVelocities.xyVec.y += spawner.velocity.xyVec.dy;
+                    spawnVelocities.xyVec.x += burst->velocity.xyVec.dx;
+                    spawnVelocities.xyVec.y += burst->velocity.xyVec.dy;
                     break;
 
                 case Spawner::PointStyle::Rad :
                     newVel.velX = cosf(spawnVelocities.dirSpd.direction) * fabsf(spawnVelocities.dirSpd.speed);
                     newVel.velY = -sinf(spawnVelocities.dirSpd.direction) * fabsf(spawnVelocities.dirSpd.speed);
-                    spawnVelocities.dirSpd.direction += spawner.velocity.dirSpd.deltaDirection;
-                    spawnVelocities.dirSpd.speed += spawner.velocity.dirSpd.dSpeed;
+                    spawnVelocities.dirSpd.direction += burst->velocity.dirSpd.deltaDirection;
+                    spawnVelocities.dirSpd.speed += burst->velocity.dirSpd.dSpeed;
                     break;
 
                 case Spawner::PointStyle::Speed :
@@ -357,10 +335,11 @@ void SpawnSystem::process(float dt) {
                 uint32_t newEntityID = 0;
                 if (j >= preAlloc.dataIdx) {
                     newEntityID = manager->createEntity();
-                    if (spawner.addComponents.size() > 0) {
-                        auto idx = j % spawner.addComponents.size();
-                        for ( std::vector<std::string>& cmp : preAlloc.data.at(idx) ) {
-                            manager->addComponent(cmp, newEntityID);
+                    if (burst->addComponents.size() > 0) {
+                        for ( sol::table cmp : preAlloc.data[j % preAlloc.data.size()] ) {
+                            std::string cmpName = cmp["componentName"];
+                            manager->addComponent(cmpName,
+                                cmp["component"], newEntityID);
                         }
                         --totalSpawnCount;
                         --preAlloc.currentSpawnCount;
@@ -369,62 +348,113 @@ void SpawnSystem::process(float dt) {
                 } else {
                     newEntityID = preAlloc.idList[j];
                 }
-                Component<Position::name, Position> posComponent{newPos};
+                Transform tf;
+                tf.local.translate(newPos.posX, newPos.posY);
+                tf.hasParent = false;
+                if (burst->rotate) {
+                    tf.local.rotate(-(atan2(newVel.velY, newVel.velX) * 180 / pi));
+                }
+                Component<Transform::name, Transform> posComponent{tf};
                 Component<Velocity::name, Velocity> velComponent{newVel};
-                manager->addComponent<Component<Position::name, Position>>(posComponent, newEntityID);
-                manager->addComponent<Component<Velocity::name, Velocity>>(velComponent, newEntityID);
+                manager->addComponent(posComponent, newEntityID);
+                manager->addComponent(velComponent, newEntityID);
 
                 manager->forceRefresh(preAlloc.idList[j]);
                 preAlloc.idList[j] = 0;
 
             }
+
+            switch (burst->posDirection) {
+
+            case Spawner::PointStyle::XY :
+                burst->position.xyVec.x += burst->position.xyVec.persistDx;
+                burst->position.xyVec.y += burst->position.xyVec.persistDy;
+                break;
+
+            case Spawner::PointStyle::Rad :
+                burst->position.dirSpd.direction += burst->position.dirSpd.persistDeltaDirection;
+                burst->position.dirSpd.speed += burst->position.dirSpd.persistDSpeed;
+                break;
+
+            default : break;
+
+            }
+
+            switch (burst->velDirection) {
+
+            case Spawner::PointStyle::XY :
+                burst->velocity.xyVec.x += burst->velocity.xyVec.persistDx;
+                burst->velocity.xyVec.y += burst->velocity.xyVec.persistDy;
+                break;
+
+            case Spawner::PointStyle::Rad :
+                burst->velocity.dirSpd.direction += burst->velocity.dirSpd.persistDeltaDirection;
+                burst->velocity.dirSpd.speed += burst->velocity.dirSpd.persistDSpeed;
+                break;
+
+            case Spawner::PointStyle::Speed :
+                burst->velocity.speed.current += burst->velocity.speed.persistDelta;
+                break;
+            }
             preAlloc.dataIdx = 0;
-            totalSpawnCount += spawner.spawnsPerRun;
-            preAllocationData[i].currentSpawnCount += spawner.spawnsPerRun;
-            spawner.currentTime -= spawner.repeatRate;
-            if (spawner.runCount > 0) {
-                --spawner.runCount;
-                if (spawner.runCount == 0){
-                    manager->removeComponent<Spawner>(idxToID[i]);
-                    break;
+            totalSpawnCount += burst->spawnsPerRun;
+            preAlloc.currentSpawnCount += burst->spawnsPerRun;
+            spawner.currentTime -= burst->repeatRate;
+            if (burst->runs < burst->runCount) {
+                ++burst->runs;
+                if (burst->runs >= burst->runCount){
+                    burst->runs = 0;
+                    ++spawner.currentBurst;
+                    spawner.currentBurst %= spawner.bursts.size();
+                    burst = &spawner.bursts[spawner.currentBurst];
+                    spawner.currentTime = burst->repeatRate - burst->initialDelay;
+                    if (spawner.totalRunCount > 0 && spawner.currentBurst == 0 && --spawner.totalRunCount == 0) {
+                        manager->removeComponent<Spawner>(idxToID[i]);
+                        break;
+                    }
                 }
             }
         }
     }
     auto endT = SDL_GetPerformanceCounter();
     // if spawning hasn't taken above a certain amount of time, preallocate until the time limit is reached
-
-    float timeLimit = (1000.f / SDL_GetPerformanceFrequency() * (endT - startT));
+    const float timeLimit = 3.0f;
+    float timeTaken = (1000.f / SDL_GetPerformanceFrequency() * (endT - startT));
     bool preAllocated = false;
 
     auto fullPreAlloT = SDL_GetPerformanceCounter();
     auto cpyCount = totalSpawnCount;
 
-    while ( totalSpawnCount && timeLimit < 4.0f ) {
+    while ( totalSpawnCount && timeTaken < timeLimit ) {
 
         preAllocated = true;
         auto preAlloT = SDL_GetPerformanceCounter();
 
         if (preAlloIdx >= preAllocationData.size()) preAlloIdx = 0;
 
-        EntityPreallocationInfo& preAlloc = preAllocationData[preAlloIdx];
-        if (preAlloc.dataIdx < preAlloc.idList.size()) {
-            size_t idx = preAlloc.dataIdx % preAlloc.data.size();
-            preAlloc.idList[preAlloc.dataIdx] = manager->createEntity();
-            for ( std::vector<std::string>& cmp : preAlloc.data.at(idx) ) {
-                manager->addComponent(cmp, preAlloc.idList[preAlloc.dataIdx]);
+        std::vector<EntityPreallocationInfo>& preAllocVec = preAllocationData[preAlloIdx];
+        for (size_t i = 0; i < preAllocVec.size() && timeTaken < timeLimit; ++i) {
+            auto &preAlloc = preAllocVec[i];
+            if (preAlloc.dataIdx < preAlloc.idList.size()) {
+                size_t idx = preAlloc.dataIdx % preAlloc.data.size();
+                preAlloc.idList[preAlloc.dataIdx] = manager->createEntity();
+                for ( sol::table cmp : preAlloc.data[idx] ) {
+                    std::string cmpName = cmp["componentName"];
+                    manager->addComponent(cmpName,
+                        cmp["component"], preAlloc.idList[preAlloc.dataIdx]);
+                }
+                --totalSpawnCount;
+                --preAlloc.currentSpawnCount;
+                manager->excludeFromRefresh(preAlloc.idList[preAlloc.dataIdx]);
+                ++preAlloc.dataIdx;
             }
-            --totalSpawnCount;
-            --preAlloc.currentSpawnCount;
-            manager->excludeFromRefresh(preAlloc.idList[preAlloc.dataIdx]);
-            ++preAlloc.dataIdx;
-        }
 
-        if (preAlloc.dataIdx >= preAlloc.idList.size()) {
-            ++preAlloIdx;
+            if (preAlloc.dataIdx >= preAlloc.idList.size()) {
+                ++preAlloIdx;
+            }
+            auto postAlloT = SDL_GetPerformanceCounter();
+            timeTaken += (1000.f / SDL_GetPerformanceFrequency() * (postAlloT - preAlloT));
         }
-        auto postAlloT = SDL_GetPerformanceCounter();
-        timeLimit += (1000.f / SDL_GetPerformanceFrequency() * (postAlloT - preAlloT));
 
     }
 
@@ -442,3 +472,5 @@ void SpawnSystem::process(float dt) {
 
 SpawnSystem::EntityPreallocationInfo::EntityPreallocationInfo(size_t spawnCnt)
     : dataIdx(0), currentSpawnCount(spawnCnt) {}
+
+

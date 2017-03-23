@@ -6,14 +6,13 @@
 #include "renderable.h"
 #include "delayComponent.h"
 #include "lifeTimer.h"
-#include <ctime>
+#include "shieldComponent.h"
 
-PlayerSystem::PlayerSystem(EntityManager* const manager, int32_t priority) : EntitySystem{manager, priority},
-    playerHitFunc(std::function<bool(Message&)>([this](Message& message){
-            return playerHit(message); } ) ) {
+PlayerSystem::PlayerSystem(EntityManager* const manager, int32_t priority, sol::state& state) : EntitySystem{manager, priority},
+        luaState(state) {
     playerPool = manager->getComponentPool<Component<PlayerCmp::name, PlayerCmp>>();
-    manager->registerWithMessage(Message::Type::PlayerHit, playerHitFunc, 1000);
     randEngine.seed(time(nullptr));
+    luaState.set_function("playerHit", &PlayerSystem::playerHit, this);
 }
 
 void PlayerSystem::initialize() {
@@ -21,15 +20,18 @@ void PlayerSystem::initialize() {
 }
 
 void PlayerSystem::addEntity(uint32_t id) {
-    const auto& entity = manager->getEntity(id);
+    auto entity = manager->getEntity(id);
     if (entity) {
-        auto playerCmp = entity->find("player");
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay == entity->end() || !delay->second.active) && (pause == entity->end() || !pause->second.active)
-            && playerCmp != entity->end() && playerCmp->second.active) {
+        const auto &components = entity->components;
+        auto playerCmp = components.find("player");
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay == components.end() || !delay->second.active) && (pause == components.end() || !pause->second.active)
+            && playerCmp != components.end() && playerCmp->second.active) {
 
             entities.emplace(id, &playerCmp->second);
+            manager->groupManager.groupEntity("player", id);
+
 
         }
     }
@@ -38,6 +40,7 @@ void PlayerSystem::addEntity(uint32_t id) {
 
 void PlayerSystem::removeEntity(uint32_t id) {
     entities.erase(id);
+    manager->groupManager.ungroupEntity("player", id);
 }
 
 void PlayerSystem::refreshEntity(uint32_t id) {
@@ -45,10 +48,11 @@ void PlayerSystem::refreshEntity(uint32_t id) {
     if (entity != entities.end() && !entity->second->active) {
         removeEntity(id);
     } else if (entity != entities.end()) {
-        const auto& fullEntity = manager->getEntity(id);
-        auto delay = fullEntity->find("fullDelay");
-        auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
+        auto fullEntity = manager->getEntity(id);
+        const auto &components = fullEntity->components;
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay != components.end() && delay->second.active) || (pause != components.end() && pause->second.active) ) {
             removeEntity(id);
         }
     } else {
@@ -60,6 +64,8 @@ void PlayerSystem::process(float dt) {
 
     float adjustedDT = dt * 1000.0f;
 
+    auto playerPool = this->playerPool.lock();
+
     for (auto& entity : entities) {
 
         PlayerCmp& playerData = playerPool->operator[](entity.second->index).data;
@@ -69,97 +75,137 @@ void PlayerSystem::process(float dt) {
                 playerData.deathTimer = 3000.0f;
                 playerData.alive = true;
                 --playerData.lives;
-                Position playerPos;
-                playerPos.pastPosX = playerPos.posX = 180.0f;
-                playerPos.pastPosY = playerPos.posY = 360.0f;
-                manager->addComponent<Component<Position::name, Position>>(playerPos, entity.first);
-                manager->addComponent(std::string("component:velocity 0, 0"), entity.first);
-                manager->addComponent(std::string("component:collider Player Point 0 0"), entity.first);
-                manager->addComponent(std::string("component:shield 2500"), entity.first);
+                Transform playerPos;
+
+                playerPos.local.setTranslate(180, 360);
+                playerPos.local.setAngle(90);
+                manager->addComponent<Component<Transform::name, Transform>>(playerPos, entity.first);
+                manager->addComponent<Component<Shield::name, Shield>>(Shield(2500), entity.first);
+                luaState["id"] = entity.first;
+                luaState.script(R"(
+                    manager:addComponent("collider",
+                    {
+                        ["group"] = "Player",
+                        ["handlers"] = { ['Enemy'] = function (a, b) playerHit(a, b) end, ['EnemyBullet'] = function (a, b) playerHit(a, b) end },
+                        ["collider"] = {["type"] = "Circle",
+                        ["x"] = 0,
+                        ["y"] = 0,
+                        ["radius"] = 3}
+                    }, id)
+                )");
+                luaState["id"] = sol::nil;
+                playerData.blackboard["onRevive"]();
             }
+        } else {
+            if (playerData.currentTime < playerData.cooldown)
+                playerData.currentTime += adjustedDT;
+            auto velPool = manager->getComponentPool<Component<Velocity::name, Velocity>>().lock();
+            auto ent = manager->getEntity(entity.first);
+            const auto &components = ent->components;
+            auto velCmpHdl = components.find("velocity");
+            if (velCmpHdl != components.end()) {
+                auto& velCmp = velPool->operator[](velCmpHdl->second.index).data;
+                playerData.blackboard["update"](dt, entity.first);
+            }
+
         }
 
     }
 
 }
 
-bool PlayerSystem::playerHit(Message& message) {//
-    PlayerHit& data = (PlayerHit&)message;
-    auto entity = entities.find(data.col2ID);
-    std::cout << "Player Hit event: \n";
+bool PlayerSystem::playerHit(uint32_t id1, uint32_t id2) {//
+    auto entity = entities.find(id2);
+    std::cout << id1 << '\t' << id2 << '\n';
     if (entity != entities.end() && entity->second->active) {
+
+        auto playerPool = this->playerPool.lock();
         PlayerCmp& playerCmp = playerPool->operator[](entity->second->index).data;
-        if (playerCmp.alive) {
-            std::cout << "Player hit\tHitter: " << data.col1ID << "\tPlayer: " << data.col2ID << '\n';
-            manager->destroyEntity(data.col1ID);
+        auto mgEnt = manager->getEntity(id2);
+        const auto &components = mgEnt->components;
+        auto shieldIT = components.find("shield");
+        if (playerCmp.alive && (shieldIT == components.end() || !shieldIT->second.active ) && manager->getEntity(id1) != nullptr) {
 
-            std::string explosionAnim{"component:animation 8 1 160 \
-            2 180 3 180 4 200\
-            5 280 6 400 7 550 8 1"};
-            auto positionPool = manager->getComponentPool<Component<Position::name, Position>>();
-            const auto& fullEntity = manager->getEntity(data.col2ID);
-            auto posCmp = fullEntity->find("position");
-            if (posCmp != fullEntity->end()) {
-                Sprite explSprite;
-                explSprite.spriteName = "possibleExplosions";
-                explSprite.zOrder = 35;
-                explSprite.spritePos = 0;
+            std::cout << "Player hit\tHitter: " << id1 << "\tPlayer: " << id2 << '\n';
+            manager->destroyEntity(id1);
 
-                Transform orient;
+            auto positionPool = manager->getComponentPool<Component<Transform::name, Transform>>().lock();
+            const auto& fullEntity = manager->getEntity(id2);
+            const auto &components = fullEntity->components;
+            auto posCmp = components.find("transform");
+            if (posCmp != components.end()) {
 
-                std::uniform_real_distribution<float> angleDist{0.0f, 359.999f};
-                std::uniform_real_distribution<float> scaleDist{0.6f, 0.8f};
-                std::uniform_int_distribution<int32_t> coordDist{-6, 6};
-                std::uniform_int_distribution<int16_t> zOrderDist{30, 40};
+                std::uniform_real_distribution<float> angleDist{0.0f, 359.99999f};
+                std::uniform_real_distribution<float> scaleDist{0.5f, 1.0f};
+                std::uniform_real_distribution<float> scaleFacDist{0.6f, 1.10f};
+                std::uniform_real_distribution<float> coordDist{-4, 4};
+                std::uniform_real_distribution<float> animSpdDist{0.75f, 2.0f};
+                std::uniform_int_distribution<int16_t> zOrderDist{30, 45};
+                    luaState["explosionAnim"] = luaState.create_table_with(
+                        "frames", luaState.create_table_with(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8)
+                    );
 
-                for (uint8_t i = 0; i < 4; ++i) {
-                    std::uniform_int_distribution<int32_t> coordDist{-3, 3};
-                    std::uniform_real_distribution<float> delayDist{0.0f, 60.0f};
-                    auto explId = manager->createEntity();
-                    Transform orient;
-                    orient.local.rotate(angleDist(randEngine));
-                    orient.local.setScale(scaleDist(randEngine), scaleDist(randEngine));
-                    explSprite.zOrder = zOrderDist(randEngine);
-                    manager->addComponent(explosionAnim, explId);
-                    manager->addComponent<Component<Sprite::name, Sprite>>(explSprite, explId);
-                    manager->addComponent<Component<Position::name, Position>>(positionPool->operator[](posCmp->second.index), explId);
-                    manager->addComponent<Component<Transform::name, Transform>>(orient, explId);
-                    manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
-                    manager->addComponent<Component<lifeTimerName, float>>(2500, explId);
+                Transform& pos = positionPool->operator[](posCmp->second.index).data;
+                float x = 0.0f, y = 0.0f;
+                std::tie(x, y) = pos.worldPresent.getPos();
+                luaState["delay"] = 0.0f;
+                float ceiling = 0.0f;
+                float floor = 0.0f;
+                float delay = 0.0f;
+                for (uint8_t i = 0; i < 12; ++i) {
+                    float xScale = scaleDist(randEngine), yScale = xScale * scaleFacDist(randEngine);
+                    float animSpd = animSpdDist(randEngine) / xScale;
+                    luaState["explosionAnim"]["frameLengths"] =
+                        luaState.create_table_with(
+                            1, 250 / animSpd, 2, 180 / animSpd,
+                            3, 220 / animSpd, 4, 200 / animSpd,
+                            5, 300 / animSpd, 6, 400 / animSpd,
+                            7,  200 / animSpd, 8, 1);
+                    std::uniform_real_distribution<float> delayDist{0.0f, ceiling += 15.0f};
+                    delay += delayDist(randEngine);
+                    luaState["delay"] = delay;
+                    luaState["explId"] = manager->createEntity();
+                    luaState["orient"] = luaState.create_table_with(
+                        "transform", luaState.create_table_with(
+                            "translate", luaState.create_table_with(
+                                "x", x + coordDist(randEngine),
+                                "y", y + coordDist(randEngine)
+                            ),
+                            "angle", angleDist(randEngine),
+                            "scale", luaState.create_table_with("x", xScale, "y", yScale)
+                        )
+
+                    );
+                    luaState.script(R"(
+                        manager:addComponent("transform", orient, explId)
+                        manager:addComponent("animation", explosionAnim, explId)
+
+                    )");
+                    luaState["zOrder"] = zOrderDist(randEngine);
+                    luaState.script(R"(
+                        manager:addComponent("sprite", { ["fileName"] = "possibleExplosions", ["spritePos"] = 0, ["zOrder"] = zOrder}, explId)
+                        manager:addComponent("fullDelay", delay, explId)
+                        manager:addComponent("lifeTimer", 6000, explId)
+                        zOrder = nil
+                        delay = nil
+                    )");
+
                 }
 
-                for (uint8_t i = 0; i < 8; ++i) {
-                    auto explId = manager->createEntity();
-                    std::uniform_real_distribution<float> scaleDist{0.35f, 0.70f};
-                    std::uniform_real_distribution<float> delayDist{50.0f, 450.0f};
-
-                    explSprite.zOrder = zOrderDist(randEngine);
-                    manager->addComponent(explosionAnim, explId);
-                    manager->addComponent<Component<Sprite::name, Sprite>>(explSprite, explId);
-                    Position cpyPos = positionPool->operator[](posCmp->second.index).data;
-                    cpyPos.posX += coordDist(randEngine);
-                    cpyPos.posY += coordDist(randEngine);
-                    cpyPos.pastPosX = cpyPos.posX;
-                    cpyPos.pastPosY = cpyPos.posY;
-                    manager->addComponent<Component<Position::name, Position>>(cpyPos, explId);
-                    Transform orient;
-                    orient.local.setAngle(angleDist(randEngine));
-                    orient.local.setScale(scaleDist(randEngine), scaleDist(randEngine));
-                    manager->addComponent<Component<Transform::name, Transform>>(orient, explId);
-                    manager->addComponent<Component<delayComponent::fullDelay, float>>(delayDist(randEngine), explId);
-                    manager->addComponent<Component<lifeTimerName, float>>(2000, explId);
-
-                }
+                luaState.script(R"(
+                        explId = nil
+                        explosionAnim = nil
+                        orient = nil)");
 
             }
 
-
-            manager->removeComponent<Component<Position::name, Position>>(data.col2ID);
-            manager->removeComponent<Component<Collider::name, Collider>>(data.col2ID);
-            manager->removeComponent<Component<Velocity::name, Velocity>>(data.col2ID);
+            manager->removeComponent<Component<Transform::name, Transform>>( id2);
+            manager->removeComponent<Component<Collider::name, Collider>>( id2);
             playerCmp.alive = false;
+            playerCmp.blackboard["onDeath"]();
             return true;
         }
+
     }
     return false;
 }

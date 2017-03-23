@@ -32,9 +32,9 @@ private:
 
     std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
-    std::deque<Component<Animation::name, Animation>>* animationPool;
+    std::weak_ptr<std::deque<Component<Animation::name, Animation>>> animationPool;
 
-    std::deque<Component<Sprite::name, Sprite>>* spritePool;
+    std::weak_ptr<std::deque<Component<Sprite::name, Sprite>>> spritePool;
 
 };
 

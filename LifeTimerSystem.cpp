@@ -16,13 +16,14 @@ void LifeTimerSystem::addEntity(uint32_t id) {
         entityIDXs.resize(id + 1, 0);
     }
     if (hasEntity[id]) return;
-    const auto& entity = manager->getEntity(id);
+    auto entity = manager->getEntity(id);
     if (entity) {
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        auto lifeT = entity->find("lifeTimer");
-        if ((delay == entity->end() || !delay->second.active) && (pause == entity->end() || !pause->second.active) &&
-            (lifeT != entity->end() && lifeT->second.active)) {
+        const auto &components = entity->components;
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        auto lifeT = components.find("lifeTimer");
+        if ((delay == components.end() || !delay->second.active) && (pause == components.end() || !pause->second.active) &&
+            (lifeT != components.end() && lifeT->second.active)) {
 
             entityIDXs[id] = entities.size();
             hasEntity[id] = true;
@@ -52,10 +53,11 @@ void LifeTimerSystem::refreshEntity(uint32_t id) {
     if (!(entity->active)) {
         removeEntity(id);
     } else {
-        const auto& fullEntity = manager->getEntity(id);
-        auto delay = fullEntity->find("fullDelay");
-        auto pause = fullEntity->find("pauseDelay");
-        if ((delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active)) {
+        auto fullEntity = manager->getEntity(id);
+        const auto& components = fullEntity->components;
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ((delay != components.end() && delay->second.active) || (pause != components.end() && pause->second.active)) {
             removeEntity(id);
         }
     }
@@ -64,6 +66,8 @@ void LifeTimerSystem::refreshEntity(uint32_t id) {
 
 void LifeTimerSystem::process(float dt) {
     dt *= 1000.0f;
+
+    auto lifeTimerPool = this->lifeTimerPool.lock();
 
     for(size_t i = 0; i < entities.size(); ++i) {
         const auto& entity = entities[i];

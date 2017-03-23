@@ -23,17 +23,15 @@ struct HealthRegen {
 
     static const std::string name;
 
-    float rate;
-    float cooldown;
     float currentTime;
+    float rate;
     int32_t amount;
+    float cooldown;
+    uint32_t tickLimit;
 
     HealthRegen();
 
-    HealthRegen(float rate, int32_t amount);
-
-    HealthRegen(float rate, float cooldown, int32_t amount);
-
+    HealthRegen(float rate, int32_t amount, float cooldown = 0.0f, uint32_t tickLimit = 0);
 };
 
 #endif // HEALTH_H_INCLUDED

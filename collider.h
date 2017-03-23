@@ -3,6 +3,9 @@
 
 #include "component.h"
 
+#include <unordered_map>
+
+
 struct AABoundingBox {
     float minX, minY, maxX, maxY;
 
@@ -10,6 +13,20 @@ struct AABoundingBox {
 
 struct CollisionPoint {
     float x, y;
+};
+
+struct OBoundingBox {
+
+    std::array<CollisionPoint, 4> vertices;
+
+    float angle;
+
+    CollisionPoint pivot;
+
+    void setAngle(float angle);
+
+    void rotate(float angle);
+
 };
 
 struct CollisionCircle {
@@ -22,25 +39,15 @@ struct Collider {
 
     Collider();
 
-    enum CollisionGroup : uint8_t {
-        NoGroup = (uint8_t)-1,
-        Player = 0,
-        PlayerBullet = 1,
-        Enemy = 2,
-        EnemyBullet = 3,
-        Pickup = 4,
-        GroupSize
-
-    };
-
     enum ColliderType : uint8_t {
         NoType = (uint8_t)-1,
         AABB = 0,
         Point = 1,
-        Circle = 2
+        Circle = 2,
+        OBB = 3
     };
 
-    CollisionGroup collisionGroup;
+    std::string collisionGroup;
     ColliderType colliderType;
     CollisionPoint position;
     CollisionPoint offset;
@@ -48,10 +55,11 @@ struct Collider {
     union {
         AABoundingBox aabb;
         CollisionCircle circle;
+        OBoundingBox obb;
     };
 
     AABoundingBox spatialBox;
-
+    sol::object collisionHandlers;
 
 };
 

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "sol.hpp"
 
 struct Bounds {
 
@@ -48,7 +49,7 @@ struct Bounds {
         BoundsLimit boundsLimit;
     };
     PostLimitBehavior postLimit;
-    std::vector<std::string> changeBounds;
+    sol::table changeBounds;
 
 };
 

@@ -12,13 +12,14 @@ void ShieldSystem::initialize() {
 }
 
 void ShieldSystem::addEntity(uint32_t id) {
-    const auto& entity = manager->getEntity(id);
+    auto entity = manager->getEntity(id);
     if (entity) {
-        auto shieldCmp = entity->find("shield");
-        auto delay = entity->find("fullDelay");
-        auto pause = entity->find("pauseDelay");
-        if ( (delay == entity->end() || !delay->second.active) && (pause == entity->end() || !pause->second.active)
-            && shieldCmp != entity->end() && shieldCmp->second.active) {
+        const auto &components = entity->components;
+        auto shieldCmp = components.find("shield");
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay == components.end() || !delay->second.active) && (pause == components.end() || !pause->second.active)
+            && shieldCmp != components.end() && shieldCmp->second.active) {
 
             entities.emplace(id, &shieldCmp->second);
 
@@ -36,10 +37,11 @@ void ShieldSystem::refreshEntity(uint32_t id) {
     if (entity != entities.end() && !entity->second->active) {
         removeEntity(id);
     } else if (entity != entities.end()) {
-        const auto& fullEntity = manager->getEntity(id);
-        auto delay = fullEntity->find("fullDelay");
-        auto pause = fullEntity->find("pauseDelay");
-        if ( (delay != fullEntity->end() && delay->second.active) || (pause != fullEntity->end() && pause->second.active) ) {
+        auto fullEntity = manager->getEntity(id);
+        const auto &components = fullEntity->components;
+        auto delay = components.find("fullDelay");
+        auto pause = components.find("pauseDelay");
+        if ( (delay != components.end() && delay->second.active) || (pause != components.end() && pause->second.active) ) {
             removeEntity(id);
         }
     } else {
@@ -50,6 +52,8 @@ void ShieldSystem::refreshEntity(uint32_t id) {
 void ShieldSystem::process(float dt) {
 
     float adjustedDT = dt * 1000.0f;
+
+    auto shieldPool = this->shieldPool.lock();
 
     for (auto& entity : entities) {
 

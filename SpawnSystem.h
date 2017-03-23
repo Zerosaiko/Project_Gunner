@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include "Spawner.h"
 #include "displace.h"
+#include "Transform.h"
+#include "sol.hpp"
 
 class SpawnSystem : public EntitySystem {
 
@@ -31,7 +33,7 @@ private:
 
         std::vector<uint32_t> idList;
 
-        std::vector< std::vector< std::vector< std::string > > > data;
+        std::vector<std::vector< sol::object >> data;
 
         EntityPreallocationInfo( size_t spawnCnt);
 
@@ -45,11 +47,11 @@ private:
 
     std::vector<std::pair<EntityManager::ComponentHandle const *,EntityManager::ComponentHandle const *>> entities;
 
-    std::deque<Component<Position::name, Position>>* positionPool;
+    std::weak_ptr<std::deque<Component<Transform::name, Transform>>> transformPool;
 
-    std::deque<Component<Spawner::name, Spawner>>* spawnPool;
+    std::weak_ptr<std::deque<Component<Spawner::name, Spawner>>> spawnPool;
 
-    std::deque<EntityPreallocationInfo> preAllocationData;
+    std::vector<std::vector<EntityPreallocationInfo>> preAllocationData;
 
     size_t preAlloIdx;
 

@@ -26,7 +26,6 @@ TransformState::TransformState(float originX, float originY, float translateX, f
     setScale(scaleX, scaleY);
     setFlipX(flipX);
     setFlipY(flipY);
-
 }
 
 void TransformState::setTranslate(float x, float y) {
@@ -34,11 +33,10 @@ void TransformState::setTranslate(float x, float y) {
                      0, 1, 0, 0,
                      0, 0, 1, 0,
                      0, 0, 0, 1};
-    float vec[] = {x - translateX + originX, y - translateY + originY, 0};
-    GPU_MatrixRotate(rot, -angle, originX, originY, 1);
+    float vec[] = {x - translateX, y - translateY, 0};
+    GPU_MatrixRotate(rot, -angle, 0, 0, 1);
     GPU_VectorApplyMatrix(vec, rot);
     GPU_MatrixTranslate(matrix.data(), vec[0], vec[1], 0);
-
     translateX = x;
     translateY = y;
 }
@@ -48,14 +46,15 @@ void TransformState::translate(float x, float y) {
 }
 
 void TransformState::TransformState::setOrigin(float x, float y) {
+    GPU_MatrixTranslate(matrix.data(), x - originX, y - originY, 0);
     originX = x;
-    originY = y;;
+    originY = y;
 }
 
 void TransformState::TransformState::setAngle(float angle) {
-    GPU_MatrixTranslate(matrix.data(), originX, originY, 0);
-    GPU_MatrixRotate(matrix.data(), this->angle - angle, 0, 0, 1);
     GPU_MatrixTranslate(matrix.data(), -originX, -originY, 0);
+    GPU_MatrixRotate(matrix.data(), this->angle - angle, 0, 0, 1);
+    GPU_MatrixTranslate(matrix.data(), originX, originY, 0);
     this->angle = angle;
 }
 
@@ -64,9 +63,9 @@ void TransformState::TransformState::rotate(float angle) {
 }
 
 void TransformState::TransformState::setScale(float scaleX, float scaleY) {
-    GPU_MatrixTranslate(matrix.data(), originX, originY, 0);
-    GPU_MatrixScale(matrix.data(), scaleX / this->scaleX, scaleY / this->scaleY, 1);
     GPU_MatrixTranslate(matrix.data(), -originX, -originY, 0);
+    GPU_MatrixScale(matrix.data(), scaleX / this->scaleX, scaleY / this->scaleY, 1);
+    GPU_MatrixTranslate(matrix.data(), originX, originY, 0);
     this->scaleX = scaleX;
     this->scaleY = scaleY;
 }
@@ -76,16 +75,16 @@ void TransformState::TransformState::scale(float scaleX, float scaleY) {
 }
 
 void TransformState::TransformState::setFlipX(bool flipX) {
-    GPU_MatrixTranslate(matrix.data(), originX, originY, 0);
-    GPU_MatrixScale(matrix.data(), 1 - 2 * flipX, 1, 1);
     GPU_MatrixTranslate(matrix.data(), -originX, -originY, 0);
+    GPU_MatrixScale(matrix.data(), 1 - 2 * flipX, 1, 1);
+    GPU_MatrixTranslate(matrix.data(), originX, originY, 0);
     this->flipX = flipX;
 }
 
 void TransformState::TransformState::setFlipY(bool flipY) {
-    GPU_MatrixTranslate(matrix.data(), originX, originY, 0);
-    GPU_MatrixScale(matrix.data(), 1, (1 - 2 * flipY), 1);
     GPU_MatrixTranslate(matrix.data(), -originX, -originY, 0);
+    GPU_MatrixScale(matrix.data(), 1, (1 - 2 * flipY), 1);
+    GPU_MatrixTranslate(matrix.data(), originX, originY, 0);
     this->flipY = flipY;
 }
 
@@ -98,6 +97,40 @@ void TransformState::TransformState::flipYAxis() {
     setFlipY(!flipY);
 }
 
+float TransformState::xPos() {
+    float rot[16] = {1, 0, 0, 0,
+                     0, 1, 0, 0,
+                     0, 0, 1, 0,
+                     0, 0, 0, 1};
+    float vec[] = {originX,originY, 0};
+    GPU_MatrixRotate(rot, -angle, 0, 0, 1);
+    GPU_VectorApplyMatrix(vec, rot);
+    return translateX + vec[0];
+}
+
+float TransformState::yPos() {
+    float rot[16] = {1, 0, 0, 0,
+                     0, 1, 0, 0,
+                     0, 0, 1, 0,
+                     0, 0, 0, 1};
+    float vec[] = {originX,originY, 0};
+    GPU_MatrixRotate(rot, -angle, 0, 0, 1);
+    GPU_VectorApplyMatrix(vec, rot);
+    return translateY + vec[1];
+}
+
+std::tuple<float, float> TransformState::getPos() const {
+    float rot[16] = {1, 0, 0, 0,
+                     0, 1, 0, 0,
+                     0, 0, 1, 0,
+                     0, 0, 0, 1};
+    float vec[] = {originX,originY, 0};
+    GPU_MatrixRotate(rot, -angle, 0, 0, 1);
+    GPU_VectorApplyMatrix(vec, rot);
+    return std::make_tuple(translateX + vec[0],
+        translateY + vec[1]);
+}
+
 const TransformState TransformState::operator*(const TransformState& other) const {
     TransformState ret = *this;
     return ret *= other;
@@ -108,54 +141,46 @@ TransformState& TransformState::operator*=(const TransformState& other) {
     GPU_MultiplyAndAssign(matrix.data(), const_cast<float*>(other.matrix.data()));
     originX += other.originX;
     originY += other.originY;
-    if (other.flipX) flipX = !flipX;
-    if (other.flipY) flipY = !flipY;
+    translateX += other.translateX;
+    translateY += other.translateY;
     angle += other.angle;
     scaleX *= other.scaleX;
     scaleY *= other.scaleY;
-    translateX += other.translateX;
-    translateY += other.translateY;
+    if (other.flipX) flipX = !flipX;
+    if (other.flipY) flipY = !flipY;
     return *this;
 }
 
 template<>
-TransformState buildFromString<TransformState>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
-    float angle = 0.0f, originX = 0.0f, originY = 0.0f, scaleX = 1.0f, scaleY = 1.0f, translateX = 0.0f, translateY = 0.0f;
-    bool flipX = false, flipY = false;
-    uint32_t count = buildFromString<uint32_t>(str, pos);
+TransformState buildFromLua<TransformState>(sol::object& obj) {
+    sol::table tbl = obj;
+    float angle = tbl["angle"].get_or(0.0f),
+    originX = tbl["origin"]["x"].get_or(0.0f),
+    originY = tbl["origin"]["y"].get_or(0.0f),
+    scaleX = tbl["scale"]["x"].get_or(1.0f),
+    scaleY = tbl["scale"]["y"].get_or(1.0f),
+    translateX = tbl["translate"]["x"].get_or(0.0f),
+    translateY = tbl["translate"]["y"].get_or(0.0f);
 
-    for(; count > 0; --count) {
-        if (str[pos] == "angle") {
-            angle = buildFromString<float>(str, ++pos);
-        } else if (str[pos] == "flipX") {
-            flipX = buildFromString<uint32_t>(str, ++pos);
-        } else if (str[pos] == "flipY") {
-            flipY = buildFromString<uint32_t>(str, ++pos);
-        } else if (str[pos] == "origin") {
-            originX = buildFromString<int32_t>(str, ++pos);
-            originY = buildFromString<int32_t>(str, pos);
-        } else if (str[pos] == "scale") {
-            scaleX = buildFromString<float>(str, ++pos);
-            scaleY = buildFromString<float>(str, pos);
-        } else if (str[pos] == "position") {
-            translateX = buildFromString<float>(str, ++pos);
-            translateY = buildFromString<float>(str, pos);
-        }
-    }
+    bool flipX = tbl["flip"]["x"].get_or(false),
+    flipY = tbl["flip"]["y"].get_or(false);
 
     return TransformState(originX, originY, translateX, translateY, angle, scaleX, scaleY, flipX, flipY);
 }
 
 template<>
-Transform buildFromString<Transform>(std::vector<std::string>& str, std::vector<std::string>::size_type& pos) {
+Transform buildFromLua<Transform>(sol::object& obj) {
 
+    sol::table tbl = obj;
     Transform transform;
-    if (buildFromString<uint32_t>(str, pos)) {
+    sol::optional<uint32_t> parent = tbl["parent"];
+    if (parent != sol::nullopt) {
         transform.hasParent = true;
-        transform.parentTFEntity = buildFromString<uint32_t>(str, pos);
+        transform.parentTFEntity = tbl["parent"];
     }
 
-    transform.local = transform.worldPast = transform.worldPresent = buildFromString<TransformState>(str, pos);
+    sol::object tf = tbl["transform"];
+    transform.local = transform.worldPast = transform.worldPresent = buildFromLua<TransformState>(tf);
     return transform;
 }
 
@@ -176,12 +201,12 @@ void TransformTree::clearDirty(uint32_t id) {
         it->second.dirty = false;
         dirtyList.erase(id);
         for (auto childID : it->second.children) {
-            setDirty(childID);
+            clearDirty(childID);
         }
     }
 }
 
-TransformTree::Node::Node() : dirty(true), parent(0) {}
+TransformTree::Node::Node() : Node(0) {}
 
-TransformTree::Node::Node(bool dirty, uint32_t parent) : dirty(dirty), parent(parent){}
+TransformTree::Node::Node(uint32_t parent) : dirty(false), parent(parent), height(0) {}
 
